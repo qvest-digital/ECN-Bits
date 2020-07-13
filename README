@@ -1,0 +1,14 @@
+┏━━━━━━━━━━┓
+┃ ECN-Bits ┃
+┗━━━━━━━━━━┛
+
+┌──────────┐
+│ Abstract │
+└──────────┘
+
+This repository contains tooling (libraries) and examples for
+getting Explicit Congestion Notification (ECN) bits from IP
+traffic, which is useful for L4S-aware applications. They are
+available under liberal (Open Source) licences.
+
+Development funded by Deutsche Telekom.
