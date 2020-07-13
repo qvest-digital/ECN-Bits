@@ -12,3 +12,47 @@ traffic, which is useful for L4S-aware applications. They are
 available under liberal (Open Source) licences.
 
 Development funded by Deutsche Telekom.
+
+┌────────────────────────────────┐
+│ Covered operating environments │
+└────────────────────────────────┘
+
+• Linux, C (usable from C++ and others)
+  ‣ preliminary implementation
+
+• Linux/Android, Java with native components
+  (possibly reusable for regular Linux with OpenJDK)
+  ‣ planning
+
+• Windows, C♯/.net and/or C/C++
+  ‣ pre-planning
+
+┌────────────────┐
+│ About ECN bits │
+└────────────────┘
+
+Both IP (IPv6) and Legacy IP (IPv4) have a Traffic Class
+header field, eight bits in size. (This spans the second
+and third nybble (half-octet) in IPv6; in IPv4 the whole
+second octet is comprised of it.) The upper six bits are
+used for DiffServ (DSCP) while the lower two are used by
+ECN as follows:
+
+• 00: NonECT — nōn-ECN-capable transport
+• 01: ECT(0) — ECN-capable transport; L4S: legacy transport
+• 10: ECT(1) — ECN-capable transport; L4S: L4S-aware transport
+• 11: CE — congestion experienced
+
+The Traffic Class header used to be known as IPToS.
+
+┌────────────────────┐
+│ Further directions │
+└────────────────────┘
+
+For writing L4S-aware applications, adaptively managing
+bandwidth (and latency) are important. The scope of the
+tooling included here is aids to get at the ECN bits of
+the IP header; nothing more. SCReAM (Ericsson Research)
+is a good example of how to actually adapt use of band‐
+width based on network conditions:
+‣ https://github.com/EricssonResearch/scream
