@@ -36,9 +36,10 @@ lib${LIB}.a: ${OBJS}
 endif
 
 ifdef PROG
+LIBS+=		-lecn-bits
 CLEANFILES+=	${PROG}
 all: ${PROG}
-${PROG}: ${OBJS}
+${PROG}: ${OBJS} ${TOP}/lib/libecn-bits.a
 	${LINK.c} -o $@ ${OBJS} ${LIBS}
 endif
 

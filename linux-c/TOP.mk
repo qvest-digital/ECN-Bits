@@ -30,7 +30,7 @@ TOP:=		$(realpath $(dir ${TOP}))
 ifeq (,$(filter %/TOP.mk,$(wildcard ${TOP}/TOP.mk)))
 $(error cannot determine top-level directory ${TOP} from cwd ${CWD})
 endif
-CLEANFILES:=	*.o
+CLEANFILES:=	*.i *.o
 
 shellescape='$(subst ','\'',$(1))'
 shellexport=$(1)=$(call shellescape,${$(1)})
@@ -63,6 +63,11 @@ LINK.c:=	${CC} ${CFLAGS} ${LDFLAGS}
 all:
 install:
 clean:
+
+.SUFFIXES: .c .i .o
+
+.c.i:
+	${CC} ${CPPFLAGS} -E -dD -o $@ $<
 
 .c.o:
 	${COMPILE.c} $<

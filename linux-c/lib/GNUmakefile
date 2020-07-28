@@ -22,4 +22,8 @@
 TOP:=$(shell x=TOP.mk; until test -e $$x; do x=../$$x; done; echo $$x)
 include ${TOP}
 
+LIB=	ecn-bits
+SRCS+=	desc.c
+SRCS+=	ecn.c
+
 include ${TOP}/BOTTOM.mk

@@ -54,6 +54,7 @@ do_resolve(const char *host, const char *service)
 	struct addrinfo *ai, *ap;
 	char nh[INET6_ADDRSTRLEN];
 	char np[/* 0‥65535 + NUL */ 6];
+	const char *es;
 
 	if (!(ap = calloc(1, sizeof(struct addrinfo))))
 		err(1, "calloc");
@@ -90,13 +91,25 @@ do_resolve(const char *host, const char *service)
 
 		if ((s = socket(ap->ai_family, ap->ai_socktype,
 		    ap->ai_protocol)) == -1) {
+			i = errno;
 			putc('\n', stderr);
+			errno = i;
 			warn("socket");
 			continue;
 		}
+		if (ecnbits_setup(s, ap->ai_family, ECNBITS_ECT0, &es)) {
+			i = errno;
+			putc('\n', stderr);
+			errno = i;
+			warn("ecnbits_setup: %s", es);
+			continue;
+		}
+
 		/* set up socket for ECN */
 		if (connect(s, ap->ai_addr, ap->ai_addrlen)) {
+			i = errno;
 			putc('\n', stderr);
+			errno = i;
 			warn("connect");
 			close(s);
 			continue;

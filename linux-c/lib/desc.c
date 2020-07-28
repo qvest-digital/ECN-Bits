@@ -19,34 +19,9 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#ifndef ECN_BITS_H
-#define ECN_BITS_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* operations on the result value */
-#define ECNBITS_VALID(result)	(((result) & 4) == 4)	/* valid? */
-#define ECNBITS_BITS(result)	((result) & 3)		/* extract bits */
-
-/* ECN bits’ meanings */
-#define ECNBITS_NON		0 /* nōn-ECN-capable transport */
-#define ECNBITS_ECT0		2 /* ECN-capable; L4S: legacy transport */
-#define ECNBITS_ECT1		1 /* ECN-capable; L4S: L4S-aware transport */
-#define ECNBITS_CE		3 /* congestion experienced */
-extern const char *ecnbits_meanings[4];
-
-/* socket operations */
-int ecnbits_setup(int socketfd, int af, unsigned char iptos,
-    const char **errstring);
-
-/* wrapped calls */
-ssize_t ecnbits_recvmsg(int socketfd, struct msghdr *msg, int flags,
-    unsigned char *ecnbits);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+const char *ecnbits_meanings[4] = {
+	"nōn-ECN-capable transport",
+	"ECN-capable; L4S: L4S-aware transport",
+	"ECN-capable; L4S: legacy transport",
+	"congestion experienced"
+};
