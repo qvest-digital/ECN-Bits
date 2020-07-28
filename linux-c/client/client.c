@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "ecn-bits.h"
 
@@ -137,8 +138,11 @@ do_connect(int s)
 	ssize_t n;
 	struct pollfd pfd;
 	int rv = 1;
+	unsigned char ecn;
+	time_t tt;
+	char tm[21];
 
-	memcpy(buf, "hi\n", 3);
+	memcpy(buf, "hi!", 3);
 	if ((n = write(s, buf, 3)) != 3) {
 		if (n == (ssize_t)-1) {
 			warn("send");
@@ -162,12 +166,19 @@ do_connect(int s)
 		return (1);
 	}
 
-	if ((n = read(s, buf, sizeof(buf) - 1)) == -1) {
+	if ((n = ecnbits_read(s, buf, sizeof(buf) - 1, &ecn)) == -1) {
 		warn("recv");
 		return (1);
 	}
+	time(&tt);
+	strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt));
 	buf[n] = '\0';
-	fprintf(stderr, "received <%s>\n", buf);
+	if (n > 2 && buf[n - 1] == '\n') {
+		buf[n - 1] = '\0';
+		if (buf[n - 2] == '\r')
+			buf[n - 2] = '\0';
+	}
+	fprintf(stderr, "%s %s <%s>\n", tm, ECNBITS_DESC(ecn), buf);
 	rv = 0;
 	goto loop;
 }
