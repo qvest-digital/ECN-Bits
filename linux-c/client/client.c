@@ -102,10 +102,10 @@ do_resolve(const char *host, const char *service)
 			putc('\n', stderr);
 			errno = i;
 			warn("ecnbits_setup: %s", es);
+			close(s);
 			continue;
 		}
 
-		/* set up socket for ECN */
 		if (connect(s, ap->ai_addr, ap->ai_addrlen)) {
 			i = errno;
 			putc('\n', stderr);
