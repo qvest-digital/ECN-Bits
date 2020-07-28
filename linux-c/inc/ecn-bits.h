@@ -47,6 +47,16 @@ int ecnbits_setup(int socketfd, int af, unsigned char iptos,
 /* wrapped calls */
 ssize_t ecnbits_recvmsg(int socketfd, struct msghdr *msg, int flags,
     unsigned char *ecnbits);
+ssize_t ecnbits_recvfrom(int socketfd, void *buf, size_t buflen,
+    int flags, struct sockaddr *src_addr, socklen_t *addrlen,
+    unsigned char *ecnbits);
+ssize_t ecnbits_recv(int socketfd, void *buf, size_t buflen,
+    int flags,
+    unsigned char *ecnbits);
+
+/* be mindful of different semantics for zero-length datagrams */
+#define ecnbits_read(socketfd,buf,buflen,ecnbits) \
+	ecnbits_recv((socketfd), (buf), (buflen), 0, (ecnbits))
 
 /* internal functions */
 #ifdef ECNBITS_INTERNAL

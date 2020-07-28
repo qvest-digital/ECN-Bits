@@ -25,8 +25,11 @@ include ${TOP}
 CPPFLAGS+=	-DECNBITS_INTERNAL
 
 LIB=		ecn-bits
+
 SRCS+=		desc.c
 SRCS+=		ecn.c
+SRCS+=		recv.c
+SRCS+=		recvfrom.c
 SRCS+=		recvmsg.c
 
 include ${TOP}/BOTTOM.mk
