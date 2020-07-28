@@ -20,7 +20,7 @@
 # of said person’s immediate fault when using the work as intended.
 
 SUBDIRS=	lib client server
-TARGETS=	clean all #install
+TARGETS=	clean all install
 
 all:
 

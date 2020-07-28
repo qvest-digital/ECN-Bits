@@ -39,6 +39,7 @@ ifneq (,$(findstring $(origin CC),default undefined))
 undefine CC
 endif
 
+INSTALL?=	install # or /usr/ucb/install
 AR?=		ar
 RANLIB?=	ranlib
 CC?=		gcc
@@ -59,6 +60,13 @@ LDFLAGS+=	-Wl,--as-needed
 
 COMPILE.c=	${CC} ${CPPFLAGS} ${CFLAGS} -c
 LINK.c=		${CC} ${CFLAGS} ${LDFLAGS}
+
+PREFIX?=	/usr/local
+BINOWN?=	0
+BINGRP?=	0
+BINMODE?=	755
+DIRMODE?=	755
+NONBINMODE?=	644
 
 all:
 install:
