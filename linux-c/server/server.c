@@ -222,10 +222,25 @@ do_packet(int s)
 	len = snprintf(data, sizeof(data), "%s %s %s %s -> 0",
 	    revlookup(mh.msg_name, mh.msg_namelen),
 	    tm, ECNBITS_DESC(ecn), trc);
- /*
-	do {
- */
-	mh.msg_control = NULL;
 	io.iov_len = len;
-	sendmsg(s, &mh, 0);
+	do {
+		union {
+			unsigned char buf[CMSG_SPACE(sizeof(int))];
+			struct cmsghdr msg;
+		} cmsgbuf;
+		struct cmsghdr *cmsg;
+		int tc;
+
+		cmsg = &cmsgbuf.msg;
+		memset(cmsg, 0, sizeof(cmsgbuf));
+		cmsg->cmsg_level = IPPROTO_IPV6;
+		cmsg->cmsg_type = IPV6_TCLASS;
+		cmsg->cmsg_len = CMSG_LEN(sizeof(tc));
+		tc = data[len - 1] - '0';
+		memcpy(CMSG_DATA(cmsg), &tc, sizeof(tc));
+
+		mh.msg_control = cmsg;
+		mh.msg_controllen = sizeof(cmsgbuf);
+		sendmsg(s, &mh, 0);
+	} while (data[len - 1]++ < '3');
 }
