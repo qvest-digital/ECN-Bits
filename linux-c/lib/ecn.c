@@ -32,13 +32,12 @@ int
 ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 {
 	int on = 1;
-	/*XXX this needs checking on a big endian platform! */
-	int tos = (int)(unsigned int)iptos;
+	int tos;
 
 	switch (af) {
 	case AF_INET:
 		if (setsockopt(s, IPPROTO_IP, IP_TOS,
-		    &tos, sizeof(tos))) {
+		    &iptos, sizeof(iptos))) {
 			if (e)
 				*e = "failed to set up sender TOS";
 			return (-1);
@@ -51,6 +50,7 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 		}
 		break;
 	case AF_INET6:
+		tos = (int)(unsigned int)iptos;
 		if (setsockopt(s, IPPROTO_IPV6, IPV6_TCLASS,
 		    &tos, sizeof(tos))) {
 			if (e)
