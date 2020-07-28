@@ -136,6 +136,7 @@ do_connect(int s)
 	char buf[512];
 	ssize_t n;
 	struct pollfd pfd;
+	int rv = 1;
 
 	memcpy(buf, "hi\n", 3);
 	if ((n = write(s, buf, 3)) != 3) {
@@ -146,14 +147,16 @@ do_connect(int s)
 		warnx("wrote %zu bytes but got %zd", (size_t)3, n);
 	}
 
+ loop:
 	pfd.fd = s;
 	pfd.events = POLLIN;
 	switch (poll(&pfd, 1, 1000)) {
 	case 1:
 		break;
 	case 0:
-		warnx("timeout waiting for packet");
-		return (1);
+		if (rv)
+			warnx("timeout waiting for packet");
+		return (rv);
 	default:
 		warn("poll");
 		return (1);
@@ -165,5 +168,6 @@ do_connect(int s)
 	}
 	buf[n] = '\0';
 	fprintf(stderr, "received <%s>\n", buf);
-	return (0);
+	rv = 0;
+	goto loop;
 }
