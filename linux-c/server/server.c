@@ -219,10 +219,13 @@ do_packet(int s)
 	    revlookup(mh.msg_name, mh.msg_namelen),
 	    ECNBITS_DESC(ecn), data);
 
- /*
 	len = snprintf(data, sizeof(data), "%s %s %s %s -> 0",
 	    revlookup(mh.msg_name, mh.msg_namelen),
 	    tm, ECNBITS_DESC(ecn), trc);
+ /*
 	do {
  */
+	mh.msg_control = NULL;
+	io.iov_len = len;
+	sendmsg(s, &mh, 0);
 }
