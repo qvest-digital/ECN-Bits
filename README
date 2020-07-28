@@ -20,6 +20,8 @@ Development funded by Deutsche Telekom.
 • Linux, C (usable from C++ and others)
   ‣ see linux-c/
   ‣ library; example client/server
+  ‣ FreeBSD should work (except server), needs testing
+  ‣ needs testing on big endian!
 
 • Linux/Android, Java with native components
   (possibly reusable for regular Linux with OpenJDK)
