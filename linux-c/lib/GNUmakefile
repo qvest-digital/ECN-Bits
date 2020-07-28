@@ -31,5 +31,6 @@ SRCS+=		ecn.c
 SRCS+=		recv.c
 SRCS+=		recvfrom.c
 SRCS+=		recvmsg.c
+SRCS+=		short.c
 
 include ${TOP}/BOTTOM.mk

@@ -33,12 +33,17 @@ extern "C" {
 #define ECNBITS_VALID(result)	(((result) & 4) == 4)	/* valid? */
 #define ECNBITS_BITS(result)	((result) & 3)		/* extract bits */
 
+#define ECNBITS_DESC(result)	(ECNBITS_VALID(result) ?	\
+		ecnbits_shortnames[ECNBITS_BITS(result)] :	\
+		"??ECN?")
+
 /* ECN bits’ meanings */
 #define ECNBITS_NON		0 /* nōn-ECN-capable transport */
 #define ECNBITS_ECT0		2 /* ECN-capable; L4S: legacy transport */
 #define ECNBITS_ECT1		1 /* ECN-capable; L4S: L4S-aware transport */
 #define ECNBITS_CE		3 /* congestion experienced */
 extern const char *ecnbits_meanings[4];
+extern const char *ecnbits_shortnames[4];
 
 /* socket operations */
 int ecnbits_setup(int socketfd, int af, unsigned char iptos,
