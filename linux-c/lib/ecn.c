@@ -120,7 +120,17 @@ ecnbits_recvmsg(int s, struct msghdr *mh, int flags, unsigned char *e)
 		     cmsg->cmsg_type == IP_TOS) ||
 		    (cmsg->cmsg_level == IPPROTO_IPV6 &&
 		     cmsg->cmsg_type == IPV6_TCLASS)) {
-			*e = IPTOS_ECN(CMSG_DATA(cmsg)[0]) | 4;
+			/* https://bugs.debian.org/966459 */
+			unsigned char b1, b2;
+
+			b1 = CMSG_DATA(cmsg)[0];
+			b2 = CMSG_DATA(cmsg)[3];
+			if (b1 == b2)
+				*e = IPTOS_ECN(b1) | 4;
+			else if (b1 == 0 && b2 != 0)
+				*e = IPTOS_ECN(b2) | 4;
+			else if (b1 != 0 && b2 == 0)
+				*e = IPTOS_ECN(b1) | 4;
 			break;
 		}
 		cmsg = CMSG_NXTHDR(msg, cmsg);
