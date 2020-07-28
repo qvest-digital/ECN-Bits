@@ -57,8 +57,8 @@ LDFLAGS+=	-L$(call shellescape,${TOP})/lib
 LDFLAGS+=	-Wl,-z,relro -Wl,-z,now
 LDFLAGS+=	-Wl,--as-needed
 
-COMPILE.c:=	${CC} ${CPPFLAGS} ${CFLAGS} -c
-LINK.c:=	${CC} ${CFLAGS} ${LDFLAGS}
+COMPILE.c=	${CC} ${CPPFLAGS} ${CFLAGS} -c
+LINK.c=		${CC} ${CFLAGS} ${LDFLAGS}
 
 all:
 install:
