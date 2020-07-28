@@ -1,0 +1,115 @@
+┏━━━━━━━━━━━━━━━━━━━━┓
+┃ ECN-Bits • Linux/C ┃
+┗━━━━━━━━━━━━━━━━━━━━┛
+
+┌─────────────┐
+│ Compilation │
+└─────────────┘
+
+With GNU make and build-essential installed, it is sufficient
+to run “make”, either in the top-level “linux-c” directory or
+a subdirectory. (To build the client or server example, the
+library must have been built first locally or it must have been
+installed system-wide.) The usual variables (CC, AR, RANLIB,
+CFLAGS, CPPFLAGS, LDFLAGS, LIBS, etc.) are supported.
+
+Running “make install” will install the library and development
+headers; as common, this honours the PREFIX variable.
+
+┌───────────┐
+│ Structure │
+└───────────┘
+
+inc/ ‣ development headers (public) for the library
+lib/ ‣ library source code
+
+client/ and server/
+‣ example applications, see below
+
+*.mk, GNUmakefile
+‣ build system
+
+┌───────────────────────┐
+│ Example client/server │
+└───────────────────────┘
+
+These applications demonstrate how to use the ECN-Bits library
+and are deliberately simple. See SCReAM for an actual example
+of how to develop L4Sified bandwidth-adaptive applications.
+
+Run the server on one system: ./server [host] port
+(The arguments are for what IP/port this should bind to.
+Numeric and NSS values are supported.)
+
+Run the client on another (or same) system: ./client host post
+(The arguments are for what system to connect to.)
+
+The client will send a “hello” packet to the server, by default
+with ECT(0) set, as usual for normal nōn-L4S-aware applications.
+The server receives it, displays a line with the timestamp it
+received the packet, whether it was truncated, which ECN bits
+were set, and its content.
+
+The server then sends FOUR packets back, with almost the same
+content (truncation, server timestamp, received ECN bits, as
+above, and an arrow followed by a number). The trailing number
+goes from 0 to 3 and matches the ECN bits set on the return
+packet.
+
+The client (after sending the initial packet it waits for up
+to a second for responses) displays the packet data received
+together with their ECN bits and local timestamps. (Timestamps
+are in UTC.)
+
+Both applications support IPv6 and legacy IPv4; the client
+can be used against e.g. the BSD inetd daytime service as well,
+or netcat-openbsd, for testing. The client terminates after
+one run; the server can be terminated by pressing Ctrl-C.
+
+Example session:
+
+SERVER│$ ./server 1234
+SERVER│Listening on [0.0.0.0]:1234... ok
+SERVER│Listening on [::]:1234... ok
+SERVER│
+CLIENT│$ ./client localhost 1234
+CLIENT│Trying [127.0.0.1]:1234... connected
+SERVER│2020-07-28T21:51:53Z notrunc [127.0.0.1]:56895 ECT(0) <hi!>
+CLIENT│2020-07-28T21:51:53Z no ECN <[127.0.0.1]:56895 2020-07-28T21:51:53Z ECT(0) notrunc -> 0>
+CLIENT│2020-07-28T21:51:53Z ECT(1) <[127.0.0.1]:56895 2020-07-28T21:51:53Z ECT(0) notrunc -> 1>
+CLIENT│2020-07-28T21:51:53Z ECT(0) <[127.0.0.1]:56895 2020-07-28T21:51:53Z ECT(0) notrunc -> 2>
+CLIENT│2020-07-28T21:51:53Z ECN CE <[127.0.0.1]:56895 2020-07-28T21:51:53Z ECT(0) notrunc -> 3>
+CLIENT│$ ./client ip6-localhost 1234
+CLIENT│Trying [::1]:1234... connected
+SERVER│2020-07-28T21:52:01Z notrunc [::1]:57863 ECT(0) <hi!>
+CLIENT│2020-07-28T21:52:01Z no ECN <[::1]:57863 2020-07-28T21:52:01Z ECT(0) notrunc -> 0>
+CLIENT│2020-07-28T21:52:01Z ECT(1) <[::1]:57863 2020-07-28T21:52:01Z ECT(0) notrunc -> 1>
+CLIENT│2020-07-28T21:52:01Z ECT(0) <[::1]:57863 2020-07-28T21:52:01Z ECT(0) notrunc -> 2>
+CLIENT│2020-07-28T21:52:01Z ECN CE <[::1]:57863 2020-07-28T21:52:01Z ECT(0) notrunc -> 3>
+
+┌─────────────┐
+│ Portability │
+└─────────────┘
+
+This library uses system calls with Linux-specific API/ABI
+and is unlikely to work on other operating systems, should
+they even support IP traffic class retrieval and setting.
+
+While this API for IPv6 is standardised in RFC3542 in theory,
+that RFC introduces an incompatibility with its antecessor,
+and to add insult to injury, Linux’ implementation is not
+compliant (although the library tries hard to handle either
+variant, Linux and RFC/standard).
+
+The server application uses the ability to pass multiple
+CMSGs on sendmsg(2), which is not portable; this could be
+replaced by remembering, for each socket, which address
+family it uses, and using (only) the appropriate CMSG for
+sending back packets.
+
+FreeBSD supports IP_TOS (might need to use int instead of
+u_char for its argument) and IP_RECVTOS, as well as the
+IPv6 API; the library and client therefore should work.
+
+At least the Linux implementation leaves open questions
+whether it works as intended on big endian architectures.

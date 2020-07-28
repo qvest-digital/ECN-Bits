@@ -231,6 +231,9 @@ do_packet(int s)
 		 * support it at all and “FreeBSD fails in intere‐
 		 * sting ways” and Mac OSX returns E2BIG, according
 		 * mailing list threads regarding this).
+		 *
+		 * Portably, we’d note whether s is IPv4 or IPv6
+		 * and set only the appropriate CMSG.
 		 */
 		union {
 			unsigned char buf[2 * CMSG_SPACE(sizeof(int))];
