@@ -19,11 +19,7 @@
 # damage or existence of a defect, except proven that it results out
 # of said person’s immediate fault when using the work as intended.
 
-CLEANFILES:=
+TOP:=$(shell x=TOP.mk; until test -e $$x; do x=../$$x; done; echo $$x)
+include ${TOP}
 
-all:
-
-install:
-
-clean:
-	-rm -f ${CLEANFILES}
+include ${TOP}/BOTTOM.mk

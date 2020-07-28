@@ -1,0 +1,4 @@
+*.a
+*.o
+linux-c/client/client
+linux-c/server/server

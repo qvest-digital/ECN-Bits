@@ -19,9 +19,28 @@
 # damage or existence of a defect, except proven that it results out
 # of said person’s immediate fault when using the work as intended.
 
-TOP:=$(shell x=TOP.mk; until test -e $$x; do x=../$$x; done; echo $$x)
-include ${TOP}
+# include ${TOP}/BOTTOM.mk
 
-PROG=	client
+ifdef PROG
+SRCS?=		${PROG}.c
+endif
 
-include ${TOP}/BOTTOM.mk
+OBJS?=		${SRCS:.c=.o}
+
+ifdef LIB
+CLEANFILES+=	lib${LIB}.a
+all: lib${LIB}.a
+lib${LIB}.a: ${OBJS}
+	${AR} rc $@ ${OBJS}
+	${RANLIB} $@
+endif
+
+ifdef PROG
+CLEANFILES+=	${PROG}
+all: ${PROG}
+${PROG}: ${OBJS}
+	${LINK.c} -o $@ ${OBJS} ${LIBS}
+endif
+
+clean:
+	-rm -f ${CLEANFILES}
