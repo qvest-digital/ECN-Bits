@@ -22,8 +22,11 @@
 TOP:=$(shell x=TOP.mk; until test -e $$x; do x=../$$x; done; echo $$x)
 include ${TOP}
 
-LIB=	ecn-bits
-SRCS+=	desc.c
-SRCS+=	ecn.c
+CPPFLAGS+=	-DECNBITS_INTERNAL
+
+LIB=		ecn-bits
+SRCS+=		desc.c
+SRCS+=		ecn.c
+SRCS+=		recvmsg.c
 
 include ${TOP}/BOTTOM.mk

@@ -27,6 +27,9 @@ extern "C" {
 #endif
 
 /* operations on the result value */
+#ifdef ECNBITS_INTERNAL
+#define ECNBITS_VALID_BIT	4
+#endif
 #define ECNBITS_VALID(result)	(((result) & 4) == 4)	/* valid? */
 #define ECNBITS_BITS(result)	((result) & 3)		/* extract bits */
 
@@ -44,6 +47,12 @@ int ecnbits_setup(int socketfd, int af, unsigned char iptos,
 /* wrapped calls */
 ssize_t ecnbits_recvmsg(int socketfd, struct msghdr *msg, int flags,
     unsigned char *ecnbits);
+
+/* internal functions */
+#ifdef ECNBITS_INTERNAL
+ssize_t ecnbits_internal_msg(int socketfd, struct msghdr *msg, int flags,
+    unsigned char *ecnbits);
+#endif
 
 #ifdef __cplusplus
 }

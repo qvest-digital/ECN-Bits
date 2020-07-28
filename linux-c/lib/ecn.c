@@ -23,8 +23,6 @@
 #include <sys/socket.h>
 #include <netinet/ip.h>
 #include <errno.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "ecn-bits.h"
 
@@ -76,45 +74,25 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 static char msgbuf[8192];
 
 ssize_t
-ecnbits_recvmsg(int s, struct msghdr *mh, int flags, unsigned char *e)
+ecnbits_internal_msg(int s, struct msghdr *msgh, int flags, unsigned char *e)
 {
-	ssize_t rv;
 	struct cmsghdr *cmsg;
-	struct msghdr *msg;
-	unsigned char nok;
+	ssize_t rv;
 	int eno;
-	struct msghdr mrpl;
 
-	if (!e)
-		return (recvmsg(s, mh, flags));
 	*e = 0;
 
-	if ((nok = (mh->msg_control == NULL))) {
-		memcpy(&mrpl, mh, sizeof(mrpl));
-		mrpl.msg_control = msgbuf;
-		mrpl.msg_controllen = sizeof(msgbuf);
-		msg = &mrpl;
-	} else
-		msg = mh;
+	if (!msgh->msg_control) {
+		msgh->msg_control = msgbuf;
+		msgh->msg_controllen = sizeof(msgbuf);
+	}
 
-	rv = recvmsg(s, msg, flags);
+	rv = recvmsg(s, msgh, flags);
+	if (rv == (ssize_t)-1)
+		return (rv);
 	eno = errno;
 
-	if (nok) {
-		struct msghdr mres;
-
-		memcpy(&mres, msg, sizeof(mres));
-		mres.msg_control = mh->msg_control;
-		mres.msg_controllen = mh->msg_controllen;
-		memcpy(mh, &mres, sizeof(mres));
-	}
-
-	if (rv == (ssize_t)-1) {
-		errno = eno;
-		return (rv);
-	}
-
-	cmsg = CMSG_FIRSTHDR(msg);
+	cmsg = CMSG_FIRSTHDR(msgh);
 	while (cmsg) {
 		if ((cmsg->cmsg_level == IPPROTO_IP &&
 		     cmsg->cmsg_type == IP_TOS) ||
@@ -126,14 +104,14 @@ ecnbits_recvmsg(int s, struct msghdr *mh, int flags, unsigned char *e)
 			b1 = CMSG_DATA(cmsg)[0];
 			b2 = CMSG_DATA(cmsg)[3];
 			if (b1 == b2)
-				*e = IPTOS_ECN(b1) | 4;
+				*e = IPTOS_ECN(b1) | ECNBITS_VALID_BIT;
 			else if (b1 == 0 && b2 != 0)
-				*e = IPTOS_ECN(b2) | 4;
+				*e = IPTOS_ECN(b2) | ECNBITS_VALID_BIT;
 			else if (b1 != 0 && b2 == 0)
-				*e = IPTOS_ECN(b1) | 4;
+				*e = IPTOS_ECN(b1) | ECNBITS_VALID_BIT;
 			break;
 		}
-		cmsg = CMSG_NXTHDR(msg, cmsg);
+		cmsg = CMSG_NXTHDR(msgh, cmsg);
 	}
 
 	errno = eno;
