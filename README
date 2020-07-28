@@ -39,8 +39,8 @@ used for DiffServ (DSCP) while the lower two are used by
 ECN as follows:
 
 • 00: NonECT — nōn-ECN-capable transport
-• 01: ECT(0) — ECN-capable transport; L4S: legacy transport
-• 10: ECT(1) — ECN-capable transport; L4S: L4S-aware transport
+• 10: ECT(0) — ECN-capable transport; L4S: legacy transport
+• 01: ECT(1) — ECN-capable transport; L4S: L4S-aware transport
 • 11: CE — congestion experienced
 
 The Traffic Class header used to be known as IPToS.
