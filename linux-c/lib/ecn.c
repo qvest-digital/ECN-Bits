@@ -35,6 +35,7 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 	switch (af) {
 	case AF_INET:
 		if (setsockopt(s, IPPROTO_IP, IP_TOS,
+		    /*XXX check FreeBSD; Linux accepts &tos here, too */
 		    &iptos, sizeof(iptos))) {
 			if (e)
 				*e = "failed to set up sender TOS";

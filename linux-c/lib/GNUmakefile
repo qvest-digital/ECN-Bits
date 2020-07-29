@@ -36,7 +36,7 @@ SRCS+=		short.c
 MAN+=		ECNBITS_VALID.3
 #MAN+=		ecnbits_recvfrom.3
 #MAN+=		ecnbits_recvmsg.3
-#MAN+=		ecnbits_setup.3
+MAN+=		ecnbits_setup.3
 
 MLINKS+=	ECNBITS_VALID.3 ECNBITS_BITS.3
 MLINKS+=	ECNBITS_VALID.3 ECNBITS_DESC.3
