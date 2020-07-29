@@ -39,7 +39,8 @@ ifneq (,$(findstring $(origin CC),default undefined))
 undefine CC
 endif
 
-INSTALL?=	install # or /usr/ucb/install
+# or /usr/ucb/install
+INSTALL?=	install
 AR?=		ar
 RANLIB?=	ranlib
 CC?=		gcc
@@ -62,14 +63,24 @@ COMPILE.c=	${CC} ${CPPFLAGS} ${CFLAGS} -c
 LINK.c=		${CC} ${CFLAGS} ${LDFLAGS}
 
 PREFIX?=	/usr/local
+ifeq (/usr,${PREFIX})
+MANDIR?=	${PREFIX}/share/man
+else
+MANDIR?=	${PREFIX}/man
+endif
 BINOWN?=	0
 BINGRP?=	0
 BINMODE?=	755
-DIRMODE?=	755
 NONBINMODE?=	644
+DIROWN?=	${BINOWN}
+DIRGRP?=	${BINGRP}
+DIRMODE?=	755
+MANOWN?=	${BINOWN}
+MANGRP?=	${BINGRP}
+MANMODE?=	${NONBINMODE}
 
 all:
-install:
+install: install-dirs
 uninstall:
 clean:
 

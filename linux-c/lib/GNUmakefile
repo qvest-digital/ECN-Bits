@@ -33,13 +33,9 @@ SRCS+=		recvfrom.c
 SRCS+=		recvmsg.c
 SRCS+=		short.c
 
+MKINSTDIRS+=	${PREFIX}/include ${PREFIX}/lib
+
 install:
-	test -d $(call shellescape,${PREFIX})/include || \
-	    ${INSTALL} -d -o ${BINOWN} -g ${BINGRP} -m ${DIRMODE} \
-	    $(call shellescape,${PREFIX})/include
-	test -d $(call shellescape,${PREFIX})/lib || \
-	    ${INSTALL} -d -o ${BINOWN} -g ${BINGRP} -m ${DIRMODE} \
-	    $(call shellescape,${PREFIX})/lib
 	${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NONBINMODE} \
 	    $(call shellescape,${TOP})/inc/ecn-bits.h \
 	    $(call shellescape,${PREFIX})/include/

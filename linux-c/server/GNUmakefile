@@ -23,5 +23,6 @@ TOP:=$(shell x=TOP.mk; until test -e $$x; do x=../$$x; done; echo $$x)
 include ${TOP}
 
 PROG=	server
+NOMAN=	Yes
 
 include ${TOP}/BOTTOM.mk
