@@ -13,16 +13,16 @@ library must have been built first locally or it must have been
 installed system-wide.) The usual variables (CC, AR, RANLIB,
 CFLAGS, CPPFLAGS, LDFLAGS, LIBS, etc.) are supported.
 
-Running “make install” will install the library and development
-headers; as common, this honours the PREFIX variable. Running
-“make uninstall” will erase the installed files from the system.
+Running “make install” will install the library, its manual pages
+and development headers; this honours the standard PREFIX variable.
+“make uninstall” will erase these installed files from the system.
 
 ┌───────────┐
 │ Structure │
 └───────────┘
 
 inc/ ‣ development headers (public) for the library
-lib/ ‣ library source code
+lib/ ‣ library source code, manual pages
 
 client/ and server/
 ‣ example applications, see below
