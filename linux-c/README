@@ -14,7 +14,8 @@ installed system-wide.) The usual variables (CC, AR, RANLIB,
 CFLAGS, CPPFLAGS, LDFLAGS, LIBS, etc.) are supported.
 
 Running “make install” will install the library and development
-headers; as common, this honours the PREFIX variable.
+headers; as common, this honours the PREFIX variable. Running
+“make uninstall” will erase the installed files from the system.
 
 ┌───────────┐
 │ Structure │

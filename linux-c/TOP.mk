@@ -70,7 +70,10 @@ NONBINMODE?=	644
 
 all:
 install:
+uninstall:
 clean:
+
+.PHONY: all install uninstall clean
 
 .SUFFIXES: .c .i .o
 

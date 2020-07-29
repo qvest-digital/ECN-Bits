@@ -41,9 +41,14 @@ install:
 	    ${INSTALL} -d -o ${BINOWN} -g ${BINGRP} -m ${DIRMODE} \
 	    $(call shellescape,${PREFIX})/lib
 	${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NONBINMODE} \
-	    $(call shellescape,${TOP})/inc/*.h \
+	    $(call shellescape,${TOP})/inc/ecn-bits.h \
 	    $(call shellescape,${PREFIX})/include/
 	${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NONBINMODE} \
 	    lib${LIB}.a $(call shellescape,${PREFIX})/lib/
+
+uninstall:
+	rm -f \
+	    $(call shellescape,${PREFIX}/include/ecn-bits.h) \
+	    $(call shellescape,${PREFIX}/lib/lib${LIB}.a)
 
 include ${TOP}/BOTTOM.mk
