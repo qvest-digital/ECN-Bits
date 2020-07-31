@@ -24,5 +24,6 @@ include ${TOP}
 
 PROG=	server
 NOMAN=	Yes
+BINDIR:=# do not install
 
 include ${TOP}/BOTTOM.mk

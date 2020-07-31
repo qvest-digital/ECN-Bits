@@ -38,9 +38,10 @@ OBJS?=		${SRCS:.c=.o}
 SOBJS?=		${OBJS:.o=.so}
 
 ifdef LIB
+DPADD?=
 LIBINSTFILES+=	lib${LIB}.a
 all: lib${LIB}.a
-lib${LIB}.a: ${OBJS}
+lib${LIB}.a: ${OBJS} ${DPADD}
 	${AR} rc $@ ${OBJS}
 	${RANLIB} $@
 
@@ -48,7 +49,7 @@ ifeq (,$(filter yes yeS yEs yES Yes YeS YEs YES,${NOPIC}))
 CLEANFILES+=	${SOBJS}
 LIBINSTFILES+=	lib${LIB}_pic.a
 all: lib${LIB}_pic.a
-lib${LIB}_pic.a: ${SOBJS}
+lib${LIB}_pic.a: ${SOBJS} ${DPADD}
 	${AR} rc $@ ${SOBJS}
 	${RANLIB} $@
 
@@ -57,7 +58,7 @@ LIBINSTFILES+=	lib${LIB}.so.${SHLIB_VERSION}.0
 LIBGNULINK=	lib${LIB}.so.$(basename ${SHLIB_VERSION})
 CLEANFILES+=	lib${LIB}.so ${LIBGNULINK}
 all: lib${LIB}.so.${SHLIB_VERSION}.0
-lib${LIB}.so.${SHLIB_VERSION}.0: ${SOBJS}
+lib${LIB}.so.${SHLIB_VERSION}.0: ${SOBJS} ${DPADD}
 	@$(call _rm,lib${LIB}.so ${LIBGNULINK})
 	@$(call _ln,$@,${LIBGNULINK})
 	@$(call _ln,$@,lib${LIB}.so)
@@ -84,20 +85,22 @@ ${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NONBINMODE} \
 endef
 endif
 
-MKINSTDIRS+=	${PREFIX}/lib
+ifneq (,$(strip ${LIBDIR}))
+MKINSTDIRS+=	${LIBDIR}
 install: install-lib
 uninstall: uninstall-lib
 install-lib:
 	${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NONBINMODE} \
-	    ${LIBINSTFILES} $(call shellescape,${PREFIX}/lib/)
+	    ${LIBINSTFILES} $(call shellescape,${LIBDIR}/)
 ifneq (,$(findstring .so.,${LIBINSTFILES}))
-	@$(call _rm,$(addprefix ${PREFIX}/lib/,lib${LIB}.so ${LIBGNULINK}))
-	$(call _ln,lib${LIB}.so.${SHLIB_VERSION}.0,${PREFIX}/lib/${LIBGNULINK})
-	$(call _ln,lib${LIB}.so.${SHLIB_VERSION}.0,${PREFIX}/lib/lib${LIB}.so)
+	@$(call _rm,$(addprefix ${LIBDIR}/,lib${LIB}.so ${LIBGNULINK}))
+	$(call _ln,lib${LIB}.so.${SHLIB_VERSION}.0,${LIBDIR}/${LIBGNULINK})
+	$(call _ln,lib${LIB}.so.${SHLIB_VERSION}.0,${LIBDIR}/lib${LIB}.so)
+endif
 endif
 
 uninstall-lib:
-	$(call _rm,$(addprefix ${PREFIX}/lib/,${LIBINSTFILES} $(if $(findstring .so.,${LIBINSTFILES}),lib${LIB}.so ${LIBGNULINK})))
+	$(call _rm,$(addprefix ${LIBDIR}/,${LIBINSTFILES} $(if $(findstring .so.,${LIBINSTFILES}),${LIBGNULINK} lib${LIB}.so)))
 
 CLEANFILES+=	${LIBINSTFILES}
 endif
@@ -106,9 +109,22 @@ ifdef PROG
 LIBS+=		-lecn-bits
 MAN?=		${PROG}.1
 CLEANFILES+=	${PROG}
+DPADD?=		${TOP}/lib/libecn-bits.a
 all: ${PROG}
-${PROG}: ${OBJS} ${TOP}/lib/libecn-bits.a
+${PROG}: ${OBJS} ${DPADD}
 	${LINK.c} -o $@ ${OBJS} ${LIBS}
+
+ifneq (,$(strip ${BINDIR}))
+MKINSTDIRS+=	${BINDIR}
+install: install-bin
+uninstall: uninstall-bin
+install-bin:
+	${INSTALL} -c ${INSTALL_STRIP} -o ${BINOWN} -g ${BINGRP} -m ${BINMODE} \
+	    ${PROG} $(call shellescape,${BINDIR}/)
+
+uninstall-bin:
+	$(call _rm,$(addprefix ${BINDIR}/,${PROG}))
+endif
 endif
 
 NOMAN?=		No

@@ -8,6 +8,11 @@
 #	mirabilos <t.glaser@tarent.de>
 # Licensor: Deutsche Telekom
 #
+# This product was inspired by (without directly including) software
+# developed by the University of California, Berkeley, and its
+# contributors. 4.4BSD-Lite2 © 1993, 1994
+#	The Regents of the University of California
+#
 # Provided that these terms and disclaimer and all copyright notices
 # are retained or reproduced in an accompanying document, permission
 # is granted to deal in this work without restriction, including un‐
@@ -41,6 +46,7 @@ endif
 
 # or /usr/ucb/install
 INSTALL?=	install
+INSTALL_STRIP?=	-s
 AR?=		ar
 RANLIB?=	ranlib
 CC?=		gcc
@@ -63,6 +69,8 @@ COMPILE.c=	${CC} ${CPPFLAGS} ${CFLAGS} -c
 LINK.c=		${CC} ${CFLAGS} ${LDFLAGS}
 
 PREFIX?=	/usr/local
+BINDIR?=	${PREFIX}/bin
+LIBDIR?=	${PREFIX}/lib
 ifeq (/usr,${PREFIX})
 MANDIR?=	${PREFIX}/share/man
 else
