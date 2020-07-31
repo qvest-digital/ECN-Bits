@@ -25,6 +25,8 @@ include ${TOP}
 CPPFLAGS+=	-DECNBITS_INTERNAL
 
 LIB=		ecn-bits
+HDRS+=		ecn-bits.h
+SHLIB_VERSION=	1.0
 
 SRCS+=		desc.c
 SRCS+=		ecn.c
@@ -42,19 +44,5 @@ MLINKS+=	ECNBITS_VALID.3 ECNBITS_BITS.3
 MLINKS+=	ECNBITS_VALID.3 ECNBITS_DESC.3
 MLINKS+=	ecnbits_recvfrom.3 ecnbits_read.3
 MLINKS+=	ecnbits_recvfrom.3 ecnbits_recv.3
-
-MKINSTDIRS+=	${PREFIX}/include ${PREFIX}/lib
-
-install:
-	${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NONBINMODE} \
-	    $(call shellescape,${TOP})/inc/ecn-bits.h \
-	    $(call shellescape,${PREFIX})/include/
-	${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NONBINMODE} \
-	    lib${LIB}.a $(call shellescape,${PREFIX})/lib/
-
-uninstall:
-	rm -f \
-	    $(call shellescape,${PREFIX}/include/ecn-bits.h) \
-	    $(call shellescape,${PREFIX}/lib/lib${LIB}.a)
 
 include ${TOP}/BOTTOM.mk

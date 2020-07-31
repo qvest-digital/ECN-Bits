@@ -86,10 +86,13 @@ clean:
 
 .PHONY: all install uninstall clean
 
-.SUFFIXES: .c .i .o
+.SUFFIXES: .c .i .o .so
 
 .c.i:
 	${CC} ${CPPFLAGS} -E -dD -o $@ $<
 
 .c.o:
 	${COMPILE.c} $<
+
+.c.so:
+	${COMPILE.c} -fPIC -DPIC -o $@ $<

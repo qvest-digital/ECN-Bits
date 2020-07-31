@@ -26,18 +26,80 @@
 
 # include ${TOP}/BOTTOM.mk
 
+_rm=		rm -f $(foreach arg,$(1),$(call shellescape,${arg}))
+_ln=		ln -s $(call shellescape,$(1)) $(call shellescape,$(2)) || \
+		    cp $(call shellescape,$(if $(filter /%,$(1)),$(1),$(abspath $(dir $(2))$(1)))) $(call shellescape,$(2))
+
 ifdef PROG
 SRCS?=		${PROG}.c
 endif
 
 OBJS?=		${SRCS:.c=.o}
+SOBJS?=		${OBJS:.o=.so}
 
 ifdef LIB
-CLEANFILES+=	lib${LIB}.a
+LIBINSTFILES+=	lib${LIB}.a
 all: lib${LIB}.a
 lib${LIB}.a: ${OBJS}
 	${AR} rc $@ ${OBJS}
 	${RANLIB} $@
+
+ifeq (,$(filter yes yeS yEs yES Yes YeS YEs YES,${NOPIC}))
+CLEANFILES+=	${SOBJS}
+LIBINSTFILES+=	lib${LIB}_pic.a
+all: lib${LIB}_pic.a
+lib${LIB}_pic.a: ${SOBJS}
+	${AR} rc $@ ${SOBJS}
+	${RANLIB} $@
+
+ifdef SHLIB_VERSION
+LIBINSTFILES+=	lib${LIB}.so.${SHLIB_VERSION}.0
+LIBGNULINK=	lib${LIB}.so.$(basename ${SHLIB_VERSION})
+CLEANFILES+=	lib${LIB}.so ${LIBGNULINK}
+all: lib${LIB}.so.${SHLIB_VERSION}.0
+lib${LIB}.so.${SHLIB_VERSION}.0: ${SOBJS}
+	@$(call _rm,lib${LIB}.so ${LIBGNULINK})
+	@$(call _ln,$@,${LIBGNULINK})
+	@$(call _ln,$@,lib${LIB}.so)
+	${LINK.c} -o $@ -fPIC -Wl,--no-undefined -shared ${SOBJS} \
+	    -Wl,--start-group ${LIBS} -Wl,--end-group \
+	    -Wl,-soname,${LIBGNULINK}
+endif
+endif
+
+ifdef HDRS
+MKINSTDIRS+=	${PREFIX}/include
+install: install-hdrs
+uninstall: uninstall-hdrs
+install-hdrs:
+	$(foreach h,${HDRS},$(call hdrinstall,$h))
+uninstall-hdrs:
+	$(call _rm,$(addprefix ${PREFIX}/include/,${HDRS}))
+
+define hdrinstall
+${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NONBINMODE} \
+    $(call shellescape,${TOP}/inc/$(1)) \
+    $(call shellescape,${PREFIX}/include/)
+
+endef
+endif
+
+MKINSTDIRS+=	${PREFIX}/lib
+install: install-lib
+uninstall: uninstall-lib
+install-lib:
+	${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NONBINMODE} \
+	    ${LIBINSTFILES} $(call shellescape,${PREFIX}/lib/)
+ifneq (,$(findstring .so.,${LIBINSTFILES}))
+	@$(call _rm,$(addprefix ${PREFIX}/lib/,lib${LIB}.so ${LIBGNULINK}))
+	$(call _ln,lib${LIB}.so.${SHLIB_VERSION}.0,${PREFIX}/lib/${LIBGNULINK})
+	$(call _ln,lib${LIB}.so.${SHLIB_VERSION}.0,${PREFIX}/lib/lib${LIB}.so)
+endif
+
+uninstall-lib:
+	$(call _rm,$(addprefix ${PREFIX}/lib/,${LIBINSTFILES} $(if $(findstring .so.,${LIBINSTFILES}),lib${LIB}.so ${LIBGNULINK})))
+
+CLEANFILES+=	${LIBINSTFILES}
 endif
 
 ifdef PROG
@@ -70,7 +132,7 @@ l=$$mdir/man$${lnk##*.}/$$lnk; \
 t=$$mdir/man$${file##*.}/$$file; \
 printf '%s -> %s\n' "$$t" "$$l"; \
 rm -f "$$t"; \
-ln -s "$$l" "$$t"
+ln -s "$$l" "$$t" || cp "$$l" "$$t"
 $(if $(word 3,$(1)),$(call mlinksinstall,$(wordlist 3,99999,$(1))))
 
 endef
@@ -79,7 +141,7 @@ PATINSTDIRS+=	${MANDIR}/man%
 
 uninstall: uninstall-man
 uninstall-man:
-	rm -f $(foreach m,$(join $(addprefix ${MANDIR}/man,$(subst .,,$(suffix ${MAN} ${MLINKS}))),$(addprefix /,${MAN} ${MLINKS})),$(call shellescape,$m))
+	$(call _rm,$(join $(addprefix ${MANDIR}/man,$(subst .,,$(suffix ${MAN} ${MLINKS}))),$(addprefix /,${MAN} ${MLINKS})))
 endif
 endif
 
@@ -95,4 +157,4 @@ $(foreach v,MKINSTDIRS PATINSTDIRS,$(eval $(call mkinstdirs,$v)))
 install-dirs: ${MKINSTDIRS}
 
 clean:
-	-rm -f ${CLEANFILES}
+	-$(call _rm,$(wildcard ${CLEANFILES}))
