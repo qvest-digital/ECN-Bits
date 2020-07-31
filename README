@@ -19,7 +19,7 @@ Development funded by Deutsche Telekom.
 
 • Linux, C (usable from C++ and others)
   ‣ see linux-c/
-  ‣ library; example client/server
+  ‣ library; example client/server; manpages
   ‣ FreeBSD should work (except server), needs testing
   ‣ needs testing on big endian!
 

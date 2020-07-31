@@ -7,9 +7,9 @@
 └─────────────┘
 
 With GNU make and build-essential installed, it is sufficient
-to run “make”, either in the top-level “linux-c” directory or
-a subdirectory. (To build the client or server example, the
-library must have been built first locally or it must have been
+to run “make”, either in the top-level “linux-c” directory or a
+subdirectory. (To build the client or server example subdirectory,
+the library must have been built first locally or it must have been
 installed system-wide.) The usual variables (CC, AR, RANLIB,
 CFLAGS, CPPFLAGS, LDFLAGS, LIBS, etc.) are supported.
 
@@ -114,3 +114,6 @@ IPv6 API; the library and client therefore should work.
 
 At least the Linux implementation leaves open questions
 whether it works as intended on big endian architectures.
+
+Use in multi-threaded applications is safe if the conditions
+documented under CAVEATS in ecnbits_rdmsg(3) are met.
