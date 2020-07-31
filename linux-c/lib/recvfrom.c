@@ -47,7 +47,7 @@ ecnbits_recvfrom(int s, void *buf, size_t buflen, int flags,
 		m.msg_namelen = *addrlenp;
 	}
 
-	rv = ecnbits_internal_msg(s, &m, flags, e);
+	rv = ecnbits_rdmsg(s, &m, flags, e);
 
 	if (rv != (ssize_t)-1) {
 		if (addr)

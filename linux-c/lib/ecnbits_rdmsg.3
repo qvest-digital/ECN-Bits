@@ -95,151 +95,174 @@
 .\}
 .el .ds tT ucb
 .\"-
-.Dt ECNBITS_SETUP 3
+.Dt ECNBITS_RDMSG 3
 .Os ECN-Bits
 .Sh NAME
-.Nm ecnbits_setup
-.Nd set up a socket for use with the ECN-Bits library
+.Nm ecnbits_rdmsg ,
+.Nm ecnbits_recvmsg
+.Nd receive a message (read a packet) from a socket and determine the ECN bits
 .Sh SYNOPSIS
 .In sys/types.h
 .In sys/socket.h
 .In ecn\-bits.h
-.Ft int
-.Fn ecnbits_setup "int socketfd" "int af" "unsigned char iptos" "const char **errstring"
+.Ft ssize_t
+.Fn ecnbits_rdmsg "int socketfd" "struct msghdr *msg" "int flags" "unsigned char *ecnbits"
+.Ft ssize_t
+.Fn ecnbits_recvmsg "int socketfd" "struct msghdr *msg" "int flags" "unsigned char *ecnbits"
 .Sh DESCRIPTION
 The
-.Fn ecnbits_setup
-function sets up a network socket (IPv6 or legacy IPv4)
-for use by the ECN-Bits library.
-This works well with datagram sockets (UDP); use with stream sockets
-(TCP) may not work completely, for example the operating system may
-change the sent traffic class value.
+.Fn ecnbits_rdmsg
+and
+.Fn ecnbits_recvmsg
+functions work equivalent to the system call
+.Xr recvmsg 2
+but take an extra argument
+.Ar ecnbits .
 .Pp
 The
-.Ar socketfd
-itself is not changed, but a few socket options are enabled.
-For this to work, the
-.Ar af
-argument is expected to carry the address family used with the socket
-.Pq Li AF_INET6 No or Li AF_INET ;
-this is the same as the first argument to
-.Xr socket 2
-.Pq Li domain .
-This function is thread-safe.
-.Pp
-The
-.Ar iptos
-value is expected to contain the traffic class octet intended to be
-sent out with this socket; this can be one of the ECN values...
-.Bd -literal
-#define ECNBITS_NON	0 /* non-ECN-capable transport */
-#define ECNBITS_ECT0	2 /* ECN-capable; L4S: legacy transport */
-#define ECNBITS_ECT1	1 /* ECN-capable; L4S: L4S-aware transport */
-#define ECNBITS_CE	3 /* congestion experienced */
-.Ed
-.Pp
-\&... possibly or'd with a system-provided value such as
-.Dv IPTOS_LOWDELAY ,
-a DSCP and/or class value or really anything appropriate.
-The operating system defaults usually to either
-.Li 0 Pq Li ECNBITS_NON
-or
-.Li 2 Pq Li ECNBITS_ECT0 .
-.Pp
-The
-.Ar errstring
-argument, if it is not
+.Fn ecnbits_recvmsg
+function wraps the system call, extending:
+If
+.Ar ecnbits
+is
 .Dv NULL ,
-is set to a human-readable description of the problem on failure,
-which can be output in addition to whatever value
-.Va errno
-was set by the system calls used internally.
+.Fn ecnbits_recvmsg
+just passes control to the equivalent system function
+.Xr recvmsg 2 .
+Otherwise, if
+.Ar msg\->msg_control
+is
+.Dv NULL ,
+a suitably large (see below) buffer is temporarily injected into a local
+.Vt struct msghdr ,
+otherwise, the passed structure is used.
+Then, the system call
+.Xr recvmsg 2
+is executed, and upon success, the control buffer is inspected
+for the ECN bits, which are stored, in
+.Xr ECNBITS_VALID 3
+format, in the location pointed to by
+.Ar ecnbits
+if possible (if not, an indicator of no valid ECN bits is stored).
+If the socket was not prepared with
+.Xr ecnbits_setup 3
+beforehand, determining the ECN bits is usually not possible.
+If the user passed a buffer as
+.Ar msg\->msg_control
+that is not large enough for all control messages, determining
+the ECN bits may also fail.
+.Fn ecnbits_recvmsg
+ensures the temporarily injected buffer is not seen by the caller,
+but passes along other changes to the
+.Vt struct msghdr
+used.
 .Pp
-Note that the
-.Ar iptos
-value is only used to set the default outgoing traffic class.
-It can still be overridden by using
-.Xr sendmsg 2
-with a
-.Xr cmsg 3
-control message of
-.Dv IPV6_TCLASS
-.Pq Dv IPPROTO_IPV6
-or
-.Dv IP_TOS
-.Pq Dv IPPROTO_IP ;
-the ECN-Bits linux-c server example demonstrates this technique.
-It is not strictly necessary for using the ECN-Bits library's
-receive functions to set this value, but it is provided for
-convenience, as almost any application using ECN-Bits will wish
-to set them (applications can later change the setting with
-.Xr setsockopt 2
-anyway).
+By contrast,
+.Fn ecnbits_rdmsg
+assumes that
+.Ar ecnbits
+is not
+.Dv NULL ,
+directly injects the suitably large control buffer into the passed
+.Ar msg
+structure and leaves it there for the caller to inspect afterwards.
+.Pp
+Callers that know to set
+.Ar ecnbits
+should use
+.Fn ecnbits_rdmsg ,
+which is faster, unless drop-in compatibility with existing applications
+that manage the
+.Ar msg\->msg_control
+argument themselves, is required.
+.Pp
+The buffer is shared between
+.Em all
+ECN-Bits library functions except
+.Fn ecnbits_setup ,
+overwritten by each and not thread-isolated.
+.Pp
+See
+.Xr recvmsg 2
+for the description of
+.Ar msg
+and
+.Ar flags .
 .Sh RETURN VALUES
-.Rv -std ecnbits_setup
 The
-.Ar errstring
-value is additionally set on error.
+.Fn ecnbits_rdmsg
+and
+.Fn ecnbits_recvmsg
+functions return the number of bytes received if successful;
+otherwise the value \-1 is returned and the global variable
+.Va errno
+is set to indicate the error.
 .Sh EXAMPLES
 The following code fragment illustrates the usage:
 .Bd -literal -offset indent
-int fd;
-const char *errstr;
+char buf[512];
+unsigned char ecn;
+struct msg *msg = xcalloc(1, sizeof(struct msg));
+struct iovec iov;
 
-if ((fd = socket(AF_INET6, SOCK_DGRAM, 0)) == \-1)
-	err(1, "socket");
-if (ecnbits_setup(fd, AF_INET6, ECNBITS_ECT0, &errstr))
-	err(1, "ecnbits_setup: %s", errstr);
-/* do other setsockopt, connect, bind, etc. */
+iov.iov_base = buf;
+iov.iov_len = sizeof(buf);
+msg->msg_iov = &iov;
+msg->msg_iovlen = 1;
+if (ecnbits_rdmsg(socketfd, msg, 0, &ecn) == (size_t)\-1)
+	err(1, "recvmsg");
+if (ECNBITS_VALID(ecn))
+	printf("%s\en", ecnbits_meanings[ECNBITS_BITS(ecn)]);
 .Ed
+.Pp
+Note that the socket, after creation, must have been prepared with a call to
+.Xr ecnbits_setup 3
+(once) prior to use with this function.
 .Sh ERRORS
-Besides the errors returned by the system calls
-.Nm
-uses internally (currently, only
-.Xr setsockopt 2 ,
-but this is implementation detail subject to change without notice),
-.Dv EAFNOSUPPORT
-is returned if the address family
-.Ar af
-is not known to the library.
+These functions return the same errors as the system call
+.Xr recvmsg 2 .
 .Sh SEE ALSO
-.Xr sendmsg 2 ,
-.Xr setsockopt 2 ,
+.Xr recvmsg 2 ,
 .Xr cmsg 3 ,
 .Xr ECNBITS_BITS 3 ,
-.Xr ecnbits_rdmsg 3 ,
 .Xr ecnbits_recvfrom 3 ,
+.Xr ecnbits_setup 3 ,
 .Xr ip 7 ,
-.Xr ipv6 7
+.Xr ipv6 7 ,
+.Xr socket 7 ,
+.Xr udp 7
 .Pp
 .Bl -tag -width 2n
-.It Pa https://tools.ietf.org/html/rfc3542.html
-Advanced Sockets API for IPv6
 .It Pa https://github.com/tarent/ECN\-Bits
 home of the ECN-Bits library
 .It Pa https://github.com/EricssonResearch/scream
 SCReAM, an example design for a managed latency-adaptive application
 .El
-.Sh STANDARDS
-The implementation uses the socket calls standardised by RFC\ 3542 for
-IPv6, those documented by GNU/Linux
-.Xr ip 7
-for legacy IPv4.
-.Pp
-The current implementation has been tested on little endian platforms
-under GNU/Linux.
-It might work under FreeBSD and other operating systems implementing
-the aforementioned APIs.
-Unfortunately, Linux does not implement the API correctly, which may
-lead to failure (bad data) on big endian platforms:
-.Pa https://bugs.debian.org/966459
-.br
-This implementation attempts to work around these bugs and may work
-on operating systems of any endianness implementing these APIs, but
-that is untested.
 .Sh AUTHORS
 .An mirabilos Aq t.glaser@tarent.de
 for Deutsche Telekom.
+.Sh CAVEATS
+In a multi-threaded environment, use of the ECN-Bits library is only safe if
+one of these conditions is met:
+.Bl -bullet
+.It
+Only one thread calls any of the functions other than
+.Fn ecnbits_setup
+.It
+Only
+.Fn ecnbits_rdmsg
+or
+.Fn ecnbits_recvmsg
+are called, and in all calls to these functions, the
+.Ar msg\->msg_control
+argument is not
+.Dv NULL
+and neither it nor
+.Ar msg
+nor
+.Ar ecnbits
+are shared between threads.
+.El
 .Sh LICENCE
 The MirOS Licence
 .Pq short name : Li MirBSD

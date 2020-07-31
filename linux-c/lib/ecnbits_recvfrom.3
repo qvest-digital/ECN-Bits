@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: July 29 2020 $
+.Dd $Mdocdate: July 31 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -95,7 +95,7 @@
 .\}
 .el .ds tT ucb
 .\"-
-.Dt ecnbits_recvfrom 3
+.Dt ECNBITS_RECVFROM 3
 .Os ECN-Bits
 .Sh NAME
 .Nm ecnbits_read ,
@@ -212,7 +212,7 @@ otherwise.
 .Xr recvfrom 2 ,
 .Xr recvmsg 2 ,
 .Xr ECNBITS_BITS 3 ,
-.Xr ecnbits_recvmsg 3 ,
+.Xr ecnbits_rdmsg 3 ,
 .Xr ecnbits_setup 3
 .Pp
 .Bl -tag -width 2n
@@ -225,6 +225,12 @@ SCReAM, an example design for a managed latency-adaptive application
 .An mirabilos Aq t.glaser@tarent.de
 for Deutsche Telekom.
 .Sh CAVEATS
+.Nm ecnbits_read ,
+.Nm ecnbits_recv
+and
+.Nm ecnbits_recvfrom
+are not thread-safe.
+.Pp
 The semantics of
 .Xr read 2
 and

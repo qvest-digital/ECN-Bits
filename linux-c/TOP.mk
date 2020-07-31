@@ -55,6 +55,8 @@ CFLAGS?=	-O2 -g
 LDFLAGS?=
 LIBS?=
 
+CPPFLAGS+=	-D_POSIX_C_SOURCE=200112L
+CPPFLAGS+=	-D_REENTRANT
 CPPFLAGS+=	-I$(call shellescape,${TOP})/inc
 CPPFLAGS+=	-D_FORTIFY_SOURCE=2
 CFLAGS+=	-Wall -Wformat -Wdate-time

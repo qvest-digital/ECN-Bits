@@ -75,7 +75,7 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 static char msgbuf[8192];
 
 ssize_t
-ecnbits_internal_msg(int s, struct msghdr *msgh, int flags, unsigned char *e)
+ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned char *e)
 {
 	struct cmsghdr *cmsg;
 	ssize_t rv;

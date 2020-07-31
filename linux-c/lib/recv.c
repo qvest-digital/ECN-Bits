@@ -41,5 +41,5 @@ ecnbits_recv(int s, void *buf, size_t buflen, int flags, unsigned char *e)
 	m.msg_iov = &io;
 	m.msg_iovlen = 1;
 
-	return (ecnbits_internal_msg(s, &m, flags, e));
+	return (ecnbits_rdmsg(s, &m, flags, e));
 }

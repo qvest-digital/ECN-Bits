@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: July 29 2020 $
+.Dd $Mdocdate: July 31 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -144,6 +144,7 @@ The following are valid ECN bit representations:
 #define ECNBITS_CE	3 /* congestion experienced */
 .Ed
 .Pp
+These macros and constant memory locations are thread-safe.
 .Sh RETURN VALUES
 The
 .Fn ECNBITS_BITS
@@ -174,8 +175,8 @@ if (ECNBITS_VALID(ecn))
 .Fn ECNBITS_BITS ecn
 is also what needs to be reported back to the sender.
 .Sh SEE ALSO
+.Xr ecnbits_rdmsg 3 ,
 .Xr ecnbits_recvfrom 3 ,
-.Xr ecnbits_recvmsg 3 ,
 .Xr ecnbits_setup 3
 .Pp
 .Bl -tag -width 2n

@@ -38,10 +38,10 @@ ecnbits_recvmsg(int s, struct msghdr *mh, int flags, unsigned char *e)
 		return (recvmsg(s, mh, flags));
 
 	if (mh->msg_control)
-		return (ecnbits_internal_msg(s, mh, flags, e));
+		return (ecnbits_rdmsg(s, mh, flags, e));
 
 	memcpy(&mrpl, mh, sizeof(mrpl));
-	rv = ecnbits_internal_msg(s, &mrpl, flags, e);
+	rv = ecnbits_rdmsg(s, &mrpl, flags, e);
 	eno = errno;
 	mrpl.msg_control = mh->msg_control;
 	mrpl.msg_controllen = mh->msg_controllen;
