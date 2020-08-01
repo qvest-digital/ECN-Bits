@@ -1,0 +1,40 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 26
+
+    defaultConfig {
+        applicationId "de.telekom.llcto.ecn_bits.android.client"
+        minSdkVersion 26
+        //noinspection OldTargetApi
+        targetSdkVersion 26
+        versionCode 1
+        versionName "0.1"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
+    //noinspection GradleDependency
+    buildToolsVersion = '28.0.3'
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    testImplementation 'junit:junit:4.13'
+    //noinspection GradleDependency
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    //noinspection GradleDependency
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+}

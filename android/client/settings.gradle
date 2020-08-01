@@ -1,0 +1,2 @@
+rootProject.name='ECN-Client'
+include ':app'
