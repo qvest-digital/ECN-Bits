@@ -55,20 +55,30 @@ CFLAGS?=	-O2 -g
 LDFLAGS?=
 LIBS?=
 
+COMPILE.c=	${CC} ${CPPFLAGS} ${CFLAGS} -c
+LINK.c=		${CC} ${CFLAGS} ${LDFLAGS}
+
+run_cmd=	$(if $(shell TMP=.tmp.$(call shellescape,$@).$$$$.; \
+		($(1)) >/dev/null 2>&1 || echo f; rm -f "$$TMP"*),$(3),$(2))
+cc_opt_:=	0
+define cc_opt
+cc_opt_:=	$(shell expr ${cc_opt_} + 1)
+cc_opt_${cc_opt_}:=$$(call run_cmd,$${COMPILE.c} -Werror $(2) -o "$$$$TMP"o -xc /dev/null,$(2),$(3))
+$(1)+=		$${cc_opt_${cc_opt_}}
+endef
+
 CPPFLAGS+=	-D_POSIX_C_SOURCE=200112L
 CPPFLAGS+=	-D_REENTRANT
 CPPFLAGS+=	-I$(call shellescape,${TOP})/inc
 CPPFLAGS+=	-D_FORTIFY_SOURCE=2
-CFLAGS+=	-Wall -Wformat -Wdate-time
+CFLAGS+=	-Wall -Wformat
+$(eval $(call cc_opt,CFLAGS,-Wdate-time))
 CFLAGS+=	-Wextra
-CFLAGS+=	-fstack-protector-strong
+$(eval $(call cc_opt,CFLAGS,-fstack-protector-strong,-fstack-protector))
 CFLAGS+=	-Werror=format-security
 LDFLAGS+=	-L$(call shellescape,${TOP})/lib
 LDFLAGS+=	-Wl,-z,relro -Wl,-z,now
 LDFLAGS+=	-Wl,--as-needed
-
-COMPILE.c=	${CC} ${CPPFLAGS} ${CFLAGS} -c
-LINK.c=		${CC} ${CFLAGS} ${LDFLAGS}
 
 PREFIX?=	/usr/local
 BINDIR?=	${PREFIX}/bin

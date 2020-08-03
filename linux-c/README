@@ -6,9 +6,9 @@
 │ Compilation │
 └─────────────┘
 
-With GNU make and build-essential installed, it is sufficient
-to run “make”, either in the top-level “linux-c” directory or a
-subdirectory. (To build the client or server example subdirectory,
+With GNU make and build-essential installed, it is sufficient to run
+“make” (“gmake” on BSD), either in the top-level “linux-c” directory
+or a subdirectory. (To build the client or server example subdirectory,
 the library must have been built first locally or it must have been
 installed system-wide.) The usual variables (CC, AR, RANLIB,
 CFLAGS, CPPFLAGS, LDFLAGS, LIBS, etc.) are supported.
@@ -16,6 +16,7 @@ CFLAGS, CPPFLAGS, LDFLAGS, LIBS, etc.) are supported.
 Running “make install” will install the library, its manual pages
 and development headers; this honours the standard PREFIX variable.
 “make uninstall” will erase these installed files from the system.
+(On BSD systems use “gmake install” and “gmake uninstall”.)
 
 ┌───────────┐
 │ Structure │
