@@ -56,7 +56,6 @@ lib${LIB}_pic.a: ${SOBJS} ${DPADD}
 ifdef SHLIB_VERSION
 LIBINSTFILES+=	lib${LIB}.so.${SHLIB_VERSION}.0
 LIBGNULINK=	lib${LIB}.so.$(basename ${SHLIB_VERSION})
-CLEANFILES+=	lib${LIB}.so ${LIBGNULINK}
 all: lib${LIB}.so.${SHLIB_VERSION}.0
 lib${LIB}.so.${SHLIB_VERSION}.0: ${SOBJS} ${DPADD}
 	@$(call _rm,lib${LIB}.so ${LIBGNULINK})
@@ -65,6 +64,10 @@ lib${LIB}.so.${SHLIB_VERSION}.0: ${SOBJS} ${DPADD}
 	${LINK.c} -o $@ -fPIC -Wl,--no-undefined -shared ${SOBJS} \
 	    -Wl,--start-group ${LIBS} -Wl,--end-group \
 	    -Wl,-soname,${LIBGNULINK}
+
+clean: clean-liblinks
+clean-liblinks:
+	-rm -f lib${LIB}.so ${LIBGNULINK}
 endif
 endif
 
