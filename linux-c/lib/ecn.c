@@ -32,6 +32,10 @@
 
 #include "ecn-bits.h"
 
+#if !defined(IPTOS_ECN) && defined(IPTOS_ECN_MASK)
+#define IPTOS_ECN(tos) ((tos) & IPTOS_ECN_MASK)
+#endif
+
 int
 ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 {

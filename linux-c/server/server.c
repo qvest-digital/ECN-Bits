@@ -19,9 +19,15 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
+#if defined(_POSIX_C_SOURCE) && defined(__FreeBSD__)
+#define __BSD_VISIBLE 1
+#endif
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
 #include <err.h>
 #include <errno.h>
 #include <netdb.h>
