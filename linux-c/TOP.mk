@@ -76,7 +76,6 @@ $(eval $(call cc_opt,CFLAGS,-Wdate-time))
 CFLAGS+=	-Wextra
 $(eval $(call cc_opt,CFLAGS,-fstack-protector-strong,-fstack-protector))
 CFLAGS+=	-Werror=format-security
-LDFLAGS+=	-L$(call shellescape,${TOP})/lib
 LDFLAGS+=	-Wl,-z,relro -Wl,-z,now
 LDFLAGS+=	-Wl,--as-needed
 

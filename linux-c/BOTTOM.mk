@@ -32,6 +32,11 @@ _ln=		ln -s $(call shellescape,$(1)) $(call shellescape,$(2)) || \
 
 ifdef PROG
 SRCS?=		${PROG}.c
+
+LDFLAGS+=	-L$(call shellescape,${TOP}/lib)
+ifndef NO_RPATH
+LDFLAGS+=	-Wl,-rpath,$(call shellescape,${TOP}/lib)
+endif
 endif
 
 OBJS?=		${SRCS:.c=.o}
