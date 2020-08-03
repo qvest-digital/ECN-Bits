@@ -27,6 +27,7 @@
 #include <sys/socket.h>
 #include <netinet/ip.h>
 #include <errno.h>
+#include <stddef.h>
 
 #include "ecn-bits.h"
 
