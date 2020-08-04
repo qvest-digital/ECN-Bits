@@ -81,7 +81,8 @@ LDFLAGS+=	-Wl,-z,relro -Wl,-z,now
 LDFLAGS+=	-Wl,--as-needed
 
 ifeq (,$(filter no nO No NO,${DEBUG}))
-CFLAGS+=	-Og -g3
+$(eval $(call cc_opt,CFLAGS,-Og,-O))
+$(eval $(call cc_opt,CFLAGS,-g3,-g))
 CPPFLAGS+=	-DDEBUG
 endif
 
