@@ -139,20 +139,22 @@ do_resolve(const char *host, const char *service)
 			warn("socket");
 			continue;
 		}
-		if (ecnbits_setup(s, ap->ai_family, ECNBITS_ECT0, &es)) {
-			i = errno;
-			putc('\n', stderr);
-			errno = i;
-			warn("ecnbits_setup: %s", es);
-			close(s);
-			continue;
-		}
+
 		i = 1;
 		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i))) {
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
 			warn("setsockopt");
+			close(s);
+			continue;
+		}
+
+		if (ecnbits_setup(s, ap->ai_family, ECNBITS_ECT0, &es)) {
+			i = errno;
+			putc('\n', stderr);
+			errno = i;
+			warn("ecnbits_setup: %s", es);
 			close(s);
 			continue;
 		}
