@@ -21,6 +21,7 @@ Development funded by Deutsche Telekom.
   ‣ see linux-c/
   ‣ library; example client/server; manpages
   ‣ also works on FreeBSD/MidnightBSD, perhaps others
+  ‣ NetBSD, OpenBSD and derivatives don’t support reading IP traffic class
 
 • Linux/Android, Java with native components
   (possibly reusable for regular Linux with OpenJDK)
