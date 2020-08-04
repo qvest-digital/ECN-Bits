@@ -55,6 +55,12 @@ CFLAGS?=	-O2 -g
 LDFLAGS?=
 LIBS?=
 
+DEBUG?=		No
+ifeq (,$(filter no nO No NO,${DEBUG}))
+CFLAGS+=	-Og -g3
+CPPFLAGS+=	-DDEBUG
+endif
+
 COMPILE.c=	${CC} ${CPPFLAGS} ${CFLAGS} -c
 LINK.c=		${CC} ${CFLAGS} ${LDFLAGS}
 

@@ -29,6 +29,9 @@
 #include <netinet/ip.h>
 #include <errno.h>
 #include <stddef.h>
+#ifdef DEBUG
+#include <stdio.h>
+#endif
 
 #include "ecn-bits.h"
 
@@ -82,6 +85,25 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 	return (0);
 }
 
+#ifdef DEBUG
+static size_t
+cmsg_actual_data_len(const struct cmsghdr *cmsg)
+{
+	union {
+		const struct cmsghdr *cmsg;
+		const unsigned char *uc;
+	} ptr[(
+		/* compile-time assertions */
+		sizeof(socklen_t) <= sizeof(size_t)
+	    ) ? 1 : -1];
+	ptrdiff_t pd;
+
+	ptr[0].cmsg = cmsg;
+	pd = CMSG_DATA(cmsg) - ptr[0].uc;
+	return ((size_t)cmsg->cmsg_len - (size_t)pd);
+}
+#endif
+
 static char msgbuf[8192];
 
 ssize_t
@@ -104,7 +126,27 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned char *e)
 	eno = errno;
 
 	cmsg = CMSG_FIRSTHDR(msgh);
+#ifdef DEBUG
+	fprintf(stderr, "D: received message, cmsg=%p\n", cmsg);
+#endif
 	while (cmsg) {
+#ifdef DEBUG
+		unsigned char *dp = CMSG_DATA(cmsg);
+		size_t dl = cmsg_actual_data_len(cmsg), di = 0;
+
+		fprintf(stderr, "D: cmsg hdr (%d, %d) len %zu\n",
+		    cmsg->cmsg_level, cmsg->cmsg_type, dl);
+		while (di < dl) {
+			if ((di & 15) == 0)
+				fprintf(stderr, "N: %04zX ", di);
+			if ((di & 15) == 8)
+				fputc(' ', stderr);
+			fprintf(stderr, " %02X", dp[di++]);
+			if ((di & 15) == 0 || di == dl)
+				fputc('\n', stderr);
+		}
+		fflush(stderr);
+#endif
 		if ((cmsg->cmsg_level == IPPROTO_IP &&
 		     cmsg->cmsg_type == IP_TOS) ||
 		    (cmsg->cmsg_level == IPPROTO_IPV6 &&
@@ -123,6 +165,10 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned char *e)
 			break;
 		}
 		cmsg = CMSG_NXTHDR(msgh, cmsg);
+#ifdef DEBUG
+		if (!cmsg)
+			fprintf(stderr, "D: end of cmsgs\n");
+#endif
 	}
 
 	errno = eno;
