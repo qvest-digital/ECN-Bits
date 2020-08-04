@@ -182,6 +182,7 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned char *e)
 		case IPPROTO_IP:
 			switch (cmsg->cmsg_type) {
 			case IP_TOS:
+			case IP_RECVTOS:
 				recvtos_cmsg(cmsg, e);
 				break;
 			}
