@@ -93,28 +93,19 @@ CLIENT│2020-07-28T21:52:01Z ECN CE <[::1]:57863 2020-07-28T21:52:01Z ECT(0) no
 │ Portability │
 └─────────────┘
 
-This library uses system calls with Linux-specific API/ABI
-and is unlikely to work on other operating systems, should
-they even support IP traffic class retrieval and setting.
+This library and the example programs uses standard POSIX
+system calls; they will generally work on unixoid operating
+systems. However the API/ABI employed to set and read the
+IP header traffic class octet is operating system-specific.
 
-While this API for IPv6 is standardised in RFC3542 in theory,
-that RFC introduces an incompatibility with its antecessor,
-and to add insult to injury, Linux’ implementation is not
-compliant (although the library tries hard to handle either
-variant, Linux and RFC/standard).
+The IPv6 API is standardised in RFC3542, whose wording is
+vague. All known implementations, however, choose the same
+reading, and this library takes care to support the other
+interpretation.
 
-The server application uses the ability to pass multiple
-CMSGs on sendmsg(2), which is not portable; this could be
-replaced by remembering, for each socket, which address
-family it uses, and using (only) the appropriate CMSG for
-sending back packets.
-
-FreeBSD supports IP_TOS (might need to use int instead of
-u_char for its argument) and IP_RECVTOS, as well as the
-IPv6 API; the library and client therefore should work.
-
-At least the Linux implementation leaves open questions
-whether it works as intended on big endian architectures.
+The legacy IP (IPv4) API/ABI is, au contraire, n̲o̲t̲ widely
+standardised — this library supports the implementation by
+Linux and the one in FreeBSD and MidnightBSD so far.
 
 Use in multi-threaded applications is safe if the conditions
 documented under CAVEATS in ecnbits_rdmsg(3) are met.

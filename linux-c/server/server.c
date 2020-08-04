@@ -46,6 +46,7 @@ static struct pollfd pfd[NUMSOCK];
 static int do_resolve(const char *host, const char *service);
 static void do_packet(int sockfd);
 static const char *revlookup(const struct sockaddr *addr, socklen_t addrlen);
+static void fill_tc_cmsg(struct cmsghdr *cmsg, int af, unsigned char tc);
 
 int
 main(int argc, char *argv[])
@@ -190,9 +191,8 @@ do_packet(int s)
 	time_t tt;
 	char tm[21];
 	const char *trc;
-	int tc;
 	struct sockaddr sa;
-	socklen_t sasz = sizeof(sa);
+	socklen_t salen;
 
 	io.iov_base = data;
 	io.iov_len = sizeof(data) - 1;
@@ -230,7 +230,8 @@ do_packet(int s)
 	    revlookup(mh.msg_name, mh.msg_namelen),
 	    ECNBITS_DESC(ecn), data);
 
-	if (getsockname(s, &sa, &sasz)) {
+	salen = sizeof(sa);
+	if (getsockname(s, &sa, &salen)) {
 		warn("getsockname");
 		return;
 	}
@@ -238,32 +239,51 @@ do_packet(int s)
 	fprintf(stderr, "D: socket is %d (%s), %u of %u bytes\n",
 	    (int)sa.sa_family, sa.sa_family == AF_INET ? "IPv4" :
 	    sa.sa_family == AF_INET6 ? "IPv6" : "something else",
-	    (int)sasz, (int)sizeof(sa));
+	    (int)salen, (int)sizeof(sa));
+	/* note “something else” cannot happen */
+	/* we only create AF_INET/AF_INET6 sockets above */
 #endif
 
 	len = snprintf(data, sizeof(data), "%s %s %s %s -> 0",
 	    revlookup(mh.msg_name, mh.msg_namelen),
 	    tm, ECNBITS_DESC(ecn), trc);
 	io.iov_len = len;
-	for (tc = 0; tc <= 3; ++tc) {
+	do {
 		union {
 			unsigned char buf[CMSG_SPACE(sizeof(int))];
 			struct cmsghdr msg;
 		} cmsgbuf;
-		struct cmsghdr *cmsg;
-
-		data[len - 1] = '0' + tc;
 
 		mh.msg_control = &cmsgbuf;
 		mh.msg_controllen = sizeof(cmsgbuf);
 		memset(mh.msg_control, 0, sizeof(cmsgbuf));
-
-		cmsg = CMSG_FIRSTHDR(&mh);
-		cmsg->cmsg_level = sa.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
-		cmsg->cmsg_type = sa.sa_family == AF_INET ? IP_TOS : IPV6_TCLASS;
-		cmsg->cmsg_len = CMSG_LEN(sa.sa_family == AF_INET ? 1 : sizeof(tc));
-		memcpy(CMSG_DATA(cmsg), &tc, sizeof(tc));
+		fill_tc_cmsg(CMSG_FIRSTHDR(&mh), sa.sa_family,
+		    data[len - 1] - '0');
 
 		sendmsg(s, &mh, 0);
+	} while (++data[len - 1] < '4');
+}
+
+static void
+fill_tc_cmsg(struct cmsghdr *cmsg, int af, unsigned char tc)
+{
+	int i;
+
+	switch (af) {
+	case AF_INET:
+		cmsg->cmsg_level = IPPROTO_IP;
+		cmsg->cmsg_type = IP_TOS;
+		cmsg->cmsg_len = CMSG_LEN(sizeof(tc));
+		memcpy(CMSG_DATA(cmsg), &tc, sizeof(tc));
+		break;
+	case AF_INET6:
+		i = (int)(unsigned int)tc;
+		cmsg->cmsg_level = IPPROTO_IPV6;
+		cmsg->cmsg_type = IPV6_TCLASS;
+		cmsg->cmsg_len = CMSG_LEN(sizeof(i));
+		memcpy(CMSG_DATA(cmsg), &i, sizeof(i));
+		break;
+	default:
+		errx(1, "unexpected address family %d", af);
 	}
 }

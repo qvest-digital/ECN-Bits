@@ -234,18 +234,6 @@ for IPv6, those documented by the MidnightBSD
 or GNU/Linux
 .Xr ip 7
 manual pages for legacy IPv4.
-.Pp
-The current implementation has been tested on little endian platforms
-under GNU/Linux.
-It might work under FreeBSD and other operating systems implementing
-the aforementioned APIs.
-Unfortunately, Linux does not implement the API correctly, which may
-lead to failure (bad data) on big endian platforms:
-.Pa https://bugs.debian.org/966459
-.br
-This implementation attempts to work around these bugs and may work
-on operating systems of any endianness implementing these APIs, but
-that is untested.
 .Sh AUTHORS
 .An mirabilos Aq t.glaser@tarent.de
 for Deutsche Telekom.
