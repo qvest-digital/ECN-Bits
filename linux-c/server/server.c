@@ -177,6 +177,14 @@ do_resolve(const char *host, const char *service)
 }
 
 static void
+dmp(const char *s, struct msghdr *m)
+{
+	printf("D: msghdr %p %s\n   name (%p, %zu)\n   iovec %p (%p, %zu)\n   ctl (%p, %zu)\n   flags %08X\n",
+	    m, s, m->msg_name, (size_t)m->msg_namelen, m->msg_iov, m->msg_iov->iov_base, m->msg_iov->iov_len,
+	    m->msg_control, (size_t)m->msg_controllen, m->msg_flags);
+}
+
+static void
 do_packet(int s)
 {
 	static char data[512];
@@ -201,7 +209,9 @@ do_packet(int s)
 	mh.msg_iov = &io;
 	mh.msg_iovlen = 1;
 
+dmp("before",&mh);
 	len = ecnbits_recvmsg(s, &mh, 0, &ecn);
+dmp("after",&mh);
 	if (len == (ssize_t)-1) {
 		warn("recvmsg");
 		return;
@@ -261,7 +271,8 @@ do_packet(int s)
 		cmsg->cmsg_type = sa.sa_family == AF_INET ? IP_TOS : IPV6_TCLASS;
 		cmsg->cmsg_len = CMSG_LEN(sizeof(tc));
 		memcpy(CMSG_DATA(cmsg), &tc, sizeof(tc));
-
+if(sa.sa_family == AF_INET) mh.msg_control=NULL;
+dmp("sending",&mh);
 		sendmsg(s, &mh, 0);
 	}
 }
