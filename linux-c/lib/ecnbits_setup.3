@@ -209,6 +209,8 @@ is not known to the library.
 .Xr ECNBITS_BITS 3 ,
 .Xr ecnbits_rdmsg 3 ,
 .Xr ecnbits_recvfrom 3 ,
+.Xr ip 4 ,
+.Xr ip6 4 ,
 .Xr ip 7 ,
 .Xr ipv6 7
 .Pp
@@ -221,9 +223,12 @@ home of the ECN-Bits library
 SCReAM, an example design for a managed latency-adaptive application
 .El
 .Sh STANDARDS
-The implementation uses the socket calls standardised by RFC\ 3542 for
-IPv6, those documented by GNU/Linux
-.Xr ip 7
+The implementation uses the socket calls documented in MidnightBSD
+.Xr ip6 4 ,
+standardised by RFC\ 3542, for IPv6, those documented by GNU/Linux
+.Xr ip 7 /
+MidnightBSD
+.Xr ip 4
 for legacy IPv4.
 .Pp
 The current implementation has been tested on little endian platforms
