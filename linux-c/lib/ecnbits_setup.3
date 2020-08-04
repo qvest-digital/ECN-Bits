@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: July 31 2020 $
+.Dd $Mdocdate: August 4 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -145,6 +145,7 @@ The operating system defaults usually to either
 .Li 0 Pq Li ECNBITS_NON
 or
 .Li 2 Pq Li ECNBITS_ECT0 .
+Note that ISPs can change the traffic class of packets they transmit.
 .Pp
 The
 .Ar errstring
@@ -188,9 +189,10 @@ const char *errstr;
 
 if ((fd = socket(AF_INET6, SOCK_DGRAM, 0)) == \-1)
 	err(1, "socket");
+/* do other setsockopt, if needed */
 if (ecnbits_setup(fd, AF_INET6, ECNBITS_ECT0, &errstr))
 	err(1, "ecnbits_setup: %s", errstr);
-/* do other setsockopt, connect, bind, etc. */
+/* connect, bind, etc. */
 .Ed
 .Sh ERRORS
 Besides the errors returned by the system calls
@@ -199,8 +201,9 @@ uses internally (currently, only
 .Xr setsockopt 2 ,
 but this is implementation detail subject to change without notice),
 .Dv EAFNOSUPPORT
-is returned if the address family
+is returned if
 .Ar af
+.Pq the address family
 is not known to the library.
 .Sh SEE ALSO
 .Xr sendmsg 2 ,
@@ -223,13 +226,14 @@ home of the ECN-Bits library
 SCReAM, an example design for a managed latency-adaptive application
 .El
 .Sh STANDARDS
-The implementation uses the socket calls documented in MidnightBSD
-.Xr ip6 4 ,
-standardised by RFC\ 3542, for IPv6, those documented by GNU/Linux
-.Xr ip 7 /
-MidnightBSD
+The implementation uses socket calls documented in the MidnightBSD manual page
+.Xr ip6 4
+.Pq standardised by RFC\ 3542
+for IPv6, those documented by the MidnightBSD
 .Xr ip 4
-for legacy IPv4.
+or GNU/Linux
+.Xr ip 7
+manual pages for legacy IPv4.
 .Pp
 The current implementation has been tested on little endian platforms
 under GNU/Linux.
