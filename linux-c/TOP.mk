@@ -54,12 +54,7 @@ CPPFLAGS?=
 CFLAGS?=	-O2 -g
 LDFLAGS?=
 LIBS?=
-
 DEBUG?=		No
-ifeq (,$(filter no nO No NO,${DEBUG}))
-CFLAGS+=	-Og -g3
-CPPFLAGS+=	-DDEBUG
-endif
 
 COMPILE.c=	${CC} ${CPPFLAGS} ${CFLAGS} -c
 LINK.c=		${CC} ${CFLAGS} ${LDFLAGS}
@@ -84,6 +79,11 @@ $(eval $(call cc_opt,CFLAGS,-fstack-protector-strong,-fstack-protector))
 CFLAGS+=	-Werror=format-security
 LDFLAGS+=	-Wl,-z,relro -Wl,-z,now
 LDFLAGS+=	-Wl,--as-needed
+
+ifeq (,$(filter no nO No NO,${DEBUG}))
+CFLAGS+=	-Og -g3
+CPPFLAGS+=	-DDEBUG
+endif
 
 PREFIX?=	/usr/local
 BINDIR?=	${PREFIX}/bin
