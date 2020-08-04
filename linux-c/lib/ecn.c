@@ -83,7 +83,6 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 	return (0);
 }
 
-#ifdef DEBUG
 static size_t
 cmsg_actual_data_len(const struct cmsghdr *cmsg)
 {
@@ -100,7 +99,41 @@ cmsg_actual_data_len(const struct cmsghdr *cmsg)
 	pd = CMSG_DATA(cmsg) - ptr[0].uc;
 	return ((size_t)cmsg->cmsg_len - (size_t)pd);
 }
-#endif
+
+static void
+recvtos_cmsg(struct cmsghdr *cmsg, unsigned char *e)
+{
+	unsigned char b1, b2;
+	unsigned char *d = CMSG_DATA(cmsg);
+
+	/* https://bugs.debian.org/966459 */
+	switch (cmsg_actual_data_len(cmsg)) {
+	case 0:
+		/* huh? */
+		return;
+	case 3:
+	case 2:
+		/* shouldn’t happen, but… */
+	case 1:
+		b1 = d[0];
+		break;
+	default:
+		/* most likely an int, but… */
+		b1 = d[0];
+		b2 = d[3];
+		if (b1 == b2)
+			break;
+		if (b1 != 0 && b2 == 0)
+			break;
+		if (b1 == 0 && b2 != 0) {
+			b1 = b2;
+			break;
+		}
+		/* inconsistent, no luck */
+		return;
+	}
+	*e = IPTOS_ECN(b1) | ECNBITS_VALID_BIT;
+}
 
 static char msgbuf[8192];
 
@@ -145,21 +178,20 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned char *e)
 		}
 		fflush(stderr);
 #endif
-		if ((cmsg->cmsg_level == IPPROTO_IP &&
-		     cmsg->cmsg_type == IP_TOS) ||
-		    (cmsg->cmsg_level == IPPROTO_IPV6 &&
-		     cmsg->cmsg_type == IPV6_TCLASS)) {
-			/* https://bugs.debian.org/966459 */
-			unsigned char b1, b2;
-
-			b1 = CMSG_DATA(cmsg)[0];
-			b2 = CMSG_DATA(cmsg)[3];
-			if (b1 == b2)
-				*e = IPTOS_ECN(b1) | ECNBITS_VALID_BIT;
-			else if (b1 == 0 && b2 != 0)
-				*e = IPTOS_ECN(b2) | ECNBITS_VALID_BIT;
-			else if (b1 != 0 && b2 == 0)
-				*e = IPTOS_ECN(b1) | ECNBITS_VALID_BIT;
+		switch (cmsg->cmsg_level) {
+		case IPPROTO_IP:
+			switch (cmsg->cmsg_type) {
+			case IP_TOS:
+				recvtos_cmsg(cmsg, e);
+				break;
+			}
+			break;
+		case IPPROTO_IPV6:
+			switch (cmsg->cmsg_type) {
+			case IPV6_TCLASS:
+				recvtos_cmsg(cmsg, e);
+				break;
+			}
 			break;
 		}
 		cmsg = CMSG_NXTHDR(msgh, cmsg);
