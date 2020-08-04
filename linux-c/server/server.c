@@ -189,6 +189,8 @@ do_packet(int s)
 	char tm[21];
 	const char *trc;
 	int tc;
+	struct sockaddr sa;
+	socklen_t sasz = sizeof(sa);
 
 	io.iov_base = data;
 	io.iov_len = sizeof(data) - 1;
@@ -226,23 +228,24 @@ do_packet(int s)
 	    revlookup(mh.msg_name, mh.msg_namelen),
 	    ECNBITS_DESC(ecn), data);
 
+	if (getsockname(s, &sa, &sasz)) {
+		warn("getsockname");
+		return;
+	}
+#ifdef DEBUG
+	fprintf(stderr, "D: socket is %d (%s), %u of %u bytes\n",
+	    (int)sa.sa_family, sa.sa_family == AF_INET ? "IPv4" :
+	    sa.sa_family == AF_INET6 ? "IPv6" : "something else",
+	    (int)sasz, (int)sizeof(sa));
+#endif
+
 	len = snprintf(data, sizeof(data), "%s %s %s %s -> 0",
 	    revlookup(mh.msg_name, mh.msg_namelen),
 	    tm, ECNBITS_DESC(ecn), trc);
 	io.iov_len = len;
 	for (tc = 0; tc <= 3; ++tc) {
-		/*
-		 * CAVEAT: sending multiple CMSGs with one call is
-		 * Linux-specific and not portable (OpenBSD doesn’t
-		 * support it at all and “FreeBSD fails in intere‐
-		 * sting ways” and Mac OSX returns E2BIG, according
-		 * mailing list threads regarding this).
-		 *
-		 * Portably, we’d note whether s is IPv4 or IPv6
-		 * and set only the appropriate CMSG.
-		 */
 		union {
-			unsigned char buf[2 * CMSG_SPACE(sizeof(int))];
+			unsigned char buf[CMSG_SPACE(sizeof(int))];
 			struct cmsghdr msg;
 		} cmsgbuf;
 		struct cmsghdr *cmsg;
@@ -254,14 +257,8 @@ do_packet(int s)
 		memset(mh.msg_control, 0, sizeof(cmsgbuf));
 
 		cmsg = CMSG_FIRSTHDR(&mh);
-		cmsg->cmsg_level = IPPROTO_IP;
-		cmsg->cmsg_type = IP_TOS;
-		cmsg->cmsg_len = CMSG_LEN(sizeof(tc));
-		memcpy(CMSG_DATA(cmsg), &tc, sizeof(tc));
-
-		cmsg = CMSG_NXTHDR(&mh, cmsg);
-		cmsg->cmsg_level = IPPROTO_IPV6;
-		cmsg->cmsg_type = IPV6_TCLASS;
+		cmsg->cmsg_level = sa.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
+		cmsg->cmsg_type = sa.sa_family == AF_INET ? IP_TOS : IPV6_TCLASS;
 		cmsg->cmsg_len = CMSG_LEN(sizeof(tc));
 		memcpy(CMSG_DATA(cmsg), &tc, sizeof(tc));
 
