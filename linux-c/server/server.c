@@ -269,9 +269,8 @@ dmp("after",&mh);
 		cmsg = CMSG_FIRSTHDR(&mh);
 		cmsg->cmsg_level = sa.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
 		cmsg->cmsg_type = sa.sa_family == AF_INET ? IP_TOS : IPV6_TCLASS;
-		cmsg->cmsg_len = CMSG_LEN(sizeof(tc));
+		cmsg->cmsg_len = CMSG_LEN(sa.sa_family == AF_INET ? 1 : sizeof(tc));
 		memcpy(CMSG_DATA(cmsg), &tc, sizeof(tc));
-if(sa.sa_family == AF_INET) mh.msg_control=NULL;
 dmp("sending",&mh);
 		sendmsg(s, &mh, 0);
 	}
