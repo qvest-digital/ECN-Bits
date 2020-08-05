@@ -48,13 +48,13 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 	switch (af) {
 	case AF_INET:
 		if (setsockopt(s, IPPROTO_IP, IP_TOS,
-		    &tos, sizeof(tos))) {
+		    (const void *)&tos, sizeof(tos))) {
 			if (e)
 				*e = "failed to set up sender TOS";
 			return (-1);
 		}
 		if (setsockopt(s, IPPROTO_IP, IP_RECVTOS,
-		    &on, sizeof(on))) {
+		    (const void *)&on, sizeof(on))) {
 			if (e)
 				*e = "failed to set up receiver TOS";
 			return (-1);
@@ -62,13 +62,13 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 		break;
 	case AF_INET6:
 		if (setsockopt(s, IPPROTO_IPV6, IPV6_TCLASS,
-		    &tos, sizeof(tos))) {
+		    (const void *)&tos, sizeof(tos))) {
 			if (e)
 				*e = "failed to set up sender TOS";
 			return (-1);
 		}
 		if (setsockopt(s, IPPROTO_IPV6, IPV6_RECVTCLASS,
-		    &on, sizeof(on))) {
+		    (const void *)&on, sizeof(on))) {
 			if (e)
 				*e = "failed to set up receiver TOS";
 			return (-1);

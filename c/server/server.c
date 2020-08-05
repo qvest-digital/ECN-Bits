@@ -142,7 +142,8 @@ do_resolve(const char *host, const char *service)
 		}
 
 		i = 1;
-		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &i, sizeof(i))) {
+		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
+		    (const void *)&i, sizeof(i))) {
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
