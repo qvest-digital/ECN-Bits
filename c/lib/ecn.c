@@ -27,10 +27,14 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#ifdef DEBUG
+#include <err.h>
+#endif
 #include <errno.h>
 #include <stddef.h>
-#ifdef DEBUG
+#if defined(DEBUG) || (defined(__linux__) && !defined(__ANDROID__))
 #include <stdio.h>
+#include <string.h>
 #endif
 
 #include "ecn-bits.h"
@@ -39,19 +43,32 @@
 #define IPTOS_ECN(tos) ((tos) & IPTOS_ECN_MASK)
 #endif
 
+static int requiretcset(void);
+
 int
 ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 {
 	int on = 1;
 	int tos = (int)(unsigned int)iptos;
+#ifdef DEBUG
+	int eno;
+#endif
 
+	if (e)
+		*e = NULL;
 	switch (af) {
 	case AF_INET:
 		if (setsockopt(s, IPPROTO_IP, IP_TOS,
 		    (const void *)&tos, sizeof(tos))) {
+#ifdef DEBUG
+			eno = errno;
+			warn("ecnbits_setup: cannot set %s", "IP_TOS");
+			errno = eno;
+#endif
 			if (e)
 				*e = "failed to set up sender TOS";
-			return (-1);
+			if (requiretcset())
+				return (-1);
 		}
 		if (setsockopt(s, IPPROTO_IP, IP_RECVTOS,
 		    (const void *)&on, sizeof(on))) {
@@ -63,9 +80,15 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 	case AF_INET6:
 		if (setsockopt(s, IPPROTO_IPV6, IPV6_TCLASS,
 		    (const void *)&tos, sizeof(tos))) {
+#ifdef DEBUG
+			eno = errno;
+			warn("ecnbits_setup: cannot set %s", "IPV6_TCLASS");
+			errno = eno;
+#endif
 			if (e)
 				*e = "failed to set up sender TOS";
-			return (-1);
+			if (requiretcset())
+				return (-1);
 		}
 		if (setsockopt(s, IPPROTO_IPV6, IPV6_RECVTCLASS,
 		    (const void *)&on, sizeof(on))) {
@@ -204,4 +227,46 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned char *e)
 
 	errno = eno;
 	return (rv);
+}
+
+#if defined(__linux__) && !defined(__ANDROID__)
+static int
+iswinorwsl(void)
+{
+	int iswin = 0;
+	int e = errno;
+	FILE *fp;
+	char buf[256];
+
+	if ((fp = fopen("/proc/sys/kernel/osrelease", "r"))) {
+		if (fgets(buf, sizeof(buf), fp) &&
+		    strstr(buf, "Microsoft"))
+			iswin = 1;
+		fclose(fp);
+	}
+	errno = e;
+	return (iswin);
+}
+#endif
+
+static int
+requiretcset(void)
+{
+#if defined(_WIN32) || defined(WIN32)
+	return (0);
+#elif defined(__linux__) && !defined(__ANDROID__)
+	static enum {
+		ECN_OS_MAYBEWSL,
+		ECN_OS_NOTWIN32,
+		ECN_OS_WINORWSL
+	} os = ECN_OS_MAYBEWSL;
+
+	if (os == ECN_OS_MAYBEWSL) {
+		os = iswinorwsl() ? ECN_OS_WINORWSL : ECN_OS_NOTWIN32;
+	}
+
+	return (os != ECN_OS_WINORWSL);
+#else
+	return (1);
+#endif
 }

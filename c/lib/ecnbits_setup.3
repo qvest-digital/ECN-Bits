@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: August 4 2020 $
+.Dd $Mdocdate: August 5 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -151,10 +151,13 @@ The
 .Ar errstring
 argument, if it is not
 .Dv NULL ,
-is set to a human-readable description of the problem on failure,
+is set to a human-readable description of the problem on failure
+.Pq even if ignored ,
 which can be output in addition to whatever value
 .Va errno
-was set by the system calls used internally.
+was set by the system calls used internally, and to
+.Dv NULL
+on success.
 .Pp
 Note that the
 .Ar iptos
@@ -176,11 +179,16 @@ convenience, as almost any application using ECN-Bits will wish
 to set them (applications can later change the setting with
 .Xr setsockopt 2
 anyway).
+On Windows\(rg or WSL platforms, failure to set the traffic class
+for sent packets is silently ignored, although the
+.Ar errstring
+is still set.
 .Sh RETURN VALUES
 .Rv -std ecnbits_setup
 The
 .Ar errstring
-value is additionally set on error.
+value is additionally set
+.Pq see above .
 .Sh EXAMPLES
 The following code fragment illustrates the usage:
 .Bd -literal -offset indent
@@ -234,6 +242,9 @@ for IPv6, those documented by the MidnightBSD
 or GNU/Linux
 .Xr ip 7
 manual pages for legacy IPv4.
+.Pp
+The socket options for receiving the IP traffic class are also supported
+on Windows\(rg environments, although setting it on outgoing packets isn't.
 .Sh AUTHORS
 .An mirabilos Aq t.glaser@tarent.de
 for Deutsche Telekom.
