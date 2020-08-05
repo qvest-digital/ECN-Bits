@@ -182,7 +182,8 @@ anyway).
 On Windows\(rg or WSL platforms, failure to set the traffic class
 for sent packets is silently ignored, although the
 .Ar errstring
-is still set.
+is still set
+.Pq as is Va errno .
 .Sh RETURN VALUES
 .Rv -std ecnbits_setup
 The
