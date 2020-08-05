@@ -2,5 +2,5 @@
 *.o
 *.so
 *.so.*
-linux-c/client/client
-linux-c/server/server
+c/client/client
+c/server/server

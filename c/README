@@ -7,10 +7,10 @@
 └─────────────┘
 
 With GNU make and build-essential installed, it is sufficient to run
-“make” (“gmake” on BSD), either in the top-level “linux-c” directory
-or a subdirectory. (To build the client or server example subdirectory,
-the library must have been built first locally or it must have been
-installed system-wide.) The usual variables (CC, AR, RANLIB,
+“make” (“gmake” on BSD), either in the top-level “c” directory or a
+subdirectory. (If the library was not yet installed system-wide, it
+must have been locally built before the “client” and “server” example
+directories can be built.) The usual variables (CC, AR, RANLIB,
 CFLAGS, CPPFLAGS, LDFLAGS, LIBS, etc.) are supported.
 
 Running “make install” will install the library, its manual pages

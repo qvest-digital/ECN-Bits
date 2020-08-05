@@ -17,10 +17,12 @@ Development funded by Deutsche Telekom.
 │ Covered operating environments │
 └────────────────────────────────┘
 
-• Linux, C (usable from C++ and others)
-  ‣ see linux-c/
-  ‣ library; example client/server; manpages
-  ‣ also works on FreeBSD/MidnightBSD, perhaps others
+• C (usable from C++ and others):
+  Linux, FreeBSD, MidnightBSD (tested)
+  possibly Darwin: Mac OSX, iOS
+  Windows 8 and newer probably
+  ‣ see c/
+  ‣ library, manpages; client and server example
   ‣ NetBSD, OpenBSD and derivatives don’t support reading IP traffic class
 
 • Linux/Android, Java with native components
