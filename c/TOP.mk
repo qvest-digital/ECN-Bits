@@ -68,7 +68,6 @@ cc_opt_${cc_opt_}:=$$(call run_cmd,$${COMPILE.c} -Werror $(2) -o "$$$$TMP"o -xc 
 $(1)+=		$${cc_opt_${cc_opt_}}
 endef
 
-CPPFLAGS+=	-D_POSIX_C_SOURCE=200112L
 CPPFLAGS+=	-D_REENTRANT
 CPPFLAGS+=	-I$(call shellescape,${TOP})/inc
 CPPFLAGS+=	-D_FORTIFY_SOURCE=2
