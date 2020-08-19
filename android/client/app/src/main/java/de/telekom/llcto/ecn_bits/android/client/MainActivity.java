@@ -2,7 +2,7 @@ package de.telekom.llcto.ecn_bits.android.client;
 
 /*-
  * Copyright © 2020
- *	mirabilos <t.glaser@tarent.de>
+ *      mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
  * Provided that these terms and disclaimer and all copyright notices
@@ -30,11 +30,25 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import lombok.AllArgsConstructor;
 import org.evolvis.tartools.rfc822.FQDN;
+import org.evolvis.tartools.rfc822.IPAddress;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Map;
@@ -49,20 +63,27 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText hostnameText;
     private EditText portText;
+    private Button sendButton;
+    private Button startStopButton;
     private RecyclerView outputListView;
     private OutputListAdapter outputListAdapter;
     private LinearLayoutManager outputListLayoutMgr;
     private InputMethodManager imm;
     private boolean showKbd = false;
+    private DatagramSocket sock;
+    private Thread netThread = null;
+    private volatile boolean exiting = false;
+    private boolean channelStarted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        netThread = null;
+        exiting = false;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
 
         outputLines.clear();
-        outputLines.add("(received packets will show up here)");
         outputListView = findViewById(R.id.outputList);
         outputListView.setHasFixedSize(true);
         outputListLayoutMgr = new LinearLayoutManager(this);
@@ -71,10 +92,30 @@ public class MainActivity extends AppCompatActivity {
         outputListView.setAdapter(outputListAdapter);
         outputListView.addItemDecoration(new DividerItemDecoration(this,
           DividerItemDecoration.VERTICAL));
+        resetOutputLine("(received packets will show up here)");
         showKbd = savedInstanceState == null;
 
         hostnameText = findViewById(R.id.hostnameText);
         portText = findViewById(R.id.portText);
+        sendButton = findViewById(R.id.sendButton);
+        sendButton.setSaveEnabled(false);
+        sendButton.setEnabled(true);
+        startStopButton = findViewById(R.id.channelButton);
+        channelStarted = false;
+        startStopButton.setText(R.string.startLabel);
+        startStopButton.setSaveEnabled(false);
+        startStopButton.setEnabled(true);
+    }
+
+    @Override
+    protected void onDestroy() {
+        exiting = true;
+        if (netThread != null) {
+            sock.close();
+            netThread.interrupt();
+            netThread = null;
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -105,6 +146,12 @@ public class MainActivity extends AppCompatActivity {
         } else {
             getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         }
+    }
+
+    private void resetOutputLine(final String first) {
+        outputLines.clear();
+        outputLines.add(first);
+        outputListAdapter.notifyDataSetChanged();
     }
 
     private String addOutputLine(final String line) {
@@ -143,14 +190,39 @@ public class MainActivity extends AppCompatActivity {
     //    return new AbstractMap.SimpleEntry<>(null, s);
     //}
 
-    private Map.Entry<String, String> fqdnExtractor(final String s, final String what) {
+    private static class IPorFQDN {
+        final boolean resolved;
+        final String s;
+        final InetAddress[] a = new InetAddress[1];
+
+        IPorFQDN(final String i) {
+            resolved = false;
+            s = i;
+        }
+
+        IPorFQDN(final String i, final InetAddress ip) {
+            resolved = true;
+            s = i;
+            a[0] = ip;
+        }
+    }
+
+    private Map.Entry<String, IPorFQDN> fqdnOrIPExtractor(final String s, final String what) {
         if ("".equals(s)) {
             return new AbstractMap.SimpleEntry<>("empty " + what, null);
         }
-        if (!FQDN.isDomain(s)) {
-            return new AbstractMap.SimpleEntry<>("not an FQDN: " + what, null);
+        if (FQDN.isDomain(s)) {
+            return new AbstractMap.SimpleEntry<>(null, new IPorFQDN(s));
         }
-        return new AbstractMap.SimpleEntry<>(null, s);
+        final InetAddress i6 = IPAddress.v6(s);
+        if (i6 != null) {
+            return new AbstractMap.SimpleEntry<>(null, new IPorFQDN(s, i6));
+        }
+        final InetAddress i4 = IPAddress.v4(s);
+        if (i4 != null) {
+            return new AbstractMap.SimpleEntry<>(null, new IPorFQDN(s, i4));
+        }
+        return new AbstractMap.SimpleEntry<>("not an IP or FQDN: " + what, null);
     }
 
     @AllArgsConstructor
@@ -180,24 +252,105 @@ public class MainActivity extends AppCompatActivity {
         return new AbstractMap.SimpleEntry<>(null, res);
     }
 
-    private boolean anyNull(final Object... args) {
-        for (final Object o : args) {
-            if (o == null) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public void clkSend(final View v) {
-        final String hostname = getFieldValue(true, hostnameText, this::fqdnExtractor, "hostname");
+        final IPorFQDN hostname = getFieldValue(true, hostnameText, this::fqdnOrIPExtractor, "hostname");
         final Integer port = getFieldValue(false, portText, this::uintExtractor,
           new Bounds(1, 65535, "port"));
-        if (anyNull(hostname, port)) {
+        //if (Stream.of(hostname, port).anyMatch(Objects::isNull)) fails in UnIntelliJ
+        if (hostname == null || port == null) {
             return;
         }
 
+        try {
+            sock = new DatagramSocket();
+        } catch (SocketException e) {
+            addOutputLine("could not create socket: " + e);
+            return;
+        }
+
+        sendButton.setEnabled(false);
         imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-        addOutputLine(String.format("connect to [%s]:%d", hostname, port));
+        addOutputLine(String.format("connect to [%s]:%d", hostname.resolved ?
+          hostname.a[0].getHostAddress() : hostname.s, port));
+        netThread = new Thread(() -> {
+            try {
+                boolean oneSuccess = false;
+                sock.setSoTimeout(1000);
+                final byte[] buf = new byte[512];
+                final InetAddress[] dstArr = hostname.resolved ? hostname.a :
+                  InetAddress.getAllByName(hostname.s);
+                runOnUiThread(() -> resetOutputLine("sent/received packets:"));
+                for (final InetAddress dst : dstArr) {
+                    if (exiting || Thread.interrupted()) {
+                        return;
+                    }
+                    runOnUiThread(() -> addOutputLine(String.format(" → [%s]:%d",
+                      dst.getHostAddress(), port)));
+                    buf[0] = 'h';
+                    buf[1] = 'i';
+                    buf[2] = '!';
+                    final DatagramPacket psend = new DatagramPacket(buf, 3, dst, port);
+                    try {
+                        sock.send(psend);
+                    } catch (IOException e) {
+                        if (exiting || Thread.interrupted()) {
+                            return;
+                        }
+                        runOnUiThread(() -> addOutputLine("!! send: " + e));
+                        continue;
+                    }
+                    final DatagramPacket precv = new DatagramPacket(buf, buf.length);
+                    while (true) {
+                        try {
+                            sock.receive(precv);
+                        } catch (SocketTimeoutException e) {
+                            break;
+                        } catch (IOException e) {
+                            if (exiting || Thread.interrupted()) {
+                                return;
+                            }
+                            runOnUiThread(() -> addOutputLine("!! recv: " + e));
+                            break;
+                        }
+                        final String stamp = ZonedDateTime.now(ZoneOffset.UTC)
+                          .truncatedTo(ChronoUnit.MILLIS)
+                          .format(DateTimeFormatter.ISO_INSTANT);
+                        oneSuccess = true;
+                        final String userData = new String(buf, StandardCharsets.UTF_8);
+                        final String logLine = String.format("%s %s <%s>",
+                          stamp, "[ECN?]", userData.trim());
+                        runOnUiThread(() -> addOutputLine(logLine));
+                    }
+                }
+                if (oneSuccess) {
+                    runOnUiThread(() -> addOutputLine(" ‣ Success!"));
+                } else {
+                    runOnUiThread(() -> addOutputLine("!! failed !!"));
+                }
+            } catch (UnknownHostException e) {
+                runOnUiThread(() -> addOutputLine("!! resolve: " + e));
+            } catch (SocketException e) {
+                runOnUiThread(() -> addOutputLine("!! SO_TMOUT: " + e));
+            } finally {
+                if (!sock.isClosed()) {
+                    sock.close();
+                }
+                runOnUiThread(() -> sendButton.setEnabled(true));
+            }
+        });
+        netThread.start();
+    }
+
+    public void clkStartStop(final View v) {
+        // TODO: https://developer.android.com/reference/java/nio/channels/DatagramChannel
+        if (channelStarted) {
+            addOutputLine("stopping channel: not yet implemented, sorry");
+            channelStarted = false;
+            startStopButton.setText(R.string.startLabel);
+        } else {
+            channelStarted = true;
+            startStopButton.setText(R.string.stopLabel);
+            addOutputLine("starting channel: not yet implemented, sorry");
+        }
     }
 }

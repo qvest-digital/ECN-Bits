@@ -1,6 +1,8 @@
 <resources>
 	<string name="app_name">ECN-Client</string>
-	<string name="portLabel">port</string>
-	<string name="sendLabel">Send</string>
 	<string name="hostnameLabel">hostname</string>
+	<string name="portLabel">port</string>
+	<string name="sendLabel">send packet</string>
+	<string name="startLabel">start channel</string>
+	<string name="stopLabel">stop channel</string>
 </resources>
