@@ -299,6 +299,8 @@ public class MainActivity extends AppCompatActivity {
         if (hostname == null || port == null) {
             return;
         }
+        final Bits outBits = getDropdownSelectedValueOr(bitsDropdown,
+          BitsAdapter.values, BitsAdapter.values[0]).getBit();
 
         try {
             sock = new DatagramSocket();
@@ -309,16 +311,20 @@ public class MainActivity extends AppCompatActivity {
 
         sendButton.setEnabled(false);
         imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-        addOutputLine(String.format("connect to [%s]:%d", hostname.resolved ?
-          hostname.a[0].getHostAddress() : hostname.s, port));
+        addOutputLine(String.format("connect to [%s]:%d with %s", hostname.resolved ?
+          hostname.a[0].getHostAddress() : hostname.s, port, outBits.getShortname()));
+        val hdr = String.format("sent(%s)/received packets:", outBits.getShortname());
         netThread = new Thread(() -> {
             try {
                 boolean oneSuccess = false;
                 sock.setSoTimeout(1000);
+                // TODO: ↓ does NOT currently work (silently ignored)!
+                sock.setTrafficClass(outBits.getBits());
+                // TODO: supposedly works outside of emulator: https://stackoverflow.com/a/44280445/2171120
                 final byte[] buf = new byte[512];
                 final InetAddress[] dstArr = hostname.resolved ? hostname.a :
                   InetAddress.getAllByName(hostname.s);
-                runOnUiThread(() -> resetOutputLine("sent/received packets:"));
+                runOnUiThread(() -> resetOutputLine(hdr));
                 for (final InetAddress dst : dstArr) {
                     if (exiting || Thread.interrupted()) {
                         return;
@@ -369,7 +375,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (UnknownHostException e) {
                 runOnUiThread(() -> addOutputLine("!! resolve: " + e));
             } catch (SocketException e) {
-                runOnUiThread(() -> addOutputLine("!! SO_TMOUT: " + e));
+                runOnUiThread(() -> addOutputLine("!! setsockopt: " + e));
             } finally {
                 if (!sock.isClosed()) {
                     sock.close();
@@ -392,9 +398,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void clkStartStop(final View v) {
         // TODO: https://developer.android.com/reference/java/nio/channels/DatagramChannel
-        final Bits outBits = getDropdownSelectedValueOr(bitsDropdown,
-          BitsAdapter.values, BitsAdapter.values[0]).getBit();
-        addOutputLine("outBits: " + outBits);
         if (channelStarted) {
             addOutputLine("stopping channel: not yet implemented, sorry");
             channelStarted = false;
