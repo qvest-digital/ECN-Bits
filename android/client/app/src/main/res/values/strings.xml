@@ -5,4 +5,5 @@
 	<string name="sendLabel">send packet</string>
 	<string name="startLabel">start channel</string>
 	<string name="stopLabel">stop channel</string>
+	<string name="licencesLabel">Licences</string>
 </resources>

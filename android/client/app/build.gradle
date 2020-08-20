@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.google.android.gms.oss-licenses-plugin'
 
 android {
     compileSdkVersion 26
@@ -35,6 +36,8 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
     implementation 'com.android.support:recyclerview-v7:26.1.0'
+    //noinspection GradleDependency
+    implementation 'com.google.android.gms:play-services-oss-licenses:16.0.2'
 
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/

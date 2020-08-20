@@ -12,38 +12,43 @@
 		android:layout_height="wrap_content"
 		android:layout_marginStart="8dp"
 		android:layout_marginTop="8dp"
-		android:layout_marginEnd="8dp"
-		android:ems="10"
+		android:layout_marginEnd="16dp"
 		android:hint="@string/hostnameLabel"
+		android:importantForAutofill="no"
 		android:inputType="text"
 		android:maxLines="1"
-		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintEnd_toStartOf="@+id/portText"
+		app:layout_constraintHorizontal_bias="0.0"
 		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent"
-		android:importantForAutofill="no" />
+		app:layout_constraintTop_toTopOf="parent" />
 
 	<EditText
 		android:id="@+id/portText"
-		android:layout_width="0dp"
+		android:layout_width="80sp"
 		android:layout_height="wrap_content"
-		android:layout_marginTop="16dp"
+		android:layout_marginStart="16dp"
+		android:layout_marginEnd="8dp"
 		android:ems="5"
 		android:hint="@string/portLabel"
 		android:importantForAutofill="no"
 		android:inputType="number"
 		android:maxLines="1"
-		app:layout_constraintStart_toStartOf="@+id/hostnameText"
-		app:layout_constraintTop_toBottomOf="@+id/hostnameText" />
+		app:layout_constraintBaseline_toBaselineOf="@+id/hostnameText"
+		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintHorizontal_bias="1.0"
+		app:layout_constraintStart_toEndOf="@+id/hostnameText" />
 
 	<Button
 		android:id="@+id/sendButton"
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
-		android:layout_marginStart="16dp"
+		android:layout_marginTop="16dp"
+		android:layout_marginEnd="8dp"
 		android:onClick="clkSend"
 		android:text="@string/sendLabel"
-		app:layout_constraintBaseline_toBaselineOf="@+id/portText"
-		app:layout_constraintStart_toEndOf="@+id/portText" />
+		app:layout_constraintEnd_toStartOf="@+id/channelButton"
+		app:layout_constraintStart_toStartOf="@+id/hostnameText"
+		app:layout_constraintTop_toBottomOf="@+id/hostnameText" />
 
 	<android.support.v7.widget.RecyclerView
 		android:id="@+id/outputList"
@@ -53,7 +58,7 @@
 		android:layout_marginBottom="8dp"
 		android:scrollbars="vertical"
 		app:layout_constraintBottom_toBottomOf="parent"
-		app:layout_constraintEnd_toEndOf="@+id/channelButton"
+		app:layout_constraintEnd_toEndOf="@+id/portText"
 		app:layout_constraintStart_toStartOf="@+id/hostnameText"
 		app:layout_constraintTop_toBottomOf="@+id/sendButton" />
 
@@ -61,10 +66,23 @@
 		android:id="@+id/channelButton"
 		android:layout_width="0dp"
 		android:layout_height="wrap_content"
-		android:layout_marginStart="16dp"
+		android:layout_marginStart="8dp"
+		android:layout_marginEnd="16dp"
 		android:onClick="clkStartStop"
 		android:text="@string/startLabel"
 		app:layout_constraintBaseline_toBaselineOf="@+id/sendButton"
-		app:layout_constraintEnd_toEndOf="@+id/hostnameText"
+		app:layout_constraintEnd_toStartOf="@+id/licenceButton"
 		app:layout_constraintStart_toEndOf="@+id/sendButton" />
+
+	<Button
+		android:id="@+id/licenceButton"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_marginStart="16dp"
+		android:onClick="clkLicence"
+		android:text="@string/licencesLabel"
+		app:layout_constraintBaseline_toBaselineOf="@+id/channelButton"
+		app:layout_constraintEnd_toEndOf="@+id/portText"
+		app:layout_constraintHorizontal_bias="0.0"
+		app:layout_constraintStart_toEndOf="@+id/channelButton" />
 </android.support.constraint.ConstraintLayout>

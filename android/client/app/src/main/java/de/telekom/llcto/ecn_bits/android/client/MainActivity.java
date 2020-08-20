@@ -22,6 +22,7 @@ package de.telekom.llcto.ecn_bits.android.client;
  */
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
@@ -33,6 +34,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import lombok.AllArgsConstructor;
 import org.evolvis.tartools.rfc822.FQDN;
 import org.evolvis.tartools.rfc822.IPAddress;
@@ -352,5 +354,10 @@ public class MainActivity extends AppCompatActivity {
             startStopButton.setText(R.string.stopLabel);
             addOutputLine("starting channel: not yet implemented, sorry");
         }
+    }
+
+    public void clkLicence(final View v) {
+        // TODO: this is nowhere near sufficient for production
+        startActivity(new Intent(this, OssLicensesMenuActivity.class));
     }
 }
