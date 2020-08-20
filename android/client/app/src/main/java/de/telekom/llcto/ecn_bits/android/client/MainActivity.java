@@ -31,11 +31,17 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
+import de.telekom.llcto.ecn_bits.android.lib.Bits;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.val;
 import org.evolvis.tartools.rfc822.FQDN;
 import org.evolvis.tartools.rfc822.IPAddress;
 
@@ -65,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText hostnameText;
     private EditText portText;
+    private Spinner bitsDropdown;
     private Button sendButton;
     private Button startStopButton;
     private RecyclerView outputListView;
@@ -76,6 +83,32 @@ public class MainActivity extends AppCompatActivity {
     private Thread netThread = null;
     private volatile boolean exiting = false;
     private boolean channelStarted = false;
+
+    /**
+     * Adapts a {@link Bits} enum for use with an {@link ArrayAdapter}: the
+     * latter is supremely inflexible and insists on using {@link #toString()}
+     * to determine the dropdown value, which isn’t overridable…
+     */
+    @RequiredArgsConstructor
+    @Getter
+    private static class BitsAdapter {
+        static final BitsAdapter[] values;
+
+        static {
+            val bits = Bits.values();
+            values = new BitsAdapter[bits.length];
+            for (int i = 0; i < bits.length; ++i) {
+                values[i] = new BitsAdapter(bits[i]);
+            }
+        }
+
+        private final Bits bit;
+
+        @Override
+        public String toString() {
+            return bit.getShortname();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +132,10 @@ public class MainActivity extends AppCompatActivity {
 
         hostnameText = findViewById(R.id.hostnameText);
         portText = findViewById(R.id.portText);
+        bitsDropdown = findViewById(R.id.bitsDropdown);
+        val bitsAdapter = new ArrayAdapter<>(this,
+          android.R.layout.simple_spinner_item, BitsAdapter.values);
+        bitsDropdown.setAdapter(bitsAdapter);
         sendButton = findViewById(R.id.sendButton);
         sendButton.setSaveEnabled(false);
         sendButton.setEnabled(true);
@@ -343,8 +380,21 @@ public class MainActivity extends AppCompatActivity {
         netThread.start();
     }
 
+    public static <T> T getDropdownSelectedValueOr(final Spinner dropdown,
+      final T[] values, final T defaultValue /* can be null */) {
+        final int pos = dropdown.getSelectedItemPosition();
+        if (pos == Spinner.INVALID_POSITION) {
+            // doesn’t happen in my experience, but… cf. https://stackoverflow.com/q/10105628/2171120
+            return defaultValue;
+        }
+        return values[pos];
+    }
+
     public void clkStartStop(final View v) {
         // TODO: https://developer.android.com/reference/java/nio/channels/DatagramChannel
+        final Bits outBits = getDropdownSelectedValueOr(bitsDropdown,
+          BitsAdapter.values, BitsAdapter.values[0]).getBit();
+        addOutputLine("outBits: " + outBits);
         if (channelStarted) {
             addOutputLine("stopping channel: not yet implemented, sorry");
             channelStarted = false;
