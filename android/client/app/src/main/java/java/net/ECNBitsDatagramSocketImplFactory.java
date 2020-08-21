@@ -22,10 +22,9 @@ package java.net;
  */
 
 import android.util.Log;
+import lombok.val;
 
-import java.net.DatagramSocketImpl;
-import java.net.DatagramSocketImplFactory;
-import java.net.ECNBitsDatagramSocketImpl;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * {@link DatagramSocketImplFactory} for use with the ECN-Bits library
@@ -38,14 +37,14 @@ public class ECNBitsDatagramSocketImplFactory implements DatagramSocketImplFacto
     public DatagramSocketImpl createDatagramSocketImpl() {
         Log.w("ECN-Bits", "creating impl");
         try {
-            final Class<?> clazz = Class.forName("java.net.PlainDatagramSocketImpl");
-            return (DatagramSocketImpl) clazz.newInstance();
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            val clazz = Class.forName("java.net.PlainDatagramSocketImpl");
+            val cons = clazz.getDeclaredConstructor();
+            cons.setAccessible(true);
+            return (DatagramSocketImpl) cons.newInstance();
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             Log.e("ECN-Bits", "reflection", e);
             return null;
         }
         //return new ECNBitsDatagramSocketImpl();
-        // even ↓ doesn’t work either
-        //return new PlainDatagramSocketImpl();
     }
 }
