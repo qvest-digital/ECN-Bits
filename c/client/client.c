@@ -44,7 +44,7 @@ main(int argc, char *argv[])
 		errx(1, "Usage: %s servername port", argv[0]);
 
 	if (do_resolve(argv[1], argv[2]))
-		errx(1, "Could not connect to server");
+		errx(1, "Could not connect to server or received no response");
 	return (0);
 }
 
