@@ -264,17 +264,27 @@ do_packet(int s)
 static void
 fill_tc_cmsg(struct cmsghdr *cmsg, int af, unsigned char tc)
 {
-	int i;
+	int i = (int)(unsigned int)tc;
 
 	switch (af) {
 	case AF_INET:
 		cmsg->cmsg_level = IPPROTO_IP;
 		cmsg->cmsg_type = IP_TOS;
+#if defined(__linux__)
+		/*
+		 * The generic case below works on Linux 5.7 (Debian) but
+		 * fails on Linux 3.18 (Android); this here works on both
+		 * but fails on e.g. MidnightBSD because it’s asymmetric:
+		 * we get a char, this sends an int.
+		 */
+		cmsg->cmsg_len = CMSG_LEN(sizeof(i));
+		memcpy(CMSG_DATA(cmsg), &i, sizeof(i));
+#else
 		cmsg->cmsg_len = CMSG_LEN(sizeof(tc));
 		memcpy(CMSG_DATA(cmsg), &tc, sizeof(tc));
+#endif
 		break;
 	case AF_INET6:
-		i = (int)(unsigned int)tc;
 		cmsg->cmsg_level = IPPROTO_IPV6;
 		cmsg->cmsg_type = IPV6_TCLASS;
 		cmsg->cmsg_len = CMSG_LEN(sizeof(i));
