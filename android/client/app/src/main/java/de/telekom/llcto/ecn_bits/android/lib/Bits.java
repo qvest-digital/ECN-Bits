@@ -21,6 +21,11 @@ package de.telekom.llcto.ecn_bits.android.lib;
  * of said person’s immediate fault when using the work as intended.
  */
 
+import android.util.Log;
+
+import java.io.IOException;
+import java.net.DatagramSocket;
+
 /**
  * Enumerates the possible ECN bits.
  *
@@ -31,6 +36,15 @@ public enum Bits {
     ECT0(2, "ECT(0)", "ECN-capable; L4S: legacy transport"),
     ECT1(1, "ECT(1)", "ECN-capable; L4S: L4S-aware transport"),
     CE(3, "ECN CE", "congestion experienced");
+
+    static {
+        Log.w("ECN-Bits", "preparing to setDatagramSocketImplFactory");
+        try {
+            DatagramSocket.setDatagramSocketImplFactory(new ECNBitsDatagramSocketImplFactory());
+        } catch (IOException e) {
+            Log.e("ECN-Bits", "unable to setDatagramSocketImplFactory", e);
+        }
+    }
 
     /**
      * Short name corresponding to “ECN bits unknown”, cf. {@link #getShortname()}
