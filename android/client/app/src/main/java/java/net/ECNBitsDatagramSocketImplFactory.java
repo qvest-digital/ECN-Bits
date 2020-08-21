@@ -1,4 +1,4 @@
-package de.telekom.llcto.ecn_bits.android.lib;
+package java.net;
 
 /*-
  * Copyright © 2020
@@ -37,7 +37,14 @@ public class ECNBitsDatagramSocketImplFactory implements DatagramSocketImplFacto
     @Override
     public DatagramSocketImpl createDatagramSocketImpl() {
         Log.w("ECN-Bits", "creating impl");
-        return new ECNBitsDatagramSocketImpl();
+        try {
+            final Class<?> clazz = Class.forName("java.net.PlainDatagramSocketImpl");
+            return (DatagramSocketImpl) clazz.newInstance();
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            Log.e("ECN-Bits", "reflection", e);
+            return null;
+        }
+        //return new ECNBitsDatagramSocketImpl();
         // even ↓ doesn’t work either
         //return new PlainDatagramSocketImpl();
     }
