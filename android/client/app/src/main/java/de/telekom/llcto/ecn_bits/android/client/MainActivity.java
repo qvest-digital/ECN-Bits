@@ -321,6 +321,7 @@ public class MainActivity extends AppCompatActivity {
                 // TODO: ↓ does NOT currently work (silently ignored)!
                 sock.setTrafficClass(outBits.getBits());
                 // TODO: supposedly works outside of emulator: https://stackoverflow.com/a/44280445/2171120
+		// Note: works on loopback in emulator, too… except IPv4‽
                 final byte[] buf = new byte[512];
                 final InetAddress[] dstArr = hostname.resolved ? hostname.a :
                   InetAddress.getAllByName(hostname.s);
