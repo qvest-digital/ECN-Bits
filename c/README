@@ -105,7 +105,10 @@ interpretation.
 
 The legacy IP (IPv4) API/ABI is, au contraire, n̲o̲t̲ widely
 standardised — this library supports the implementation by
-Linux and the one in FreeBSD and MidnightBSD so far.
+Linux and the one in FreeBSD and MidnightBSD so far. Due to
+the ABI not working on the old Linux kernel version Android
+uses, the server example differs slightly on Linux to make
+it work universally.
 
 Use in multi-threaded applications is safe if the conditions
 documented under CAVEATS in ecnbits_rdmsg(3) are met.
