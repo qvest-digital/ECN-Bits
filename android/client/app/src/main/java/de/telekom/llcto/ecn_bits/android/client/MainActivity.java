@@ -23,6 +23,7 @@ package de.telekom.llcto.ecn_bits.android.client;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
@@ -73,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String OUTPUT_POS = "outputPos";
 
     private final ArrayList<String> outputLines = new ArrayList<>();
+
+    private String newlinePortraitOnly = "\n";
 
     private EditText hostnameText;
     private EditText portText;
@@ -125,6 +128,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+
+        final Point appSize = new Point();
+        getWindowManager().getDefaultDisplay().getSize(appSize);
+        newlinePortraitOnly = appSize.x > appSize.y ? "│" : "\n";
 
         outputLines.clear();
         outputListView = findViewById(R.id.outputList);
@@ -386,8 +393,8 @@ public class MainActivity extends AppCompatActivity {
                           .format(DateTimeFormatter.ISO_INSTANT);
                         oneSuccess = true;
                         final String userData = new String(buf, StandardCharsets.UTF_8);
-                        final String logLine = String.format("• %s %s%n%s",
-                          stamp, "[ECN?]", userData.trim());
+                        final String logLine = String.format("• %s %s%s%s",
+                          stamp, "[ECN?]", newlinePortraitOnly, userData.trim());
                         runOnUiThread(() -> addOutputLine(logLine));
                     }
                 }
@@ -554,8 +561,8 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         buf.flip();
                         final String userData = StandardCharsets.UTF_8.decode(buf).toString();
-                        final String logLine = String.format("→ %s %s (%d)%n%s",
-                          stamp, "[ECN?]", read, userData.trim());
+                        final String logLine = String.format("→ %s %s (%d)%s%s",
+                          stamp, "[ECN?]", read, newlinePortraitOnly, userData.trim());
                         runOnUiThread(() -> addOutputLine(logLine));
                         // does not fall through to sleep below
                         continue;
