@@ -318,10 +318,8 @@ public class MainActivity extends AppCompatActivity {
             try {
                 boolean oneSuccess = false;
                 sock.setSoTimeout(1000);
-                // TODO: ↓ does NOT currently work (silently ignored)!
+                // Note: ↓ only works outside of the emulator or via loopback
                 sock.setTrafficClass(outBits.getBits());
-                // TODO: supposedly works outside of emulator: https://stackoverflow.com/a/44280445/2171120
-		// Note: works on loopback in emulator, too…
                 final byte[] buf = new byte[512];
                 final InetAddress[] dstArr = hostname.resolved ? hostname.a :
                   InetAddress.getAllByName(hostname.s);
