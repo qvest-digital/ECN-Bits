@@ -361,7 +361,7 @@ public class MainActivity extends AppCompatActivity {
                           .format(DateTimeFormatter.ISO_INSTANT);
                         oneSuccess = true;
                         final String userData = new String(buf, StandardCharsets.UTF_8);
-                        final String logLine = String.format("%s %s <%s>",
+                        final String logLine = String.format("• %s %s%n%s",
                           stamp, "[ECN?]", userData.trim());
                         runOnUiThread(() -> addOutputLine(logLine));
                     }
