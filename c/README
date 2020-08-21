@@ -43,8 +43,9 @@ Run the server on one system: ./server [host] port
 (The arguments are for what IP/port this should bind to.
 Numeric and NSS values are supported.)
 
-Run the client on another (or same) system: ./client host post
+Run the client on another (or same) system: ./client host post [tc]
 (The arguments are for what system to connect to.)
+tc sets the outgoing traffic class: NO, ECT0, ECT1, CE
 
 The client will send a “hello” packet to the server, by default
 with ECT(0) set, as usual for normal nōn-L4S-aware applications.

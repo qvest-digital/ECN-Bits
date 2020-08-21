@@ -37,10 +37,23 @@
 static int do_resolve(const char *host, const char *service);
 static int do_connect(int sfd);
 
+static unsigned char out_tc = ECNBITS_ECT0;
+
 int
 main(int argc, char *argv[])
 {
-	if (argc != 3)
+	if (argc == 4) {
+		if (!strcmp(argv[3], "NO"))
+			out_tc = ECNBITS_NON;
+		else if (!strcmp(argv[3], "ECT0"))
+			out_tc = ECNBITS_ECT0;
+		else if (!strcmp(argv[3], "ECT1"))
+			out_tc = ECNBITS_ECT1;
+		else if (!strcmp(argv[3], "CE"))
+			out_tc = ECNBITS_CE;
+		else
+			errx(1, "Unknown traffic class: %s", argv[3]);
+	} else if (argc != 3)
 		errx(1, "Usage: %s servername port", argv[0]);
 
 	if (do_resolve(argv[1], argv[2]))
@@ -98,7 +111,7 @@ do_resolve(const char *host, const char *service)
 			warn("socket");
 			continue;
 		}
-		if (ecnbits_setup(s, ap->ai_family, ECNBITS_ECT0, &es)) {
+		if (ecnbits_setup(s, ap->ai_family, out_tc, &es)) {
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
