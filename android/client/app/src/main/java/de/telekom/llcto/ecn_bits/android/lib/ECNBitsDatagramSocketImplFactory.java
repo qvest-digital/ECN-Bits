@@ -38,5 +38,7 @@ public class ECNBitsDatagramSocketImplFactory implements DatagramSocketImplFacto
     public DatagramSocketImpl createDatagramSocketImpl() {
         Log.w("ECN-Bits", "creating impl");
         return new ECNBitsDatagramSocketImpl();
+        // even ↓ doesn’t work either
+        //return new PlainDatagramSocketImpl();
     }
 }
