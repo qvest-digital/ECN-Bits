@@ -88,18 +88,20 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
 
     @Override
     protected synchronized int peek(final InetAddress i) throws IOException {
-        Log.w("ECN-Bits", "called peek");
+        // uses doRecv() but does not actually read the packet usefully anyway
         return p.peek(i);
     }
 
     @Override
     protected synchronized int peekData(final DatagramPacket packet) throws IOException {
+        // uses doRecv() and exposes the packet
         Log.w("ECN-Bits", "called peekData");
         return p.peekData(packet);
     }
 
     @Override
     protected synchronized void receive(final DatagramPacket packet) throws IOException {
+        // uses doRecv() via receive0()
         Log.w("ECN-Bits", "called receive");
         p.receive(packet);
     }
