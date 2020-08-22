@@ -434,6 +434,7 @@ public class MainActivity extends AppCompatActivity {
         // erk… a LOT of DatagramChannel (whose direct child class
         // sun.nio.ch.DatagramChannelImpl is actually chan’s type)
         // has private visibility; this is going to hurt, effort-wise
+	// TODO: check if calling socket() makes a difference
         try {
             final Class<?> chanClazz = chan.getClass();
             final Method chanFd = chanClazz.getDeclaredMethod("getFDVal");
