@@ -44,6 +44,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     private final Method getDatagramSocket;
     private final Method setOption;
     private final Method getOption;
+    private final Method getFD;
 
     ECNBitsDatagramSocketImpl() {
         try {
@@ -63,8 +64,22 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
             setOption.setAccessible(true);
             getOption = clazz.getDeclaredMethod("getOption", SocketOption.class);
             getOption.setAccessible(true);
+
+            final Class<?> fdClazz = FileDescriptor.class;
+            //noinspection JavaReflectionMemberAccess
+            getFD = fdClazz.getDeclaredMethod("getInt$");
+            getFD.setAccessible(true);
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException e) {
             Log.e("ECN-Bits", "instantiating", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected int getSocketFD() {
+        try {
+            return (int) getFD.invoke(p.fd);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            Log.e("ECN-Bits", "getFD reflection", e);
             throw new RuntimeException(e);
         }
     }
@@ -73,7 +88,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     protected synchronized void create() throws SocketException {
         Log.w("ECN-Bits", "creating socket");
         p.create();
-        Log.w("ECN-Bits", "created socket");
+        Log.w("ECN-Bits", String.format("created socket #%d", getSocketFD()));
     }
 
     @Override
