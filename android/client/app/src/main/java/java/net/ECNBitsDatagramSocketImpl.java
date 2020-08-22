@@ -22,19 +22,207 @@ package java.net;
  */
 
 import android.util.Log;
+import lombok.val;
 
-// TODO: does not work: https://issuetracker.google.com/issues/165812106
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * Plain{@link DatagramSocketImpl} with extras to receive ECN bits
  *
+ * cf. https://issuetracker.google.com/issues/165812106
+ *
  * @author mirabilos (t.glaser@tarent.de)
  */
-public class ECNBitsDatagramSocketImpl extends PlainDatagramSocketImpl {
+@SuppressWarnings({ "deprecation", "unused", /*UnIntelliJ bug*/ "RedundantSuppression" })
+class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
+    private final DatagramSocketImpl p;
+    private final Method dataAvailable;
+    private final Method setDatagramSocket;
+    private final Method getDatagramSocket;
+    private final Method setOption;
+    private final Method getOption;
+
+    ECNBitsDatagramSocketImpl() {
+        try {
+            final Class<?> clazz = Class.forName("java.net.PlainDatagramSocketImpl");
+            val cons = clazz.getDeclaredConstructor();
+            cons.setAccessible(true);
+            p = (DatagramSocketImpl) cons.newInstance();
+            final Class<?> dsiClazz = clazz.getSuperclass().getSuperclass();
+
+            dataAvailable = dsiClazz.getDeclaredMethod("dataAvailable");
+            dataAvailable.setAccessible(true);
+            setDatagramSocket = dsiClazz.getDeclaredMethod("setDatagramSocket", DatagramSocket.class);
+            setDatagramSocket.setAccessible(true);
+            getDatagramSocket = dsiClazz.getDeclaredMethod("getDatagramSocket");
+            getDatagramSocket.setAccessible(true);
+            setOption = clazz.getDeclaredMethod("setOption", SocketOption.class, Object.class);
+            setOption.setAccessible(true);
+            getOption = clazz.getDeclaredMethod("getOption", SocketOption.class);
+            getOption.setAccessible(true);
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException e) {
+            Log.e("ECN-Bits", "instantiating", e);
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
-    protected void datagramSocketCreate() throws SocketException {
+    protected synchronized void create() throws SocketException {
         Log.w("ECN-Bits", "creating socket");
-        super.datagramSocketCreate();
+        p.create();
         Log.w("ECN-Bits", "created socket");
+    }
+
+    @Override
+    protected synchronized void bind(final int lport, final InetAddress laddr) throws SocketException {
+        p.bind(lport, laddr);
+    }
+
+    @Override
+    protected void send(final DatagramPacket packet) throws IOException {
+        p.send(packet);
+    }
+
+    @Override
+    protected synchronized int peek(final InetAddress i) throws IOException {
+        Log.w("ECN-Bits", "called peek");
+        return p.peek(i);
+    }
+
+    @Override
+    protected synchronized int peekData(final DatagramPacket packet) throws IOException {
+        Log.w("ECN-Bits", "called peekData");
+        return p.peekData(packet);
+    }
+
+    @Override
+    protected synchronized void receive(final DatagramPacket packet) throws IOException {
+        Log.w("ECN-Bits", "called receive");
+        p.receive(packet);
+    }
+
+    @Override
+    protected void setTTL(final byte ttl) throws IOException {
+        p.setTTL(ttl);
+    }
+
+    @Override
+    protected byte getTTL() throws IOException {
+        return p.getTTL();
+    }
+
+    @Override
+    protected void setTimeToLive(final int ttl) throws IOException {
+        p.setTimeToLive(ttl);
+    }
+
+    @Override
+    protected int getTimeToLive() throws IOException {
+        return p.getTimeToLive();
+    }
+
+    @Override
+    protected void join(final InetAddress inetaddr) throws IOException {
+        p.join(inetaddr);
+    }
+
+    @Override
+    protected void leave(final InetAddress inetaddr) throws IOException {
+        p.leave(inetaddr);
+    }
+
+    @Override
+    protected void joinGroup(final SocketAddress mcastaddr, final NetworkInterface netIf) throws IOException {
+        p.joinGroup(mcastaddr, netIf);
+    }
+
+    @Override
+    protected void leaveGroup(final SocketAddress mcastaddr, final NetworkInterface netIf) throws IOException {
+        p.leaveGroup(mcastaddr, netIf);
+    }
+
+    @Override
+    protected void close() {
+        p.close();
+    }
+
+    @Override
+    public void setOption(final int optID, final Object value) throws SocketException {
+        p.setOption(optID, value);
+    }
+
+    @Override
+    public Object getOption(final int optID) throws SocketException {
+        return p.getOption(optID);
+    }
+
+    @Override
+    protected void connect(final InetAddress address, final int port) throws SocketException {
+        p.connect(address, port);
+    }
+
+    @Override
+    protected void disconnect() {
+        p.disconnect();
+    }
+
+    @Override
+    protected int getLocalPort() {
+        return p.getLocalPort();
+    }
+
+    @Override
+    protected FileDescriptor getFileDescriptor() {
+        return p.getFileDescriptor();
+    }
+
+    int dataAvailable() {
+        try {
+            return (int) dataAvailable.invoke(p);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            Log.e("ECN-Bits", "dataAvailable reflection", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    void setDatagramSocket(final DatagramSocket socket) {
+        try {
+            setDatagramSocket.invoke(p, socket);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            Log.e("ECN-Bits", "setDatagramSocket reflection", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    DatagramSocket getDatagramSocket() {
+        try {
+            return (DatagramSocket) getDatagramSocket.invoke(p);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            Log.e("ECN-Bits", "getDatagramSocket reflection", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("RedundantThrows")
+    <T> void setOption(final SocketOption<T> name, final T value) throws IOException {
+        try {
+            setOption.invoke(p, name, value);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            Log.e("ECN-Bits", "setOption reflection", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings({ "RedundantThrows", "unchecked" })
+    <T> T getOption(SocketOption<T> name) throws IOException {
+        try {
+            return (T) getOption.invoke(p, name);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            Log.e("ECN-Bits", "getOption reflection", e);
+            throw new RuntimeException(e);
+        }
     }
 }
