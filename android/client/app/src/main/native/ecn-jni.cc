@@ -1,6 +1,8 @@
 #include <jni.h>
 #include <android/log.h>
 
+#include "ecn-ndk.h"
+
 JNIEXPORT jint
 JNI_OnLoad(JavaVM *vm, void *reserved)
 {
