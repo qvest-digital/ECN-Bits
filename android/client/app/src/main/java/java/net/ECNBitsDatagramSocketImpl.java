@@ -3,22 +3,32 @@ package java.net;
 /*-
  * Copyright © 2020
  *      mirabilos <t.glaser@tarent.de>
+ * Copyright © 1996, 2007, 2011, 2013
+ *      Oracle and/or its affiliates
  * Licensor: Deutsche Telekom
  *
- * Provided that these terms and disclaimer and all copyright notices
- * are retained or reproduced in an accompanying document, permission
- * is granted to deal in this work without restriction, including un‐
- * limited rights to use, publicly perform, distribute, sell, modify,
- * merge, give away, or sublicence.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License.
  *
- * This work is provided “AS IS” and WITHOUT WARRANTY of any kind, to
- * the utmost extent permitted by applicable law, neither express nor
- * implied; without malicious intent or gross negligence. In no event
- * may a licensor, author or contributor be held liable for indirect,
- * direct, other damage, loss, or other issues arising in any way out
- * of dealing in the work, even if advised of the possibility of such
- * damage or existence of a defect, except proven that it results out
- * of said person’s immediate fault when using the work as intended.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * Refer to android/lib/COPYING for the full text of that licence.
+ *
+ * As a special exception, the copyright holders of this library give
+ * you permission to link this library with independent modules to
+ * produce an executable, regardless of the license terms of these
+ * independent modules, and to copy and distribute the resulting
+ * executable under terms of your choice, provided that you also meet,
+ * for each linked independent module, the terms and conditions of the
+ * license of that module.  An independent module is a module which is
+ * not derived from or based on this library.  If you modify this
+ * library, you may extend this exception to your version of the
+ * library, but you are not obligated to do so.  If you do not wish
+ * to do so, delete this exception statement from your version.
  */
 
 import android.util.Log;
