@@ -63,6 +63,8 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     private final Field bufLength;
     private final Method setReceivedLength;
 
+    native private static void nativeInit();
+
     native private int nativeSetup(final int fd);
 
     native private int nativePoll(final int fd, final int timeout);
@@ -308,6 +310,10 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
         int read; // out
         byte tc; // out
         boolean tcValid; // out
+
+        static {
+            nativeInit();
+        }
     }
 
     private void doRecv(final DatagramPacket packet, final boolean peekOnly) throws IOException {
