@@ -76,10 +76,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String OUTPUT_LINES = "outputLines";
     private static final String OUTPUT_POS = "outputPos";
 
-    static {
-        System.loadLibrary("native-lib");
-    }
-
     private final ArrayList<String> outputLines = new ArrayList<>();
 
     private String newlinePortraitOnly = "\n";

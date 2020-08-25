@@ -28,6 +28,7 @@ import android.util.Log;
  *
  * @author mirabilos (t.glaser@tarent.de)
  * @see ECNBitsDatagramSocketImpl
+ * @see ECNBitsDatagramSocket
  */
 public class ECNBitsDatagramSocketImplFactory implements DatagramSocketImplFactory {
     @Override

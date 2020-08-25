@@ -30,7 +30,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Plain{@link DatagramSocketImpl} with extras to receive ECN bits
+ * Plain{@link DatagramSocketImpl} with extras to receive ECN bits,
+ * or the traffic class octet really; use {@link ECNBitsDatagramSocket}.
  *
  * cf. https://issuetracker.google.com/issues/165812106
  *
@@ -47,10 +48,18 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     private final Method getOption;
     private final Method getFD;
 
+    native private int nativeSetup(final int fd);
+
+    static {
+        System.loadLibrary("ecnbits-ndk");
+    }
+
     void setUpRecvTclass() {
         Log.w("ECN-Bits", String.format("setting up socket #%d", sockfd));
-        //XXX TODO implement or
-        // throw new UnsupportedOperationException("unable to set up socket to receive traffic class");
+        if (nativeSetup(sockfd) != 0) {
+            throw new UnsupportedOperationException("unable to set up socket to receive traffic class");
+        }
+        Log.w("ECN-Bits", "set up socket successfully");
     }
 
     Byte retrieveLastTrafficClass() {
