@@ -4,7 +4,7 @@ add_library(ecnbits-ndk SHARED
 	ecn-ndk.h
 
 	ecn-bionic.c
-	ecn-jni.cc
+	ecn-jni.c
 	)
 
 find_library(log-lib log)

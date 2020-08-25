@@ -28,7 +28,7 @@
 
 #include "ecn-ndk.h"
 
-#define MSGBUFSZ 64
+#define MSGBUFSZ 48
 
 #if !defined(IPTOS_ECN) && defined(IPTOS_ECN_MASK)
 #define IPTOS_ECN(tos) ((tos) & IPTOS_ECN_MASK)
@@ -161,7 +161,7 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned char *e)
 		return (rv);
 
 	if (msgh->msg_flags & MSG_CTRUNC) {
-		/* 64 is enough normally but… */
+		/* 48 is enough normally but… */
 		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
 		    "cmsg truncated, increase MSGBUFSZ and recompile!");
 	}
