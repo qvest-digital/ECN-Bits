@@ -51,7 +51,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
+import java.net.ECNBitsDatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayoutManager outputListLayoutMgr;
     private InputMethodManager imm;
     private boolean showKbd = false;
-    private DatagramSocket sock;
+    private ECNBitsDatagramSocket sock;
     private Thread netThread = null;
     private volatile boolean exiting = false;
     private boolean channelStarted = false;
@@ -342,8 +342,8 @@ public class MainActivity extends AppCompatActivity {
           BitsAdapter.values, BitsAdapter.values[0]).getBit();
 
         try {
-            sock = new DatagramSocket();
-        } catch (SocketException e) {
+            sock = new ECNBitsDatagramSocket();
+        } catch (SocketException | UnsupportedOperationException e) {
             addOutputLine("could not create socket: " + e);
             return;
         }
@@ -398,10 +398,12 @@ public class MainActivity extends AppCompatActivity {
                         final String stamp = ZonedDateTime.now(ZoneOffset.UTC)
                           .truncatedTo(ChronoUnit.MILLIS)
                           .format(DateTimeFormatter.ISO_INSTANT);
+                        final Byte trafficClass = sock.retrieveLastTrafficClass();
                         oneSuccess = true;
                         final String userData = new String(buf, StandardCharsets.UTF_8);
                         final String logLine = String.format("• %s %s%s%s",
-                          stamp, "[ECN?]", newlinePortraitOnly, userData.trim());
+                          stamp, Bits.print(trafficClass), newlinePortraitOnly,
+                          userData.trim());
                         runOnUiThread(() -> addOutputLine(logLine));
                     }
                 }

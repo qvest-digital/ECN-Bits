@@ -39,12 +39,24 @@ import java.lang.reflect.Method;
 @SuppressWarnings({ "deprecation", "unused", /*UnIntelliJ bug*/ "RedundantSuppression" })
 class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     private final DatagramSocketImpl p;
+    private int sockfd = -1;
     private final Method dataAvailable;
     private final Method setDatagramSocket;
     private final Method getDatagramSocket;
     private final Method setOption;
     private final Method getOption;
     private final Method getFD;
+
+    void setUpRecvTclass() {
+        Log.w("ECN-Bits", String.format("setting up socket #%d", sockfd));
+        //XXX TODO implement or
+        // throw new UnsupportedOperationException("unable to set up socket to receive traffic class");
+    }
+
+    Byte retrieveLastTrafficClass() {
+        //XXX TODO implement
+        return null;
+    }
 
     ECNBitsDatagramSocketImpl() {
         try {
@@ -88,7 +100,8 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     protected synchronized void create() throws SocketException {
         Log.w("ECN-Bits", "creating socket");
         p.create();
-        Log.w("ECN-Bits", String.format("created socket #%d", getSocketFD()));
+        sockfd = getSocketFD();
+        Log.w("ECN-Bits", String.format("created socket #%d", sockfd));
     }
 
     @Override
