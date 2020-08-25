@@ -22,6 +22,12 @@ android {
         }
     }
 
+    externalNativeBuild {
+        cmake {
+            path "src/main/native/CMakeLists.txt"
+        }
+    }
+
     compileOptions {
         sourceCompatibility = 1.8
         targetCompatibility = 1.8
