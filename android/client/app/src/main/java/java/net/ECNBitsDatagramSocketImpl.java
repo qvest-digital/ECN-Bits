@@ -32,10 +32,12 @@ package java.net;
  */
 
 import android.util.Log;
+import lombok.RequiredArgsConstructor;
 import lombok.val;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -51,14 +53,21 @@ import java.lang.reflect.Method;
 class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     private final DatagramSocketImpl p;
     private int sockfd = -1;
+    private Byte lastTc = null;
     private final Method dataAvailable;
     private final Method setDatagramSocket;
     private final Method getDatagramSocket;
     private final Method setOption;
     private final Method getOption;
     private final Method getFD;
+    private final Field bufLength;
+    private final Method setReceivedLength;
 
     native private int nativeSetup(final int fd);
+
+    native private int nativePoll(final int fd, final int timeout);
+
+    native private int nativeRecv(final RecvMsgArgs args);
 
     static {
         System.loadLibrary("ecnbits-ndk");
@@ -73,8 +82,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     }
 
     Byte retrieveLastTrafficClass() {
-        //XXX TODO implement
-        return null;
+        return lastTc;
     }
 
     ECNBitsDatagramSocketImpl() {
@@ -100,7 +108,14 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
             //noinspection JavaReflectionMemberAccess
             getFD = fdClazz.getDeclaredMethod("getInt$");
             getFD.setAccessible(true);
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException e) {
+
+            //noinspection JavaReflectionMemberAccess
+            bufLength = DatagramPacket.class.getDeclaredField("bufLength");
+            bufLength.setAccessible(true);
+            //noinspection JavaReflectionMemberAccess
+            setReceivedLength = DatagramPacket.class.getDeclaredMethod("setReceivedLength", int.class);
+            setReceivedLength.setAccessible(true);
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException e) {
             Log.e("ECN-Bits", "instantiating", e);
             throw new RuntimeException(e);
         }
@@ -134,23 +149,23 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     }
 
     @Override
-    protected synchronized int peek(final InetAddress i) throws IOException {
-        // uses doRecv() but does not actually read the packet usefully anyway
-        return p.peek(i);
+    protected synchronized int peek(final InetAddress i) {
+        // not called because we implement peekData (below)
+        Log.e("ECN-Bits", "called peek");
+        throw new UnsupportedOperationException("DatagramSocket.peek() is IPv4-only");
     }
 
     @Override
     protected synchronized int peekData(final DatagramPacket packet) throws IOException {
-        // uses doRecv() and exposes the packet
         Log.w("ECN-Bits", "called peekData");
-        return p.peekData(packet);
+        doRecv(packet, true);
+        return packet.getPort();
     }
 
     @Override
     protected synchronized void receive(final DatagramPacket packet) throws IOException {
-        // uses doRecv() via receive0()
         Log.w("ECN-Bits", "called receive");
-        p.receive(packet);
+        doRecv(packet, false);
     }
 
     @Override
@@ -195,7 +210,11 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
 
     @Override
     protected void close() {
-        p.close();
+        try {
+            p.close();
+        } finally {
+            sockfd = -1;
+        }
     }
 
     @Override
@@ -272,6 +291,77 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
         } catch (IllegalAccessException | InvocationTargetException e) {
             Log.e("ECN-Bits", "getOption reflection", e);
             throw new RuntimeException(e);
+        }
+    }
+
+    @RequiredArgsConstructor
+    private static class RecvMsgArgs {
+        final int fd; // in
+        final byte[] buf; // in, mutated buf[ofs] .. buf[ofs + len - 1]
+        final int ofs; // in
+        final int len; // in
+        final boolean peekOnly; // in
+        int af; // out, 4 or 6
+        final byte[] a4 = new byte[4]; // mutated
+        final byte[] a6 = new byte[16]; // mutated
+        int port; // out
+        int read; // out
+        byte tc; // out
+        boolean tcValid; // out
+    }
+
+    private void doRecv(final DatagramPacket packet, final boolean peekOnly) throws IOException {
+        lastTc = null;
+
+        // also checks for isClosed and throws accordingly
+        final int timeout = (Integer) getOption(SO_TIMEOUT);
+
+        if (timeout != 0) {
+            switch (nativePoll(sockfd, timeout)) {
+            case 0:
+                break;
+            case 1:
+                throw new SocketTimeoutException("recvmsg poll timed out");
+            default:
+                throw new SocketException("recvmsg poll failed");
+            }
+        }
+
+        final RecvMsgArgs args;
+        try {
+            args = new RecvMsgArgs(sockfd, packet.getData(), packet.getOffset(),
+              bufLength.getInt(packet), peekOnly);
+        } catch (IllegalAccessException e) {
+            Log.e("ECN-Bits", "bufLength reflection", e);
+            throw new RuntimeException(e);
+        }
+        switch (nativeRecv(args)) {
+        case 0:
+            break;
+        case 1: // EAGAIN
+            throw new SocketTimeoutException("recvmsg timed out");
+        case 2: // ECONNREFUSED
+            throw new PortUnreachableException("ICMP Port Unreachable");
+        default:
+            throw new SocketException("recvmsg failed");
+        }
+        val srcaddr = InetAddress.getByAddress(args.af == 4 ? args.a4 : args.a6);
+        val src = new InetSocketAddress(srcaddr, args.port);
+
+        try {
+            setReceivedLength.invoke(packet, args.read);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            Log.e("ECN-Bits", "setReceivedLength reflection", e);
+            throw new RuntimeException(e);
+        }
+        packet.setPort(src.getPort());
+        // packet.address should only be changed when it is different from src
+        if (!src.getAddress().equals(packet.getAddress())) {
+            packet.setAddress(src.getAddress());
+        }
+
+        if (args.tcValid) {
+            lastTc = args.tc;
         }
     }
 }
