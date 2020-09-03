@@ -61,6 +61,12 @@ ecnbits_setup(int s)
 			    "could not set up IPv6 socket");
 			return (1);
 		}
+		if (setsockopt(s, IPPROTO_IP, IP_RECVTOS,
+		    (const void *)&on, sizeof(on))) {
+			__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
+			    "could not set up IPv6 socket for IPv4");
+			return (1);
+		}
 		break;
 	default:
 		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
