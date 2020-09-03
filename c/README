@@ -90,6 +90,12 @@ CLIENT│2020-07-28T21:52:01Z ECT(1) <[::1]:57863 2020-07-28T21:52:01Z ECT(0) no
 CLIENT│2020-07-28T21:52:01Z ECT(0) <[::1]:57863 2020-07-28T21:52:01Z ECT(0) notrunc -> 2>
 CLIENT│2020-07-28T21:52:01Z ECN CE <[::1]:57863 2020-07-28T21:52:01Z ECT(0) notrunc -> 3>
 
+【IMPORTANT】 Note how the server binds to *both* 0.0.0.0 (INADDR_ANY)
+and :: (IN6ADDR_ANY), not just IN6ADDR_ANY. This is so that it receives
+IPv4 connections on IPv4 sockets, not IPv6 sockets as traffic class
+handling on v4-mapped IPv6 sockets isn’t portable or reliable; see
+below for details.
+
 ┌─────────────┐
 │ Portability │
 └─────────────┘
@@ -118,6 +124,9 @@ control messages; MidnightBSD (and therefore FreeBSD) don’t
 accept that (but since they disable v4-mapped by default,
 this is no problem in reality). Setting the outgoing traffic
 class for such sockets is also unportable and not attempted.
+As implication, binding to only an IPv6 address, server-side,
+may not work except *maybe* on Linux, and even there, the
+outgoing traffic class may be not set.
 
 Use in multi-threaded applications is safe if the conditions
 documented under CAVEATS in ecnbits_rdmsg(3) are met.
