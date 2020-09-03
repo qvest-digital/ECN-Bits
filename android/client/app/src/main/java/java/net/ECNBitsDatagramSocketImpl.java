@@ -299,9 +299,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
         final int ofs; // in
         final int len; // in
         final boolean peekOnly; // in
-        int af; // out, 4 or 6
-        final byte[] a4 = new byte[4]; // mutated
-        final byte[] a6 = new byte[16]; // mutated
+        byte[] addr; // out
         int port; // out
         int read; // out
         byte tc; // out
@@ -347,7 +345,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
         default:
             throw new SocketException("recvmsg failed");
         }
-        val srcaddr = InetAddress.getByAddress(args.af == 4 ? args.a4 : args.a6);
+        val srcaddr = InetAddress.getByAddress(args.addr);
         val src = new InetSocketAddress(srcaddr, args.port);
 
         try {

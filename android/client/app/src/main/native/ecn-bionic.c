@@ -195,7 +195,7 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e)
 ssize_t
 ecnbits_jrecv(int fd, int dopeek, unsigned short *tcv, struct iovec *iov,
     void (*cb)(void *ep, void *ap, const void *buf, size_t len,
-      int af, unsigned short port),
+      unsigned short port),
     void *ep, void *ap)
 {
 	ssize_t rv;
@@ -218,14 +218,17 @@ ecnbits_jrecv(int fd, int dopeek, unsigned short *tcv, struct iovec *iov,
 		switch (ss.s.ss_family) {
 		case AF_INET:
 			(*cb)(ep, ap, &ss.in.sin_addr.s_addr, 4,
-			    4, ntohs(ss.in.sin_port));
+			    ntohs(ss.in.sin_port));
 			break;
 		case AF_INET6:
 			(*cb)(ep, ap, &ss.in6.sin6_addr.s6_addr, 16,
-			    6, ntohs(ss.in6.sin6_port));
+			    ntohs(ss.in6.sin6_port));
 			break;
 		default:
-			(*cb)(ep, ap, NULL, 0, 0, 0);
+			__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
+			    "bogus address family");
+			errno = EAFNOSUPPORT;
+			rv = -1;
 			break;
 		}
 	}

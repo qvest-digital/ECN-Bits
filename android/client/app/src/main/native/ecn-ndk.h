@@ -31,7 +31,7 @@ extern "C" {
 int ecnbits_setup(int socketfd);
 ssize_t ecnbits_jrecv(int fd, int dopeek, unsigned short *tc, struct iovec *iov,
     void (*cb)(void *ep, void *ap, const void *buf, size_t len,
-      int af, /* host byte order */ unsigned short port),
+      /* host byte order */ unsigned short port),
     void *ep, void *ap);
 
 #ifdef __cplusplus

@@ -45,9 +45,7 @@ static struct {
 	jfieldID ofs;
 	jfieldID len;
 	jfieldID peekOnly;
-	jfieldID af;
-	jfieldID a4;
-	jfieldID a6;
+	jfieldID addr;
 	jfieldID port;
 	jfieldID read;
 	jfieldID tc;
@@ -152,9 +150,7 @@ o_init(JNIEnv *env)
 	fld(ofs, "I");
 	fld(len, "I");
 	fld(peekOnly, "Z");
-	fld(af, "I");
-	fld(a4, "[B");
-	fld(a6, "[B");
+	fld(addr, "[B");
 	fld(port, "I");
 	fld(read, "I");
 	fld(tc, "B");
@@ -166,18 +162,16 @@ o_init(JNIEnv *env)
 /* jrecv callback */
 static void
 setProtoDependentFields(void *ep, void *ap, const void *buf, size_t len,
-    int af, unsigned short port)
+    unsigned short port)
 {
 	JNIEnv *env = (JNIEnv *)ep;
 	jobject args = (jobject)ap;
 	jbyteArray dst;
 
-	(*env)->SetIntField(env, args, o.af, af);
-	if (af) {
-		dst = (*env)->GetObjectField(env, args, af == 4 ? o.a4 : o.a6);
-		(*env)->SetByteArrayRegion(env, dst, 0, (int)len, buf);
-		(*env)->SetIntField(env, args, o.port, port);
-	}
+	dst = (*env)->NewByteArray(env, (int)len);
+	(*env)->SetByteArrayRegion(env, dst, 0, (int)len, buf);
+	(*env)->SetObjectField(env, args, o.addr, dst);
+	(*env)->SetIntField(env, args, o.port, port);
 }
 
 /*-
@@ -188,9 +182,7 @@ setProtoDependentFields(void *ep, void *ap, const void *buf, size_t len,
  * final int ofs; // in
  * final int len; // in
  * final boolean peekOnly; // in
- * int af; // out, 4 or 6
- * final byte[] a4 = new byte[4]; // mutated
- * final byte[] a6 = new byte[16]; // mutated
+ * byte[] addr; // out
  * int port; // out
  * int read; // out
  * byte tc; // out
