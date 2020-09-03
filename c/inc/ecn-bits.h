@@ -55,7 +55,9 @@ extern const char *ecnbits_shortnames[4];
 #if defined(_WIN32) || defined(WIN32)
 #define ECNBITS_TC_FATAL(rv) ((rv), 0)
 #elif defined(__linux__) && !defined(__ANDROID__)
+#ifdef ECNBITS_INTERNAL
 #define ECNBITS_WSLCHECK
+#endif
 int ecnbits_tcfatal(int);
 #define ECNBITS_TC_FATAL(rv) ecnbits_tcfatal(rv)
 #else
