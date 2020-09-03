@@ -357,6 +357,8 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
             throw new RuntimeException(e);
         }
         packet.setPort(src.getPort());
+        Log.w("ECN-Bits", String.format("received packet from %s:%d (saved address was %s)",
+          src.getAddress(), src.getPort(), packet.getAddress()));
         // packet.address should only be changed when it is different from src
         if (!src.getAddress().equals(packet.getAddress())) {
             packet.setAddress(src.getAddress());
