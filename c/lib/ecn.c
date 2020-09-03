@@ -58,7 +58,7 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 		if (setsockopt(s, IPPROTO_IP, IP_RECVTOS,
 		    (const void *)&on, sizeof(on))) {
 			if (e)
-				*e = "failed to set up receiver TOS";
+				*e = "failed to set up receiver TOS on IPv4";
 			return (-1);
 		}
 		if (setsockopt(s, IPPROTO_IP, IP_TOS,
@@ -78,8 +78,16 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 		if (setsockopt(s, IPPROTO_IPV6, IPV6_RECVTCLASS,
 		    (const void *)&on, sizeof(on))) {
 			if (e)
-				*e = "failed to set up receiver TOS";
+				*e = "failed to set up receiver TOS on IPv6";
 			return (-1);
+		}
+		if (setsockopt(s, IPPROTO_IP, IP_RECVTOS,
+		    (const void *)&on, sizeof(on))) {
+			if (e)
+				*e = "failed to set up receiver TOS for IPv4 on IPv6";
+#if defined(__linux__)
+			return (-1);
+#endif
 		}
 		if (setsockopt(s, IPPROTO_IPV6, IPV6_TCLASS,
 		    (const void *)&tos, sizeof(tos))) {
