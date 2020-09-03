@@ -53,11 +53,12 @@ CC?=		cc
 CPPFLAGS?=
 CFLAGS?=	-O2 -g
 LDFLAGS?=
+LDSTATIC?=	# or -static
 LIBS?=
 DEBUG?=		No
 
 COMPILE.c=	${CC} ${CPPFLAGS} ${CFLAGS} -c
-LINK.c=		${CC} ${CFLAGS} ${LDFLAGS}
+LINK.c=		${CC} ${CFLAGS} ${LDFLAGS} ${LDSTATIC}
 
 run_cmd=	$(if $(shell TMP=.tmp.$(call shellescape,$@).$$$$.; \
 		($(1)) >/dev/null 2>&1 || echo f; rm -f "$$TMP"*),$(3),$(2))

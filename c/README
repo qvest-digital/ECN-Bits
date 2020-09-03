@@ -11,7 +11,7 @@ With GNU make and build-essential installed, it is sufficient to run
 subdirectory. (If the library was not yet installed system-wide, it
 must have been locally built before the “client” and “server” example
 directories can be built.) The usual variables (CC, AR, RANLIB,
-CFLAGS, CPPFLAGS, LDFLAGS, LIBS, etc.) are supported.
+CFLAGS, CPPFLAGS, LDFLAGS, LIBS, LDSTATIC, etc.) are supported.
 
 Running “make install” will install the library, its manual pages
 and development headers; this honours the standard PREFIX variable.
