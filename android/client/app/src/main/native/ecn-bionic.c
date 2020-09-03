@@ -23,19 +23,14 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+/*#include <netinet6/in6.h>*/
 #include <stddef.h>
+#include <string.h>
 #include <android/log.h>
 
 #include "ecn-ndk.h"
 
 #define MSGBUFSZ 48
-
-#if !defined(IPTOS_ECN) && defined(IPTOS_ECN_MASK)
-#define IPTOS_ECN(tos) ((tos) & IPTOS_ECN_MASK)
-#endif
-
-static ssize_t ecnbits_rdmsg(int socketfd, struct msghdr *msg, int flags,
-    unsigned char *ecnbits);
 
 int
 ecnbits_setup(int s)
@@ -93,7 +88,7 @@ cmsg_actual_data_len(const struct cmsghdr *cmsg)
 }
 
 static void
-recvtos_cmsg(struct cmsghdr *cmsg, unsigned char *e)
+recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
 {
 	unsigned char b1, b2;
 	unsigned char *d = CMSG_DATA(cmsg);
@@ -139,11 +134,11 @@ recvtos_cmsg(struct cmsghdr *cmsg, unsigned char *e)
 		    (unsigned int)d[2], (unsigned int)d[3], len);
 		return;
 	}
-	*e = IPTOS_ECN(b1);
+	*e = (unsigned short)b1;
 }
 
 static ssize_t
-ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned char *e)
+ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e)
 {
 	struct cmsghdr *cmsg;
 	ssize_t rv;
@@ -188,5 +183,45 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned char *e)
 		cmsg = CMSG_NXTHDR(msgh, cmsg);
 	}
 
+	return (rv);
+}
+
+ssize_t
+ecnbits_jrecv(int fd, int dopeek, unsigned short *tcv, struct iovec *iov,
+    void (*cb)(void *ep, void *ap, const void *buf, size_t len,
+      int af, unsigned short port),
+    void *ep, void *ap)
+{
+	ssize_t rv;
+	struct msghdr m;
+	union {
+		struct sockaddr_storage s;
+		struct sockaddr_in in;
+		struct sockaddr_in6 in6;
+	} ss;
+
+	memset(&m, 0, sizeof(m));
+	memset(&ss, 0, sizeof(ss));
+	m.msg_name = &ss;
+	m.msg_namelen = sizeof(ss);
+	m.msg_iov = iov;
+	m.msg_iovlen = 1;
+
+	if ((rv = ecnbits_rdmsg(fd, &m, dopeek ? MSG_PEEK : 0,
+	    tcv)) != (ssize_t)-1) {
+		switch (ss.s.ss_family) {
+		case AF_INET:
+			(*cb)(ep, ap, &ss.in.sin_addr.s_addr, 4,
+			    4, ntohs(ss.in.sin_port));
+			break;
+		case AF_INET6:
+			(*cb)(ep, ap, &ss.in6.sin6_addr.s6_addr, 16,
+			    6, ntohs(ss.in6.sin6_port));
+			break;
+		default:
+			(*cb)(ep, ap, NULL, 0, 0, 0);
+			break;
+		}
+	}
 	return (rv);
 }

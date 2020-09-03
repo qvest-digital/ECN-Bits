@@ -26,14 +26,13 @@
 extern "C" {
 #endif
 
-#define ECNBITS_NON		0 /* nōn-ECN-capable transport */
-#define ECNBITS_ECT0		2 /* ECN-capable; L4S: legacy transport */
-#define ECNBITS_ECT1		1 /* ECN-capable; L4S: L4S-aware transport */
-#define ECNBITS_CE		3 /* congestion experienced */
-#define ECNBITS_INVALID		4 /* no ECN bits received/extracted */
+#define ECNBITS_INVALID		((unsigned short)0x0100U)
 
 int ecnbits_setup(int socketfd);
-/*XXX TODO: something to read, with/without peer address, calling ecnbits_rdmsg */
+ssize_t ecnbits_jrecv(int fd, int dopeek, unsigned short *tc, struct iovec *iov,
+    void (*cb)(void *ep, void *ap, const void *buf, size_t len,
+      int af, /* host byte order */ unsigned short port),
+    void *ep, void *ap);
 
 #ifdef __cplusplus
 }

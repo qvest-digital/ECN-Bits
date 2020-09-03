@@ -19,6 +19,11 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <errno.h>
+#include <poll.h>
+
 #include <jni.h>
 #include <android/log.h>
 
@@ -104,7 +109,19 @@ nativeSetup(JNIEnv *env, jobject self, jint fd)
 static jint JNICALL
 nativePoll(JNIEnv *env, jobject self, jint fd, jint tmo)
 {
-	return (0); //XXX TODO
+	struct pollfd pfd;
+
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+	switch (poll(&pfd, 1, tmo)) {
+	case 1:
+		return (0);
+	case 0:
+		return (1);
+	default:
+		/* caller not interested in errno here */
+		return (2);
+	}
 }
 
 static void JNICALL
@@ -149,6 +166,23 @@ o_init(JNIEnv *env)
 	o.o_valid = 1;
 }
 
+/* jrecv callback */
+static void
+setProtoDependentFields(void *ep, void *ap, const void *buf, size_t len,
+    int af, unsigned short port)
+{
+	JNIEnv *env = (JNIEnv *)ep;
+	jobject args = (jobject)ap;
+	jbyteArray dst;
+
+	(*env)->SetIntField(env, args, o.af, af);
+	if (af) {
+		dst = (*env)->GetObjectField(env, args, af == 4 ? o.a4 : o.a6);
+		(*env)->SetByteArrayRegion(env, dst, 0, (int)len, buf);
+		(*env)->SetIntField(env, args, o.port, port);
+	}
+}
+
 /*-
  * args:
  *
@@ -170,18 +204,45 @@ o_init(JNIEnv *env)
 static jint JNICALL
 nativeRecv(JNIEnv *env, jobject self, jobject args)
 {
+	int fd, dopeek;
+	ssize_t nbytes;
+	unsigned short tc;
+	struct iovec io;
+	jbyteArray buf_var;
+	jbyte *buf_elts;
+
 	if (!o.o_valid) {
 		o_init(env);
 		if (!o.o_valid)
 			return (666);
 	}
 
-	__android_log_print(ANDROID_LOG_WARN, "ECN-JNI",
-	    "unimplemented recvmsg from socket %d for %d bytes, %s",
-	    (*env)->GetIntField(env, args, o.fd),
-	    (*env)->GetIntField(env, args, o.len),
-	    (*env)->GetBooleanField(env, args, o.peekOnly) ?
-	    "peek" : "read");
+	fd = (*env)->GetIntField(env, args, o.fd);
+	dopeek = (*env)->GetBooleanField(env, args, o.peekOnly);
+	buf_var = (*env)->GetObjectField(env, args, o.buf);
+	buf_elts = (*env)->GetByteArrayElements(env, buf_var, NULL);
 
-	return (99);
+	io.iov_base = (char *)buf_elts +
+	    (size_t)((*env)->GetIntField(env, args, o.ofs));
+	io.iov_len = (size_t)((*env)->GetIntField(env, args, o.len));
+
+	if ((nbytes = ecnbits_jrecv(fd, dopeek, &tc, &io,
+	    &setProtoDependentFields, env, (void *)args)) == (ssize_t)-1)
+		switch (errno) {
+		case EAGAIN:
+			return (1);
+		case ECONNREFUSED:
+			return (2);
+		default:
+			return (3);
+		}
+
+	(*env)->ReleaseByteArrayElements(env, buf_var, buf_elts, 0);
+
+	(*env)->SetIntField(env, args, o.read, (int)nbytes);
+	(*env)->SetByteField(env, args, o.tc, tc & 0xFF);
+	(*env)->SetBooleanField(env, args, o.tcValid,
+	    tc == ECNBITS_INVALID ? JNI_TRUE : JNI_FALSE);
+
+	return (0);
 }
