@@ -74,7 +74,7 @@ do_resolve(const char *host, const char *service)
 		err(1, "calloc");
 	ap->ai_family = AF_UNSPEC;
 	ap->ai_socktype = SOCK_DGRAM;
-	ap->ai_flags = AI_ADDRCONFIG;
+	ap->ai_flags = AI_ADDRCONFIG; /* note lack of AI_V4MAPPED */
 	switch ((i = getaddrinfo(host, service, ap, &ai))) {
 	case EAI_SYSTEM:
 		err(1, "getaddrinfo");

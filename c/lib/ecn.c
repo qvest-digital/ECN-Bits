@@ -87,6 +87,7 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 				*e = "failed to set up receiver TOS on IPv6";
 			return (-1);
 		}
+		/* for v4-mapped */
 		if (setsockopt(s, IPPROTO_IP, IP_RECVTOS,
 		    (const void *)&on, sizeof(on))) {
 			if (e)
@@ -95,6 +96,7 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 			return (-1);
 #endif
 		}
+		/* ignored by v4-mapped */
 		if (setsockopt(s, IPPROTO_IPV6, IPV6_TCLASS,
 		    (const void *)&tos, sizeof(tos))) {
 #ifdef DEBUG

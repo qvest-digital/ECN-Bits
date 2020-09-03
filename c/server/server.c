@@ -108,7 +108,7 @@ do_resolve(const char *host, const char *service)
 		err(1, "calloc");
 	ap->ai_family = AF_UNSPEC;
 	ap->ai_socktype = SOCK_DGRAM;
-	ap->ai_flags = AI_ADDRCONFIG | AI_PASSIVE;
+	ap->ai_flags = AI_ADDRCONFIG | AI_PASSIVE; /* no AI_V4MAPPED either */
 	switch ((i = getaddrinfo(host, service, ap, &ai))) {
 	case EAI_SYSTEM:
 		err(1, "getaddrinfo");
@@ -232,6 +232,12 @@ do_packet(int s)
 		warn("getsockname");
 		return;
 	}
+	/*
+	 * getsockname returns AF_INET6 for v4-mapped sockets, too,
+	 * which, while correct, leads to the wrong cmsg set below,
+	 * and therefore to no outgoing traffic class being set, so
+	 * avoid using those (on nōn-Linux especially)
+	 */
 #ifdef DEBUG
 	fprintf(stderr, "D: socket is %d (%s), %u of %u bytes\n",
 	    (int)sa.sa_family, sa.sa_family == AF_INET ? "IPv4" :
