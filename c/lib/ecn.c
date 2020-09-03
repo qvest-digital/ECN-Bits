@@ -39,16 +39,23 @@
 #define IPTOS_ECN(tos) ((tos) & IPTOS_ECN_MASK)
 #endif
 
+#if defined(_WIN32) || defined(WIN32)
+#define TCSET_FAIL(e)	/* nothing, not required */
+#elif defined(__linux__) && !defined(__ANDROID__)
 static int requiretcset(void);
+#define TCSET_FAIL(e)	do {	\
+	if (requiretcset())	\
+		return (e);	\
+} while (/* CONSTCOND */ 0)
+#else
+#define TCSET_FAIL(e)	return (e);
+#endif
 
 int
 ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 {
 	int on = 1;
 	int tos = (int)(unsigned int)iptos;
-#ifdef DEBUG
-	int eno;
-#endif
 
 	errno = 0;
 	if (e)
@@ -64,14 +71,13 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 		if (setsockopt(s, IPPROTO_IP, IP_TOS,
 		    (const void *)&tos, sizeof(tos))) {
 #ifdef DEBUG
-			eno = errno;
+			int eno = errno;
 			warn("ecnbits_setup: cannot set %s", "IP_TOS");
 			errno = eno;
 #endif
 			if (e)
 				*e = "failed to set up IPv4 sender TOS";
-			if (requiretcset())
-				return (-1);
+			TCSET_FAIL(-1);
 		}
 		break;
 	case AF_INET6:
@@ -92,14 +98,13 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 		if (setsockopt(s, IPPROTO_IPV6, IPV6_TCLASS,
 		    (const void *)&tos, sizeof(tos))) {
 #ifdef DEBUG
-			eno = errno;
+			int eno = errno;
 			warn("ecnbits_setup: cannot set %s", "IPV6_TCLASS");
 			errno = eno;
 #endif
 			if (e)
 				*e = "failed to set up IPv6 sender TOS";
-			if (requiretcset())
-				return (-1);
+			TCSET_FAIL(-1);
 		}
 		break;
 	default:
@@ -254,12 +259,12 @@ iswinorwsl(void)
 }
 #endif
 
+#if defined(_WIN32) || defined(WIN32)
+/* just ignore failures to set the outgoing traffic class */
+#elif defined(__linux__) && !defined(__ANDROID__)
 static int
 requiretcset(void)
 {
-#if defined(_WIN32) || defined(WIN32)
-	return (0);
-#elif defined(__linux__) && !defined(__ANDROID__)
 	static enum {
 		ECN_OS_MAYBEWSL,
 		ECN_OS_NOTWIN32,
@@ -271,7 +276,5 @@ requiretcset(void)
 	}
 
 	return (os != ECN_OS_WINORWSL);
-#else
-	return (1);
-#endif
 }
+#endif
