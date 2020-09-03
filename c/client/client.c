@@ -43,6 +43,9 @@ int
 main(int argc, char *argv[])
 {
 	if (argc == 4) {
+		long mnum;
+		char *mep;
+
 		if (!strcmp(argv[3], "NO"))
 			out_tc = ECNBITS_NON;
 		else if (!strcmp(argv[3], "ECT0"))
@@ -51,6 +54,9 @@ main(int argc, char *argv[])
 			out_tc = ECNBITS_ECT1;
 		else if (!strcmp(argv[3], "CE"))
 			out_tc = ECNBITS_CE;
+		else if ((mnum = strtol(argv[3], &mep, 0)) >= 0L &&
+		    mnum < 0x100L && mep != argv[3] && !*mep)
+			out_tc = (unsigned char)mnum;
 		else
 			errx(1, "Unknown traffic class: %s", argv[3]);
 	} else if (argc != 3)
