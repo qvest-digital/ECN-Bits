@@ -69,7 +69,7 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 			errno = eno;
 #endif
 			if (e)
-				*e = "failed to set up sender TOS";
+				*e = "failed to set up IPv4 sender TOS";
 			if (requiretcset())
 				return (-1);
 		}
@@ -97,7 +97,7 @@ ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
 			errno = eno;
 #endif
 			if (e)
-				*e = "failed to set up sender TOS";
+				*e = "failed to set up IPv6 sender TOS";
 			if (requiretcset())
 				return (-1);
 		}
