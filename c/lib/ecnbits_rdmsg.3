@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: July 31 2020 $
+.Dd $Mdocdate: September 3 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -144,8 +144,8 @@ for the ECN bits, which are stored, in
 format, in the location pointed to by
 .Ar ecnbits
 if possible (if not, an indicator of no valid ECN bits is stored).
-If the socket was not prepared with
-.Xr ecnbits_setup 3
+If the socket was not set up with
+.Xr ecnbits_prep 3
 beforehand, determining the ECN bits is usually not possible.
 If the user passed a buffer as
 .Ar msg\->msg_control
@@ -166,6 +166,14 @@ is not
 directly injects the suitably large control buffer into the passed
 .Ar msg
 structure and leaves it there for the caller to inspect afterwards.
+This buffer is shared between
+.Fn ecnbits_rdmsg ,
+.Fn ecnbits_read ,
+.Fn ecnbits_recv ,
+.Fn ecnbits_recvfrom
+and
+.Fn ecnbits_recvmsg ;
+it is not thread-isolated.
 .Pp
 Callers that know to set
 .Ar ecnbits
@@ -175,12 +183,6 @@ which is faster, unless drop-in compatibility with existing applications
 that manage the
 .Ar msg\->msg_control
 argument themselves, is required.
-.Pp
-The buffer is shared between
-.Em all
-ECN-Bits library functions except
-.Fn ecnbits_setup ,
-overwritten by each and not thread-isolated.
 .Pp
 See
 .Xr recvmsg 2
@@ -215,8 +217,8 @@ if (ECNBITS_VALID(ecn))
 	printf("%s\en", ecnbits_meanings[ECNBITS_BITS(ecn)]);
 .Ed
 .Pp
-Note that the socket, after creation, must have been prepared with a call to
-.Xr ecnbits_setup 3
+Note that the socket, after creation, must have been set up with a call to
+.Xr ecnbits_prep 3
 (once) prior to use with this function.
 .Sh ERRORS
 These functions return the same errors as the system call
@@ -226,7 +228,7 @@ These functions return the same errors as the system call
 .Xr cmsg 3 ,
 .Xr ECNBITS_BITS 3 ,
 .Xr ecnbits_recvfrom 3 ,
-.Xr ecnbits_setup 3 ,
+.Xr ecnbits_tc 3 ,
 .Xr ip 4 ,
 .Xr ip6 4 ,
 .Xr ip 7 ,
@@ -249,7 +251,9 @@ one of these conditions is met:
 .Bl -bullet
 .It
 Only one thread calls any of the functions other than
-.Fn ecnbits_setup
+.Fn ecnbits_prep
+and
+.Fn ecnbits_tc
 .It
 Only
 .Fn ecnbits_rdmsg

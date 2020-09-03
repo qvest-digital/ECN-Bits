@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: July 31 2020 $
+.Dd $Mdocdate: September 3 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -95,48 +95,52 @@
 .\}
 .el .ds tT ucb
 .\"-
-.Dt ECNBITS_VALID 3
+.Dt ECNBITS_TC 3
 .Os ECN-Bits
 .Sh NAME
-.Nm ECNBITS_BITS ,
-.Nm ECNBITS_DESC ,
-.Nm ECNBITS_VALID ,
-.Nm ecnbits_meanings ,
-.Nm ecnbits_shortnames
-.Nd working with ECN-Bits return values
+.Nm ecnbits_prep ,
+.Nm ecnbits_tc
+.Nd set up a socket to retrieve packets' ECN bits
 .Sh SYNOPSIS
 .In sys/types.h
 .In sys/socket.h
 .In ecn\-bits.h
-.Ft unsigned char
-.Fn ECNBITS_BITS "unsigned char result"
-.Ft const char *
-.Fn ECNBITS_DESC "unsigned char result"
 .Ft int
-.Fn ECNBITS_VALID "unsigned char result"
-.Vt extern const char *ecnbits_meanings[4];
-.Vt extern const char *ecnbits_shortnames[4];
+.Fn ecnbits_prep "int socketfd" "int af"
+.Ft int
+.Fn ecnbits_tc "int socketfd" "int af" "unsigned char iptos"
 .Sh DESCRIPTION
 The
-.Fn ECNBITS_VALID
-and
-.Fn ECNBITS_BITS
-macros aid in obtaining
-the result value of an ECN-Bits library function.
-The
-.Fn ECNBITS_DESC
-macro can be used to format, as fixed-width string,
-the result value of an ECN-Bits library function.
-The
-.Dv ecnbits_shortnames
-array contains the corresponding fixed-width string
-for all valid ECN bit representations.
-The
-.Dv ecnbits_meanings
-array contains longer, human-readable, variable-width
-explanations for all valid ECN bit representations.
+.Fn ecnbits_prep
+function sets up a network socket (IPv6 or legacy IPv4) to retrieve
+ECN bits, or rather, the traffic class octet, from incoming packets,
+whereas the
+.Fn ecnbits_tc
+function sets the default traffic class outgoing packets are sent with.
+This works well with datagram sockets (UDP); use with stream sockets
+(TCP) may not work completely, for example the operating system may
+change the sent traffic class value; operating on v4-mapped IPv6 sockets
+.Pq Li ::FFFF.0.0.0.0/96
+may be unsupported (although known to work under Linux/Android);
+no outgoing traffic class can be set under Windows\(rg or WSL.
+These functions are thread-safe.
 .Pp
-The following are valid ECN bit representations:
+The
+.Ar socketfd
+itself is not changed, but a few socket options are enabled.
+For this to work, the
+.Ar af
+argument is expected to carry the address family used with the socket
+.Pq Li AF_INET6 No or Li AF_INET ;
+this is the same as the first argument to
+.Xr socket 2
+.Pq Li domain .
+Only these address families are known.
+.Pp
+The
+.Ar iptos
+value is expected to contain the traffic class octet intended to be
+sent out with this socket; this can be one of the ECN values...
 .Bd -literal
 #define ECNBITS_NON	0 /* non-ECN-capable transport */
 #define ECNBITS_ECT0	2 /* ECN-capable; L4S: legacy transport */
@@ -144,50 +148,110 @@ The following are valid ECN bit representations:
 #define ECNBITS_CE	3 /* congestion experienced */
 .Ed
 .Pp
-These macros and constant memory locations are thread-safe.
+\&... possibly or'd with a system-provided value such as
+.Dv IPTOS_LOWDELAY ,
+a DSCP and/or class value or really anything appropriate.
+The operating system defaults usually to either
+.Li 0 Pq Li ECNBITS_NON
+or
+.Li 2 Pq Li ECNBITS_ECT0 .
+Note that ISPs can change the traffic class of packets they transmit.
+.Pp
+Note that the
+.Ar iptos
+value is only used to set the default outgoing traffic class.
+It can still be overridden by using
+.Xr sendmsg 2
+with a
+.Xr cmsg 3
+control message of
+.Dv IPV6_TCLASS
+.Pq Dv IPPROTO_IPV6
+or
+.Dv IP_TOS
+.Pq Dv IPPROTO_IP ;
+the ECN-Bits c/server example demonstrates this technique.
 .Sh RETURN VALUES
 The
-.Fn ECNBITS_BITS
-macro evaluates to the ECN bits of a valid result, that is,
-one of the aforementioned four defined constants.
+.Fn ecnbits_prep
+function sets the global variable
+.Va errno
+to indicate any problem and returns the value 2 on error, 1 if v4-mapped
+support could not be set up (compare against
+.Dv ECNBITS_PREP_FATAL
+.Pq see Sx EXAMPLES No below
+to determine if this should be ignored), and 0 on success.
+.Pp
 The
-.Fn ECNBITS_DESC
-macro evaluates to a pointer to a constant string six
-ASCII characters wide explaining the result; invalid results
-are represented as
-.Dq "??ECN?" .
-The
-.Fn ECNBITS_VALID
-macro expands to 1 if the result is valid, 0 otherwise.
+.Fn ecnbits_tc
+function sets the global variable
+.Va errno
+to indicate any problem and returns the value 2 on error, 1 if v4-mapped
+support could not be set up (compare against
+.Dv ECNBITS_TC_FATAL
+.Pq see Sx EXAMPLES No below
+to determine if this should be ignored), and 0 on success.
 .Sh EXAMPLES
 The following code fragment illustrates the usage:
 .Bd -literal -offset indent
-unsigned char ecn;
+int fd;
+const char *errstr;
 
-if (ecnbits_recv(/* ... */, &ecn) == (size_t)\-1)
-	return;
-
-printf("%s\en", ECNBITS_DESC(ecn));
-if (ECNBITS_VALID(ecn))
-	printf("%s\en", ecnbits_meanings[ECNBITS_BITS(ecn)]);
+if ((fd = socket(AF_INET6, SOCK_DGRAM, 0)) == \-1)
+	err(1, "socket");
+/* do other setsockopt, if needed */
+if (ECNBITS_PREP_FATAL(ecnbits_prep(fd, AF_INET6)))
+	err(1, "ecnbits_setup: incoming traffic class");
+if (ECNBITS_TC_FATAL(ecnbits_tc(fd, AF_INET6, ECNBITS_ECT0)))
+	err(1, "ecnbits_setup: outgoing traffic class");
+/* connect, bind, etc. */
 .Ed
-.Pp
-.Fn ECNBITS_BITS ecn
-is also what needs to be reported back to the sender.
+.Sh ERRORS
+Besides the errors returned by the system calls used internally (currently, only
+.Xr setsockopt 2 ,
+but this is implementation detail subject to change without notice),
+.Dv EAFNOSUPPORT
+is returned if
+.Ar af
+is unknown.
 .Sh SEE ALSO
+.Xr sendmsg 2 ,
+.Xr setsockopt 2 ,
+.Xr cmsg 3 ,
+.Xr ECNBITS_BITS 3 ,
 .Xr ecnbits_rdmsg 3 ,
 .Xr ecnbits_recvfrom 3 ,
-.Xr ecnbits_tc 3
+.Xr ip 4 ,
+.Xr ip6 4 ,
+.Xr ip 7 ,
+.Xr ipv6 7
 .Pp
 .Bl -tag -width 2n
+.It Pa https://tools.ietf.org/html/rfc3542.html
+Advanced Sockets API for IPv6
 .It Pa https://github.com/tarent/ECN\-Bits
 home of the ECN-Bits library
 .It Pa https://github.com/EricssonResearch/scream
 SCReAM, an example design for a managed latency-adaptive application
 .El
+.Sh STANDARDS
+The implementation uses socket calls documented in the MidnightBSD manual page
+.Xr ip6 4
+.Pq standardised by RFC\ 3542
+for IPv6, those documented by the MidnightBSD
+.Xr ip 4
+or GNU/Linux
+.Xr ip 7
+manual pages for legacy IPv4.
+.Pp
+The socket options for receiving the IP traffic class are also supported
+on Windows\(rg environments, although setting it on outgoing packets isn't.
 .Sh AUTHORS
 .An mirabilos Aq t.glaser@tarent.de
 for Deutsche Telekom.
+.Sh CAVEATS
+Using v4-mapped IPv6 sockets should be avoided; it only works on Linux,
+if even that.
 .Sh LICENCE
 The MirOS Licence
 .Pq short name : Li MirBSD

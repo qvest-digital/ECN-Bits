@@ -45,7 +45,26 @@ extern "C" {
 extern const char *ecnbits_meanings[4];
 extern const char *ecnbits_shortnames[4];
 
+/* setup return values */
+#if defined(__linux__)
+#define ECNBITS_PREP_FATAL(rv) ((rv) >= 1)
+#else
+#define ECNBITS_PREP_FATAL(rv) ((rv) >= 2)
+#endif
+
+#if defined(_WIN32) || defined(WIN32)
+#define ECNBITS_TC_FATAL(rv) ((rv), 0)
+#elif defined(__linux__) && !defined(__ANDROID__)
+#define ECNBITS_WSLCHECK
+int ecnbits_tcfatal(int);
+#define ECNBITS_TC_FATAL(rv) ecnbits_tcfatal(rv)
+#else
+#define ECNBITS_TC_FATAL(rv) ((rv) >= 2)
+#endif
+
 /* socket operations */
+int ecnbits_prep(int socketfd, int af);
+int ecnbits_tc(int socketfd, int af, unsigned char iptos);
 int ecnbits_setup(int socketfd, int af, unsigned char iptos,
     const char **errstring);
 ssize_t ecnbits_rdmsg(int socketfd, struct msghdr *msg, int flags,
