@@ -170,7 +170,7 @@ recvtos_cmsg(struct cmsghdr *cmsg, unsigned char *e)
 	*e = IPTOS_ECN(b1) | ECNBITS_VALID_BIT;
 }
 
-static char msgbuf[8192];
+static char msgbuf[2048];
 
 ssize_t
 ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned char *e)
