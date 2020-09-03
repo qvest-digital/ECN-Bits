@@ -149,7 +149,6 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e)
 	struct cmsghdr *cmsg;
 	ssize_t rv;
 	char msgbuf[MSGBUFSZ];
-	unsigned int found4 = 0, found6 = 0;
 
 	*e = ECNBITS_INVALID;
 
@@ -175,7 +174,6 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e)
 			switch (cmsg->cmsg_type) {
 			case IP_TOS:
 			case IP_RECVTOS:
-				++found4;
 				recvtos_cmsg(cmsg, e);
 				break;
 			}
@@ -183,7 +181,6 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e)
 		case IPPROTO_IPV6:
 			switch (cmsg->cmsg_type) {
 			case IPV6_TCLASS:
-				++found6;
 				recvtos_cmsg(cmsg, e);
 				break;
 			}
@@ -191,10 +188,6 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e)
 		}
 		cmsg = CMSG_NXTHDR(msgh, cmsg);
 	}
-
-	__android_log_print(ANDROID_LOG_WARN, "ECN-JNI",
-	    "received packet with TOS %04X (count 4=%d 6=%d)",
-	    (unsigned int)(*e), found4, found6);
 
 	return (rv);
 }
@@ -224,12 +217,10 @@ ecnbits_jrecv(int fd, int dopeek, unsigned short *tcv, struct iovec *iov,
 	    tcv)) != (ssize_t)-1) {
 		switch (ss.s.ss_family) {
 		case AF_INET:
-__android_log_print(ANDROID_LOG_WARN, "ECN-JNI", "that was an IPv4 packet");
 			(*cb)(ep, ap, &ss.in.sin_addr.s_addr, 4,
 			    4, ntohs(ss.in.sin_port));
 			break;
 		case AF_INET6:
-__android_log_print(ANDROID_LOG_WARN, "ECN-JNI", "that was an IPv6 packet");
 			(*cb)(ep, ap, &ss.in6.sin6_addr.s6_addr, 16,
 			    6, ntohs(ss.in6.sin6_port));
 			break;
