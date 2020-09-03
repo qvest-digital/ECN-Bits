@@ -1,0 +1,141 @@
+.\" -*- mode: nroff -*-
+.\"-
+.\" Copyright © 2008, 2009, 2010, 2016, 2018, 2020
+.\"	mirabilos <m@mirbsd.org>
+.\" Copyright © 2020
+.\"	mirabilos <t.glaser@tarent.de>
+.\" Licensor: Deutsche Telekom
+.\"
+.\" Provided that these terms and disclaimer and all copyright notices
+.\" are retained or reproduced in an accompanying document, permission
+.\" is granted to deal in this work without restriction, including un‐
+.\" limited rights to use, publicly perform, distribute, sell, modify,
+.\" merge, give away, or sublicence.
+.\"
+.\" This work is provided “AS IS” and WITHOUT WARRANTY of any kind, to
+.\" the utmost extent permitted by applicable law, neither express nor
+.\" implied; without malicious intent or gross negligence. In no event
+.\" may a licensor, author or contributor be held liable for indirect,
+.\" direct, other damage, loss, or other issues arising in any way out
+.\" of dealing in the work, even if advised of the possibility of such
+.\" damage or existence of a defect, except proven that it results out
+.\" of said person’s immediate fault when using the work as intended.
+.\"-
+.\" Try to make GNU groff and AT&T nroff more compatible
+.\" * ` generates ‘ in gnroff, so use \`
+.\" * ' generates ’ in gnroff, \' generates ´, so use \*(aq
+.\" * - generates ‐ in gnroff, \- generates −, so .tr it to -
+.\"   thus use - for hyphens and \- for minus signs and option dashes
+.\" * ~ is size-reduced and placed atop in groff, so use \*(TI
+.\" * ^ is size-reduced and placed atop in groff, so use \*(ha
+.\" * \(en does not work in nroff, so use \*(en for a solo en dash
+.\" *   and \*(EM for a correctly spaced em dash
+.\" * <>| are problematic, so redefine and use \*(Lt\*(Gt\*(Ba
+.\" Also make sure to use \& *before* a punctuation char that is to not
+.\" be interpreted as punctuation, and especially with two-letter words
+.\" but also (after) a period that does not end a sentence (“e.g.\&”).
+.\" The section after the "doc" macropackage has been loaded contains
+.\" additional code to convene between the UCB mdoc macropackage (and
+.\" its variant as BSD mdoc in groff) and the GNU mdoc macropackage.
+.\"
+.ie \n(.g \{\
+.	if \*[.T]ascii .tr \-\N'45'
+.	if \*[.T]latin1 .tr \-\N'45'
+.	if \*[.T]utf8 .tr \-\N'45'
+.	ds <= \[<=]
+.	ds >= \[>=]
+.	ds Rq \[rq]
+.	ds Lq \[lq]
+.	ds sL \(aq
+.	ds sR \(aq
+.	if \*[.T]utf8 .ds sL `
+.	if \*[.T]ps .ds sL `
+.	if \*[.T]utf8 .ds sR '
+.	if \*[.T]ps .ds sR '
+.	ds aq \(aq
+.	ds TI \(ti
+.	ds ha \(ha
+.	ds en \(en
+.\}
+.el \{\
+.	ds aq '
+.	ds TI ~
+.	ds ha ^
+.	ds en \(em
+.\}
+.ie n \{\
+.	ds EM \ \*(en\ \&
+.\}
+.el \{\
+.	ds EM \f(TR\^\(em\^\fP
+.\}
+.\"
+.\" Implement .Dd with the Mdocdate RCS keyword
+.\"
+.rn Dd xD
+.de Dd
+.ie \\$1$Mdocdate: \{\
+.	xD \\$2 \\$3, \\$4
+.\}
+.el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
+..
+.\"
+.\" .Dd must come before the macropackage-specific setup code.
+.\"
+.Dd $Mdocdate: September 3 2020 $
+.\"
+.\" Check which macro package we use, and do other -mdoc setup.
+.\"
+.ie \n(.g \{\
+.	if \*[.T]utf8 .tr \[la]\*(Lt
+.	if \*[.T]utf8 .tr \[ra]\*(Gt
+.	ie d volume-ds-1 .ds tT gnu
+.	el .ie d doc-volume-ds-1 .ds tT gnp
+.	el .ds tT bsd
+.\}
+.el .ds tT ucb
+.\"-
+.Dt ECNBITS_STOAF 3
+.Os ECN-Bits
+.Sh NAME
+.Nm ecnbits_stoaf
+.Nd ECN-Bits utility functions
+.Sh SYNOPSIS
+.In ecn\-bits.h
+.Ft int
+.Fn ecnbits_stoaf "int socketfd"
+.Sh DESCRIPTION
+The
+.Fn ecnbits_stoaf
+function determins the address family for a given socket
+used with the ECN-Bits library.
+Note that v4-mapped IPv6 sockets will (correctly) report as
+.Dv AF_INET6 ,
+not
+.Dv AF_INET .
+.Sh RETURN VALUES
+The
+.Fn ecnbits_stoaf
+function returns the socket address family (either
+.Dv AF_INET
+or
+.Dv AF_INET6 )
+if successful; otherwise the value \-1 is returned and the global variable
+.Va errno
+is set to indicate the error.
+.Sh ERRORS
+.Fn ecnbits_stoaf
+returns any errors returned by
+.Xr getsockname 2
+as well as
+.Dv EAFNOSUPPORT
+if the socket is not of a supported address family.
+.Sh SEE ALSO
+.Xr getsockname 2 ,
+.Xr ecnbits_tc 3
+.Sh AUTHORS
+.An mirabilos Aq t.glaser@tarent.de
+for Deutsche Telekom.
+.Sh LICENCE
+The MirOS Licence
+.Pq short name : Li MirBSD

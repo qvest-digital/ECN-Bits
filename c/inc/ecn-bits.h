@@ -72,6 +72,9 @@ int ecnbits_setup(int socketfd, int af, unsigned char iptos,
 ssize_t ecnbits_rdmsg(int socketfd, struct msghdr *msg, int flags,
     unsigned char *ecnbits);
 
+/* utility functions */
+int ecnbits_stoaf(int socketfd);
+
 /* wrapped calls */
 ssize_t ecnbits_recvmsg(int socketfd, struct msghdr *msg, int flags,
     unsigned char *ecnbits);
