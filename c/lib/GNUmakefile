@@ -30,6 +30,7 @@ SHLIB_VERSION=	1.1
 
 SRCS+=		desc.c
 SRCS+=		ecn.c
+SRCS+=		mkcmsg.c
 SRCS+=		prep.c
 SRCS+=		recv.c
 SRCS+=		recvfrom.c
@@ -50,6 +51,7 @@ MLINKS+=	ECNBITS_VALID.3 ECNBITS_DESC.3
 MLINKS+=	ecnbits_rdmsg.3 ecnbits_recvmsg.3
 MLINKS+=	ecnbits_recvfrom.3 ecnbits_read.3
 MLINKS+=	ecnbits_recvfrom.3 ecnbits_recv.3
+MLINKS+=	ecnbits_stoaf.3 ecnbits_mkcmsg.3
 MLINKS+=	ecnbits_tc.3 ecnbits_prep.3
 
 include ${TOP}/BOTTOM.mk

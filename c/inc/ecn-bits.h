@@ -73,6 +73,7 @@ ssize_t ecnbits_rdmsg(int socketfd, struct msghdr *msg, int flags,
     unsigned char *ecnbits);
 
 /* utility functions */
+void *ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc);
 int ecnbits_stoaf(int socketfd);
 
 /* wrapped calls */
