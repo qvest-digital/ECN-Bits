@@ -111,5 +111,13 @@ the ABI not working on the old Linux kernel version Android
 uses, the server example differs slightly on Linux to make
 it work universally.
 
+Receiving the traffic class on IPv6 sockets operating with
+v4-mapped (::FFFF:0.0.0.0/96) IPv6 addresses is fragile:
+Linux requires the IPv4 versions of the socket options and
+control messages; MidnightBSD (and therefore FreeBSD) don’t
+accept that (but since they disable v4-mapped by default,
+this is no problem in reality). Setting the outgoing traffic
+class for such sockets is also unportable and not attempted.
+
 Use in multi-threaded applications is safe if the conditions
 documented under CAVEATS in ecnbits_rdmsg(3) are met.

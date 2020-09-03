@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: August 5 2020 $
+.Dd $Mdocdate: September 3 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -184,6 +184,12 @@ for sent packets is silently ignored, although the
 .Ar errstring
 is still set
 .Pq as is Va errno .
+.Pp
+IPv6 sockets are also attempted to set up for v4-mapped
+.Dv IP_RECVTOS ;
+failure to do so is only fatal on Linux, but
+.Ar errstring
+is still set.
 .Sh RETURN VALUES
 .Rv -std ecnbits_setup
 The
@@ -249,6 +255,10 @@ on Windows\(rg environments, although setting it on outgoing packets isn't.
 .Sh AUTHORS
 .An mirabilos Aq t.glaser@tarent.de
 for Deutsche Telekom.
+.Sh CAVEATS
+Using v4-mapped IPv6 sockets should be avoided, as it is very likely to
+fail except, perhaps, on recent Linux (and even there, setting the outgoing
+traffic class is not even attempted, both default and per-packet).
 .Sh LICENCE
 The MirOS Licence
 .Pq short name : Li MirBSD
