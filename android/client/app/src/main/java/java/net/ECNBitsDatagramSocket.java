@@ -40,7 +40,6 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class ECNBitsDatagramSocket extends DatagramSocket {
     static {
-        Log.w("ECN-Bits", "preparing to setDatagramSocketImplFactory");
         try {
             DatagramSocket.setDatagramSocketImplFactory(new ECNBitsDatagramSocketImplFactory());
         } catch (IOException e) {

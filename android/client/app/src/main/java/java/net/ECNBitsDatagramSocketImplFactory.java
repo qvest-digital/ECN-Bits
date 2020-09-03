@@ -21,8 +21,6 @@ package java.net;
  * of said person’s immediate fault when using the work as intended.
  */
 
-import android.util.Log;
-
 /**
  * {@link DatagramSocketImplFactory} for use with the ECN-Bits library
  *
@@ -33,7 +31,6 @@ import android.util.Log;
 public class ECNBitsDatagramSocketImplFactory implements DatagramSocketImplFactory {
     @Override
     public DatagramSocketImpl createDatagramSocketImpl() {
-        Log.w("ECN-Bits", "creating impl");
         return new ECNBitsDatagramSocketImpl();
     }
 }

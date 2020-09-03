@@ -72,8 +72,6 @@ JNI_OnLoad(JavaVM *vm, void *reserved)
 	jclass cls;
 	int rc;
 
-	__android_log_print(ANDROID_LOG_WARN, "ECN-JNI", "loading");
-
 	if ((*vm)->GetEnv(vm, (void **)&env, JNI_VERSION_1_6) != JNI_OK) {
 		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
 		    "failed to get JNI environment");
@@ -93,7 +91,6 @@ JNI_OnLoad(JavaVM *vm, void *reserved)
 		return (rc);
 	}
 
-	__android_log_print(ANDROID_LOG_WARN, "ECN-JNI", "loaded");
 	return (JNI_VERSION_1_6);
 }
 

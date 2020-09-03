@@ -31,6 +31,7 @@ package java.net;
  * to do so, delete this exception statement from your version.
  */
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
@@ -76,17 +77,16 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     }
 
     void setUpRecvTclass() {
-        Log.w("ECN-Bits", String.format("setting up socket #%d", sockfd));
         if (nativeSetup(sockfd) != 0) {
             throw new UnsupportedOperationException("unable to set up socket to receive traffic class");
         }
-        Log.w("ECN-Bits", "set up socket successfully");
     }
 
     Byte retrieveLastTrafficClass() {
         return lastTc;
     }
 
+    @SuppressLint({ "BlockedPrivateApi", "DiscouragedPrivateApi" })
     ECNBitsDatagramSocketImpl() {
         try {
             final Class<?> clazz = Class.forName("java.net.PlainDatagramSocketImpl");
@@ -134,10 +134,8 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
 
     @Override
     protected synchronized void create() throws SocketException {
-        Log.w("ECN-Bits", "creating socket");
         p.create();
         sockfd = getSocketFD();
-        Log.w("ECN-Bits", String.format("created socket #%d", sockfd));
     }
 
     @Override
@@ -159,14 +157,12 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
 
     @Override
     protected synchronized int peekData(final DatagramPacket packet) throws IOException {
-        Log.w("ECN-Bits", "called peekData");
         doRecv(packet, true);
         return packet.getPort();
     }
 
     @Override
     protected synchronized void receive(final DatagramPacket packet) throws IOException {
-        Log.w("ECN-Bits", "called receive");
         doRecv(packet, false);
     }
 
