@@ -74,7 +74,6 @@ do_resolve(const char *host, const char *service)
 	struct addrinfo *ai, *ap;
 	char nh[INET6_ADDRSTRLEN];
 	char np[/* 0‥65535 + NUL */ 6];
-	const char *es;
 
 	if (!(ap = calloc(1, sizeof(struct addrinfo))))
 		err(1, "calloc");
@@ -117,11 +116,19 @@ do_resolve(const char *host, const char *service)
 			warn("socket");
 			continue;
 		}
-		if (ecnbits_setup(s, ap->ai_family, out_tc, &es)) {
+		if (ECNBITS_PREP_FATAL(ecnbits_prep(s, ap->ai_family))) {
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
-			warn("ecnbits_setup: %s", es);
+			warn("ecnbits_setup: incoming traffic class");
+			close(s);
+			continue;
+		}
+		if (ECNBITS_TC_FATAL(ecnbits_tc(s, ap->ai_family, out_tc))) {
+			i = errno;
+			putc('\n', stderr);
+			errno = i;
+			warn("ecnbits_setup: outgoing traffic class");
 			close(s);
 			continue;
 		}

@@ -101,7 +101,6 @@ do_resolve(const char *host, const char *service)
 {
 	int i, s;
 	struct addrinfo *ai, *ap;
-	const char *es;
 	int n = 0;
 
 	if (!(ap = calloc(1, sizeof(struct addrinfo))))
@@ -148,14 +147,19 @@ do_resolve(const char *host, const char *service)
 			continue;
 		}
 
-		if (ecnbits_setup(s, ap->ai_family, ECNBITS_ECT0, &es)) {
+		if (ECNBITS_PREP_FATAL(ecnbits_prep(s, ap->ai_family))) {
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
-			warn("ecnbits_setup: %s", es);
+			warn("ecnbits_setup: incoming traffic class");
 			close(s);
 			continue;
 		}
+		/*
+		 * ecnbits_tc not needed, as this server uses sendmsg(2) with
+		 * explicit tc setting exclusively, but it would be called
+		 * here if we used it
+		 */
 
 		if (bind(s, ap->ai_addr, ap->ai_addrlen)) {
 			i = errno;
