@@ -29,9 +29,9 @@ HDRS+=		ecn-bits.h
 SHLIB_VERSION=	2.0
 
 SRCS+=		desc.c
-SRCS+=		ecn.c
 SRCS+=		mkcmsg.c
 SRCS+=		prep.c
+SRCS+=		rdmsg.c
 SRCS+=		recv.c
 SRCS+=		recvfrom.c
 SRCS+=		recvmsg.c
