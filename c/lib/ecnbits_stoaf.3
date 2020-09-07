@@ -180,6 +180,15 @@ is too small and
 .Dv EAFNOSUPPORT
 if the socket is not of a supported address family
 .Pq Li AF_INET No or Li AF_INET6 .
+.Pp
+Note:
+.Fn ecnbits_mkcmsg
+is guaranteed to not fail if the address family is correct,
+a buffer is given and of the appropriate size.
+If a previous call to
+.Fn ecnbits_mkcmsg
+with the same address family allocated a buffer, and that buffer
+and its size are reused, these conditions are fulfilled.
 .Sh SEE ALSO
 .Xr getsockname 2 ,
 .Xr cmsg 3 ,
