@@ -23,7 +23,7 @@ and development headers; this honours the standard PREFIX variable.
 └───────────┘
 
 inc/ ‣ development headers (public) for the library
-lib/ ‣ library source code, manual pages
+lib/ ‣ library source code, manual pages (documentation)
 
 client/ and server/
 ‣ example applications, see below
@@ -48,13 +48,12 @@ Run the client on another (or same) system: ./client host post [tc]
 
 tc sets the outgoing traffic class: NO, ECT0, ECT1, CE, or a
 decimal, octal (leading 0) or hexadecimal (leading 0x) integer
-between 0 and 255, inclusive
+between 0 and 255, inclusive (default: ECT0)
 
-The client will send a “hello” packet to the server, by default
-with ECT(0) set, as usual for normal nōn-L4S-aware applications.
-The server receives it, displays a line with the timestamp it
-received the packet, whether it was truncated, which ECN bits
-were set, and its content.
+The client will send a “hello” packet to the server, which
+receives it, displays a line with the timestamp it received
+the packet, whether it was truncated, which ECN bits were set,
+and its content.
 
 The server then sends FOUR packets back, with almost the same
 content (truncation, server timestamp, received ECN bits, as

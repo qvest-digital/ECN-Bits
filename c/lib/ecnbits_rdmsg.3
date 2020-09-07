@@ -250,12 +250,16 @@ In a multi-threaded environment, use of the ECN-Bits library is only safe if
 one of these conditions is met:
 .Bl -bullet
 .It
-Only one thread calls any of the functions other than
-.Fn ecnbits_prep
+The functions
+.Fn ecnbits_rdmsg ,
+.Fn ecnbits_recvmsg ,
+.Fn ecnbits_recvfrom ,
+.Fn ecnbits_recv
 and
-.Fn ecnbits_tc
+.Fn ecnbits_read
+are called from only one thread.
 .It
-Only
+Out of these functions, only
 .Fn ecnbits_rdmsg
 or
 .Fn ecnbits_recvmsg
