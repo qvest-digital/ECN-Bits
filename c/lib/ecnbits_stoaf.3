@@ -154,9 +154,9 @@ is set to indicate the error.
 .Pp
 The
 .Fn ecnbits_mkcmsg
-function returns the buffer (either allocated or from its
+function returns the buffer (either its
 .Ar buf
-argument) if successful; otherwise the value
+argument or the allocated one) if successful; otherwise the value
 .Dv NULL
 is returned and the global variable
 .Va errno
@@ -189,6 +189,7 @@ If a previous call to
 .Fn ecnbits_mkcmsg
 with the same address family allocated a buffer, and that buffer
 and its size are reused, these conditions are fulfilled.
+Within one program, the buffer size depends only on the address family.
 .Sh SEE ALSO
 .Xr getsockname 2 ,
 .Xr cmsg 3 ,
