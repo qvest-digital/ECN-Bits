@@ -23,100 +23,14 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#ifdef DEBUG
-#include <err.h>
-#endif
 #include <errno.h>
 #include <stddef.h>
-#if defined(DEBUG) || (defined(__linux__) && !defined(__ANDROID__))
+#ifdef DEBUG
 #include <stdio.h>
 #include <string.h>
 #endif
 
 #include "ecn-bits.h"
-
-#if !defined(IPTOS_ECN) && defined(IPTOS_ECN_MASK)
-#define IPTOS_ECN(tos) ((tos) & IPTOS_ECN_MASK)
-#endif
-
-#if defined(_WIN32) || defined(WIN32)
-#define TCSET_FAIL(e)	/* nothing, not required */
-#elif defined(__linux__) && !defined(__ANDROID__)
-static int requiretcset(void);
-#define TCSET_FAIL(e)	do {	\
-	if (requiretcset())	\
-		return (e);	\
-} while (/* CONSTCOND */ 0)
-#else
-#define TCSET_FAIL(e)	return (e);
-#endif
-
-int
-ecnbits_setup(int s, int af, unsigned char iptos, const char **e)
-{
-	int on = 1;
-	int tos = (int)(unsigned int)iptos;
-
-	errno = 0;
-	if (e)
-		*e = NULL;
-	switch (af) {
-	case AF_INET:
-		if (setsockopt(s, IPPROTO_IP, IP_RECVTOS,
-		    (const void *)&on, sizeof(on))) {
-			if (e)
-				*e = "failed to set up receiver TOS on IPv4";
-			return (-1);
-		}
-		if (setsockopt(s, IPPROTO_IP, IP_TOS,
-		    (const void *)&tos, sizeof(tos))) {
-#ifdef DEBUG
-			int eno = errno;
-			warn("ecnbits_setup: cannot set %s", "IP_TOS");
-			errno = eno;
-#endif
-			if (e)
-				*e = "failed to set up IPv4 sender TOS";
-			TCSET_FAIL(-1);
-		}
-		break;
-	case AF_INET6:
-		if (setsockopt(s, IPPROTO_IPV6, IPV6_RECVTCLASS,
-		    (const void *)&on, sizeof(on))) {
-			if (e)
-				*e = "failed to set up receiver TOS on IPv6";
-			return (-1);
-		}
-		/* for v4-mapped */
-		if (setsockopt(s, IPPROTO_IP, IP_RECVTOS,
-		    (const void *)&on, sizeof(on))) {
-			if (e)
-				*e = "failed to set up receiver TOS for IPv4 on IPv6";
-#if defined(__linux__)
-			return (-1);
-#endif
-		}
-		/* ignored by v4-mapped */
-		if (setsockopt(s, IPPROTO_IPV6, IPV6_TCLASS,
-		    (const void *)&tos, sizeof(tos))) {
-#ifdef DEBUG
-			int eno = errno;
-			warn("ecnbits_setup: cannot set %s", "IPV6_TCLASS");
-			errno = eno;
-#endif
-			if (e)
-				*e = "failed to set up IPv6 sender TOS";
-			TCSET_FAIL(-1);
-		}
-		break;
-	default:
-		if (e)
-			*e = "unknown address family";
-		errno = EAFNOSUPPORT;
-		return (-1);
-	}
-	return (0);
-}
 
 static size_t
 cmsg_actual_data_len(const struct cmsghdr *cmsg)
@@ -136,7 +50,7 @@ cmsg_actual_data_len(const struct cmsghdr *cmsg)
 }
 
 static void
-recvtos_cmsg(struct cmsghdr *cmsg, unsigned char *e)
+recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
 {
 	unsigned char b1, b2;
 	unsigned char *d = CMSG_DATA(cmsg);
@@ -145,6 +59,9 @@ recvtos_cmsg(struct cmsghdr *cmsg, unsigned char *e)
 	switch (cmsg_actual_data_len(cmsg)) {
 	case 0:
 		/* huh? */
+#ifdef DEBUG
+		fprintf(stderr, "D: cmsg: undersized\n");
+#endif
 		return;
 	case 3:
 	case 2:
@@ -165,21 +82,27 @@ recvtos_cmsg(struct cmsghdr *cmsg, unsigned char *e)
 			break;
 		}
 		/* inconsistent, no luck */
+#ifdef DEBUG
+		fprintf(stderr, "D: cmsg: inconsistent\n");
+#endif
 		return;
 	}
-	*e = IPTOS_ECN(b1) | ECNBITS_VALID_BIT;
+#ifdef DEBUG
+	fprintf(stderr, "D: cmsg: tc octet = 0x%02X\n", (unsigned int)b1);
+#endif
+	*e = (unsigned short)(b1 & 0xFFU) | ECNBITS_ISVALID_BIT;
 }
 
 static char msgbuf[2048];
 
 ssize_t
-ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned char *e)
+ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e)
 {
 	struct cmsghdr *cmsg;
 	ssize_t rv;
 	int eno;
 
-	*e = 0;
+	*e = ECNBITS_INVALID_BIT;
 
 	if (!msgh->msg_control) {
 		msgh->msg_control = msgbuf;
@@ -240,43 +163,3 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned char *e)
 	errno = eno;
 	return (rv);
 }
-
-#if defined(__linux__) && !defined(__ANDROID__)
-static int
-iswinorwsl(void)
-{
-	int iswin = 0;
-	int e = errno;
-	FILE *fp;
-	char buf[256];
-
-	if ((fp = fopen("/proc/sys/kernel/osrelease", "r"))) {
-		if (fgets(buf, sizeof(buf), fp) &&
-		    strstr(buf, "Microsoft"))
-			iswin = 1;
-		fclose(fp);
-	}
-	errno = e;
-	return (iswin);
-}
-#endif
-
-#if defined(_WIN32) || defined(WIN32)
-/* just ignore failures to set the outgoing traffic class */
-#elif defined(__linux__) && !defined(__ANDROID__)
-static int
-requiretcset(void)
-{
-	static enum {
-		ECN_OS_MAYBEWSL,
-		ECN_OS_NOTWIN32,
-		ECN_OS_WINORWSL
-	} os = ECN_OS_MAYBEWSL;
-
-	if (os == ECN_OS_MAYBEWSL) {
-		os = iswinorwsl() ? ECN_OS_WINORWSL : ECN_OS_NOTWIN32;
-	}
-
-	return (os != ECN_OS_WINORWSL);
-}
-#endif

@@ -26,7 +26,7 @@
 #include "ecn-bits.h"
 
 ssize_t
-ecnbits_recv(int s, void *buf, size_t buflen, int flags, unsigned char *e)
+ecnbits_recv(int s, void *buf, size_t buflen, int flags, unsigned short *e)
 {
 	struct msghdr m;
 	struct iovec io;

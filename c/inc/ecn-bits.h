@@ -28,10 +28,15 @@ extern "C" {
 
 /* operations on the result value */
 #ifdef ECNBITS_INTERNAL
-#define ECNBITS_VALID_BIT	4
+#define ECNBITS_INVALID_BIT	((unsigned short)0x0100U)
+#define ECNBITS_ISVALID_BIT	((unsigned short)0x0200U)
 #endif
-#define ECNBITS_VALID(result)	(((result) & 4) == 4)	/* valid? */
-#define ECNBITS_BITS(result)	((result) & 3)		/* extract bits */
+/* valid? (ensure just 0 is undefined) */
+#define ECNBITS_VALID(result)	(((unsigned short)(result) >> 8) == 0x02U)
+/* extract bits */
+#define ECNBITS_BITS(result)	((unsigned char)((result) & 0x03U))
+#define ECNBITS_DSCP(result)	((unsigned char)((result) & 0xFCU))
+#define ECNBITS_TCOCT(result)	((unsigned char)(result))
 
 #define ECNBITS_DESC(result)	(ECNBITS_VALID(result) ?	\
 		ecnbits_shortnames[ECNBITS_BITS(result)] :	\
@@ -67,10 +72,8 @@ int ecnbits_tcfatal(int);
 /* socket operations */
 int ecnbits_prep(int socketfd, int af);
 int ecnbits_tc(int socketfd, int af, unsigned char iptos);
-int ecnbits_setup(int socketfd, int af, unsigned char iptos,
-    const char **errstring);
 ssize_t ecnbits_rdmsg(int socketfd, struct msghdr *msg, int flags,
-    unsigned char *ecnbits);
+    unsigned short *ecnresult);
 
 /* utility functions */
 void *ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc);
@@ -78,17 +81,17 @@ int ecnbits_stoaf(int socketfd);
 
 /* wrapped calls */
 ssize_t ecnbits_recvmsg(int socketfd, struct msghdr *msg, int flags,
-    unsigned char *ecnbits);
+    unsigned short *ecnresult);
 ssize_t ecnbits_recvfrom(int socketfd, void *buf, size_t buflen,
     int flags, struct sockaddr *src_addr, socklen_t *addrlen,
-    unsigned char *ecnbits);
+    unsigned short *ecnresult);
 ssize_t ecnbits_recv(int socketfd, void *buf, size_t buflen,
     int flags,
-    unsigned char *ecnbits);
+    unsigned short *ecnresult);
 
 /* be mindful of different semantics for zero-length datagrams */
-#define ecnbits_read(socketfd,buf,buflen,ecnbits) \
-	ecnbits_recv((socketfd), (buf), (buflen), 0, (ecnbits))
+#define ecnbits_read(socketfd,buf,buflen,ecnresult) \
+	ecnbits_recv((socketfd), (buf), (buflen), 0, (ecnresult))
 
 #ifdef __cplusplus
 }

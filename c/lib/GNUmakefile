@@ -26,7 +26,7 @@ CPPFLAGS+=	-DECNBITS_INTERNAL
 
 LIB=		ecn-bits
 HDRS+=		ecn-bits.h
-SHLIB_VERSION=	1.1
+SHLIB_VERSION=	2.0
 
 SRCS+=		desc.c
 SRCS+=		ecn.c
@@ -42,12 +42,13 @@ SRCS+=		tc.c
 MAN+=		ECNBITS_VALID.3
 MAN+=		ecnbits_rdmsg.3
 MAN+=		ecnbits_recvfrom.3
-MAN+=		ecnbits_setup.3
 MAN+=		ecnbits_stoaf.3
 MAN+=		ecnbits_tc.3
 
 MLINKS+=	ECNBITS_VALID.3 ECNBITS_BITS.3
 MLINKS+=	ECNBITS_VALID.3 ECNBITS_DESC.3
+MLINKS+=	ECNBITS_VALID.3 ECNBITS_DSCP.3
+MLINKS+=	ECNBITS_VALID.3 ECNBITS_TCOCT.3
 MLINKS+=	ecnbits_rdmsg.3 ecnbits_recvmsg.3
 MLINKS+=	ecnbits_recvfrom.3 ecnbits_read.3
 MLINKS+=	ecnbits_recvfrom.3 ecnbits_recv.3

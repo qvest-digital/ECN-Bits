@@ -187,13 +187,14 @@ do_packet(int s)
 	struct sockaddr_storage ss;
 	struct msghdr mh;
 	struct iovec io;
-	unsigned char ecn;
+	unsigned short ecn;
 	time_t tt;
 	char tm[21];
 	const char *trc;
 	int af;
 	void *cmsgbuf;
 	size_t cmsgsz;
+	char ecns[3];
 
 	io.iov_base = data;
 	io.iov_len = sizeof(data) - 1;
@@ -227,9 +228,13 @@ do_packet(int s)
 		trc = "huh?"; break;
 	}
 
-	printf("%s %s %s %s <%s>\n", tm, trc,
+	if (ECNBITS_VALID(ecn))
+		snprintf(ecns, sizeof(ecns), "%02X", ECNBITS_TCOCT(ecn));
+	else
+		memcpy(ecns, "??", 3);
+	printf("%s %s %s %s{%s} <%s>\n", tm, trc,
 	    revlookup(mh.msg_name, mh.msg_namelen),
-	    ECNBITS_DESC(ecn), data);
+	    ECNBITS_DESC(ecn), ecns, data);
 
 	if ((af = ecnbits_stoaf(s)) == -1) {
 		warn("getsockname");
@@ -243,9 +248,9 @@ do_packet(int s)
 	mh.msg_control = cmsgbuf;
 	mh.msg_controllen = cmsgsz;
 
-	len = snprintf(data, sizeof(data), "%s %s %s %s -> 0",
+	len = snprintf(data, sizeof(data), "%s %s %s{%s} %s -> 0",
 	    revlookup(mh.msg_name, mh.msg_namelen),
-	    tm, ECNBITS_DESC(ecn), trc);
+	    tm, ECNBITS_DESC(ecn), ecns, trc);
 	io.iov_len = len;
 	do {
 		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,

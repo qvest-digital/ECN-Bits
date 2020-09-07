@@ -101,17 +101,17 @@
 .Nm ecnbits_read ,
 .Nm ecnbits_recv ,
 .Nm ecnbits_recvfrom
-.Nd receive a message (read a packet) from a socket and determine the ECN bits
+.Nd "receive a message (read a packet) from a socket and determine the traffic class including ECN bits"
 .Sh SYNOPSIS
 .In sys/types.h
 .In sys/socket.h
 .In ecn\-bits.h
 .Ft ssize_t
-.Fn ecnbits_read "int socketfd" "void *buf" "size_t buflen" "unsigned char *ecnbits"
+.Fn ecnbits_read "int socketfd" "void *buf" "size_t buflen" "unsigned short *ecnresult"
 .Ft ssize_t
-.Fn ecnbits_recv "int socketfd" "void *buf" "size_t buflen" "int flags" "unsigned char *ecnbits"
+.Fn ecnbits_recv "int socketfd" "void *buf" "size_t buflen" "int flags" "unsigned short *ecnresult"
 .Ft ssize_t
-.Fn ecnbits_recvfrom "int socketfd" "void *buf" "size_t buflen" "int flags" "struct sockaddr *src_addr" "socklen_t *addrlen" "unsigned char *ecnbits"
+.Fn ecnbits_recvfrom "int socketfd" "void *buf" "size_t buflen" "int flags" "struct sockaddr *src_addr" "socklen_t *addrlen" "unsigned short *ecnresult"
 .Sh DESCRIPTION
 The
 .Fn ecnbits_read
@@ -133,31 +133,31 @@ functions work equivalent to the system functions
 and
 .Xr recvfrom 2
 respectively, but take an extra argument
-.Ar ecnbits .
+.Ar ecnresult .
 If
-.Ar ecnbits
+.Ar ecnresult
 is
 .Dv NULL ,
 these functions just pass control to the equivalent system function.
 Otherwise, an equivalent
 .Xr recvmsg 2
-system call is executed in order to be able to determine the ECN bits
-that were set on the received packet.
+system call is executed in order to be able to determine the
+traffic class octet of the received packet.
 .Pp
 If
-.Ar ecnbits
+.Ar ecnresult
 is not
 .Dv NULL
 and the call was successful
 .Pq did not return Li (ssize_t)\-1 ,
 the location pointed to by
-.Ar ecnbits
-will, upon return, contain the ECN bits of the received packet, in
+.Ar ecnresult
+will, upon return, contain the traffic class of the received packet, in
 .Xr ECNBITS_VALID 3
 format, if determining it was possible (otherwise, it will read as not valid).
 If the socket was not set up with
 .Xr ecnbits_prep 3
-beforehand, determining the ECN bits is usually not possible.
+beforehand, determining the traffic class octet is usually not possible.
 .Pp
 As with the equivalent system function,
 .Fn ecnbits_recvfrom
@@ -185,12 +185,12 @@ is set to indicate the error.
 The following code fragment illustrates the usage:
 .Bd -literal -offset indent
 char buf[512];
-unsigned char ecn;
+unsigned short ecnresult;
 
-if (ecnbits_read(socketfd, buf, sizeof(buf), &ecn) == (size_t)\-1)
+if (ecnbits_read(fd, buf, sizeof(buf), &ecnresult) == (size_t)\-1)
 	err(1, "read");
-if (ECNBITS_VALID(ecn))
-	printf("%s\en", ecnbits_meanings[ECNBITS_BITS(ecn)]);
+if (ECNBITS_VALID(ecnresult))
+	printf("%s\en", ecnbits_meanings[ECNBITS_BITS(ecnresult)]);
 .Ed
 .Pp
 Note that the socket, after creation, must have been set up with a call to
@@ -202,7 +202,7 @@ These functions return the same errors as the underlying system calls:
 or
 .Xr recvfrom 2
 if
-.Ar ecnbits
+.Ar ecnresult
 is
 .Dv NULL ,
 .Xr recvmsg 2

@@ -164,7 +164,7 @@ do_connect(int s)
 	ssize_t n;
 	struct pollfd pfd;
 	int rv = 1;
-	unsigned char ecn;
+	unsigned short ecn;
 	time_t tt;
 	char tm[21];
 

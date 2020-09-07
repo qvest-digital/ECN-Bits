@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: July 31 2020 $
+.Dd $Mdocdate: September 7 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -100,29 +100,40 @@
 .Sh NAME
 .Nm ECNBITS_BITS ,
 .Nm ECNBITS_DESC ,
+.Nm ECNBITS_DSCP ,
+.Nm ECNBITS_TCOCT ,
 .Nm ECNBITS_VALID ,
 .Nm ecnbits_meanings ,
 .Nm ecnbits_shortnames
-.Nd working with ECN-Bits return values
+.Nd handling ECN-Bits return values
 .Sh SYNOPSIS
 .In sys/types.h
 .In sys/socket.h
 .In ecn\-bits.h
 .Ft unsigned char
-.Fn ECNBITS_BITS "unsigned char result"
+.Fn ECNBITS_BITS "unsigned short result"
 .Ft const char *
-.Fn ECNBITS_DESC "unsigned char result"
+.Fn ECNBITS_DESC "unsigned short result"
+.Ft unsigned char
+.Fn ECNBITS_DSCP "unsigned short result"
+.Ft unsigned char
+.Fn ECNBITS_TCOCT "unsigned short result"
 .Ft int
-.Fn ECNBITS_VALID "unsigned char result"
+.Fn ECNBITS_VALID "unsigned short result"
 .Vt extern const char *ecnbits_meanings[4];
 .Vt extern const char *ecnbits_shortnames[4];
 .Sh DESCRIPTION
 The
-.Fn ECNBITS_VALID
-and
+.Fn ECNBITS_VALID ,
 .Fn ECNBITS_BITS
+and (if needed)
+.Fn ECNBITS_DSCP
+and
+.Fn ECNBITS_TCOCT
 macros aid in obtaining
 the result value of an ECN-Bits library function.
+The DiffServ bits are exposed for user convenience.
+.Pp
 The
 .Fn ECNBITS_DESC
 macro can be used to format, as fixed-width string,
@@ -147,32 +158,39 @@ The following are valid ECN bit representations:
 These macros and constant memory locations are thread-safe.
 .Sh RETURN VALUES
 The
+.Fn ECNBITS_VALID
+macro expands to 1 if the result is valid, else 0.
+The
 .Fn ECNBITS_BITS
 macro evaluates to the ECN bits of a valid result, that is,
-one of the aforementioned four defined constants.
+one of the four constants shown above.
+The
+.Fn ECNBITS_DSCP
+macro evaluates to the DSCP bits of a valid result, that is,
+the traffic class minus the ECN bits.
+The
+.Fn ECNBITS_TCOCT
+macro evaluates to the full traffic class octet of a valid result.
 The
 .Fn ECNBITS_DESC
 macro evaluates to a pointer to a constant string six
 ASCII characters wide explaining the result; invalid results
 are represented as
 .Dq "??ECN?" .
-The
-.Fn ECNBITS_VALID
-macro expands to 1 if the result is valid, 0 otherwise.
 .Sh EXAMPLES
 The following code fragment illustrates the usage:
 .Bd -literal -offset indent
-unsigned char ecn;
+unsigned short ecnresult;
 
-if (ecnbits_recv(/* ... */, &ecn) == (size_t)\-1)
+if (ecnbits_recv(/* ... */, &ecnresult) == (size_t)\-1)
 	return;
 
-printf("%s\en", ECNBITS_DESC(ecn));
-if (ECNBITS_VALID(ecn))
-	printf("%s\en", ecnbits_meanings[ECNBITS_BITS(ecn)]);
+printf("%s\en", ECNBITS_DESC(ecnresult));
+if (ECNBITS_VALID(ecnresult))
+	printf("%s\en", ecnbits_meanings[ECNBITS_BITS(ecnresult)]);
 .Ed
 .Pp
-.Fn ECNBITS_BITS ecn
+.Fn ECNBITS_BITS ecnresult
 is also what needs to be reported back to the sender.
 .Sh SEE ALSO
 .Xr ecnbits_rdmsg 3 ,

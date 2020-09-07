@@ -195,7 +195,6 @@ to determine if this should be ignored), and 0 on success.
 The following code fragment illustrates the usage:
 .Bd -literal -offset indent
 int fd;
-const char *errstr;
 
 if ((fd = socket(AF_INET6, SOCK_DGRAM, 0)) == \-1)
 	err(1, "socket");
