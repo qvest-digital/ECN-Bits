@@ -192,8 +192,7 @@ do_packet(int s)
 	time_t tt;
 	char tm[21];
 	const char *trc;
-	struct sockaddr sa;
-	socklen_t salen;
+	int af;
 
 	io.iov_base = data;
 	io.iov_len = sizeof(data) - 1;
@@ -231,8 +230,7 @@ do_packet(int s)
 	    revlookup(mh.msg_name, mh.msg_namelen),
 	    ECNBITS_DESC(ecn), data);
 
-	salen = sizeof(sa);
-	if (getsockname(s, &sa, &salen)) {
+	if ((af = ecnbits_stoaf(s)) == -1) {
 		warn("getsockname");
 		return;
 	}
@@ -243,12 +241,8 @@ do_packet(int s)
 	 * avoid using those (on nōn-Linux especially)
 	 */
 #ifdef DEBUG
-	fprintf(stderr, "D: socket is %d (%s), %u of %u bytes\n",
-	    (int)sa.sa_family, sa.sa_family == AF_INET ? "IPv4" :
-	    sa.sa_family == AF_INET6 ? "IPv6" : "something else",
-	    (int)salen, (int)sizeof(sa));
-	/* note “something else” cannot happen */
-	/* we only create AF_INET/AF_INET6 sockets above */
+	fprintf(stderr, "D: socket is %d (%s)\n",
+	    af, af == AF_INET ? "IPv4" : "IPv6");
 #endif
 
 	len = snprintf(data, sizeof(data), "%s %s %s %s -> 0",
@@ -264,7 +258,7 @@ do_packet(int s)
 		mh.msg_control = &cmsgbuf;
 		mh.msg_controllen = sizeof(cmsgbuf);
 		memset(mh.msg_control, 0, sizeof(cmsgbuf));
-		fill_tc_cmsg(CMSG_FIRSTHDR(&mh), sa.sa_family,
+		fill_tc_cmsg(CMSG_FIRSTHDR(&mh), af,
 		    data[len - 1] - '0');
 
 		sendmsg(s, &mh, 0);
