@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: September 3 2020 $
+.Dd $Mdocdate: September 7 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -137,6 +137,10 @@ otherwise, its length is expected in
 In both cases,
 .Ar *lenp
 will be overwritten with the actual length of the data stored into the buffer.
+.Po \&If Ar buf No is Dv NULL ,
+.Ar lenp No may be Dv NULL
+if the caller does not need it.
+.Pc
 .Sh RETURN VALUES
 The
 .Fn ecnbits_stoaf
