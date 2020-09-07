@@ -60,11 +60,9 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 		}
 	} else if (!(buf = calloc(1, mlen)))
 		return (NULL);
-	if (lenp)
-		*lenp = mlen;
 
 	mh.msg_control = buf;
-	mh.msg_controllen = mlen;
+	mh.msg_controllen = *lenp = mlen;
 	cmsg = CMSG_FIRSTHDR(&mh);
 
 	switch (af) {
