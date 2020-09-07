@@ -42,7 +42,6 @@ static struct pollfd pfd[NUMSOCK];
 static int do_resolve(const char *host, const char *service);
 static void do_packet(int sockfd);
 static const char *revlookup(const struct sockaddr *addr, socklen_t addrlen);
-static void fill_tc_cmsg(struct cmsghdr *cmsg, int af, unsigned char tc);
 
 int
 main(int argc, char *argv[])
@@ -251,41 +250,6 @@ do_packet(int s)
 	do {
 		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,
 		    data[len - 1] - '0');
-
 		sendmsg(s, &mh, 0);
 	} while (++data[len - 1] < '4');
-}
-
-static void
-fill_tc_cmsg(struct cmsghdr *cmsg, int af, unsigned char tc)
-{
-	int i = (int)(unsigned int)tc;
-
-	switch (af) {
-	case AF_INET:
-		cmsg->cmsg_level = IPPROTO_IP;
-		cmsg->cmsg_type = IP_TOS;
-#if defined(__linux__)
-		/*
-		 * The generic case below works on Linux 5.7 (Debian) but
-		 * fails on Linux 3.18 (Android); this here works on both
-		 * but fails on e.g. MidnightBSD because it’s asymmetric:
-		 * we get a char, this sends an int.
-		 */
-		cmsg->cmsg_len = CMSG_LEN(sizeof(i));
-		memcpy(CMSG_DATA(cmsg), &i, sizeof(i));
-#else
-		cmsg->cmsg_len = CMSG_LEN(sizeof(tc));
-		memcpy(CMSG_DATA(cmsg), &tc, sizeof(tc));
-#endif
-		break;
-	case AF_INET6:
-		cmsg->cmsg_level = IPPROTO_IPV6;
-		cmsg->cmsg_type = IPV6_TCLASS;
-		cmsg->cmsg_len = CMSG_LEN(sizeof(i));
-		memcpy(CMSG_DATA(cmsg), &i, sizeof(i));
-		break;
-	default:
-		errx(1, "unexpected address family %d", af);
-	}
 }
