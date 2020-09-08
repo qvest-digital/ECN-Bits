@@ -42,7 +42,6 @@ static struct pollfd pfd[NUMSOCK];
 static int do_resolve(const char *host, const char *service);
 static void do_packet(int sockfd);
 static const char *revlookup(const struct sockaddr *addr, socklen_t addrlen);
-static void fill_tc_cmsg(struct cmsghdr *cmsg, int af, unsigned char tc);
 
 int
 main(int argc, char *argv[])
@@ -193,6 +192,8 @@ do_packet(int s)
 	char tm[21];
 	const char *trc;
 	int af;
+	void *cmsgbuf;
+	size_t cmsgsz;
 	char ecns[3];
 
 	io.iov_base = data;
@@ -239,67 +240,21 @@ do_packet(int s)
 		warn("getsockname");
 		return;
 	}
-	/*
-	 * getsockname returns AF_INET6 for v4-mapped sockets, too,
-	 * which, while correct, leads to the wrong cmsg set below,
-	 * and therefore to no outgoing traffic class being set, so
-	 * avoid using those (on nōn-Linux especially)
-	 */
-#ifdef DEBUG
-	fprintf(stderr, "D: socket is %d (%s)\n",
-	    af, af == AF_INET ? "IPv4" : "IPv6");
-#endif
+	/* pre-allocate one cmsg buffer to reuse */
+	if (!(cmsgbuf = ecnbits_mkcmsg(NULL, &cmsgsz, af, 0))) {
+		warn("ecnbits_mkcmsg");
+		return;
+	}
+	mh.msg_control = cmsgbuf;
+	mh.msg_controllen = cmsgsz;
 
 	len = snprintf(data, sizeof(data), "%s %s %s{%s} %s -> 0",
 	    revlookup(mh.msg_name, mh.msg_namelen),
 	    tm, ECNBITS_DESC(ecn), ecns, trc);
 	io.iov_len = len;
 	do {
-		union {
-			unsigned char buf[CMSG_SPACE(sizeof(int))];
-			struct cmsghdr msg;
-		} cmsgbuf;
-
-		mh.msg_control = &cmsgbuf;
-		mh.msg_controllen = sizeof(cmsgbuf);
-		memset(mh.msg_control, 0, sizeof(cmsgbuf));
-		fill_tc_cmsg(CMSG_FIRSTHDR(&mh), af,
+		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,
 		    data[len - 1] - '0');
-
 		sendmsg(s, &mh, 0);
 	} while (++data[len - 1] < '4');
-}
-
-static void
-fill_tc_cmsg(struct cmsghdr *cmsg, int af, unsigned char tc)
-{
-	int i = (int)(unsigned int)tc;
-
-	switch (af) {
-	case AF_INET:
-		cmsg->cmsg_level = IPPROTO_IP;
-		cmsg->cmsg_type = IP_TOS;
-#if defined(__linux__)
-		/*
-		 * The generic case below works on Linux 5.7 (Debian) but
-		 * fails on Linux 3.18 (Android); this here works on both
-		 * but fails on e.g. MidnightBSD because it’s asymmetric:
-		 * we get a char, this sends an int.
-		 */
-		cmsg->cmsg_len = CMSG_LEN(sizeof(i));
-		memcpy(CMSG_DATA(cmsg), &i, sizeof(i));
-#else
-		cmsg->cmsg_len = CMSG_LEN(sizeof(tc));
-		memcpy(CMSG_DATA(cmsg), &tc, sizeof(tc));
-#endif
-		break;
-	case AF_INET6:
-		cmsg->cmsg_level = IPPROTO_IPV6;
-		cmsg->cmsg_type = IPV6_TCLASS;
-		cmsg->cmsg_len = CMSG_LEN(sizeof(i));
-		memcpy(CMSG_DATA(cmsg), &i, sizeof(i));
-		break;
-	default:
-		errx(1, "unexpected address family %d", af);
-	}
 }
