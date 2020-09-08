@@ -1,6 +1,12 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.android.gms.oss-licenses-plugin'
 
+// project licence: The MirOS Licence
+// see ../../LICENCE
+//
+// apparently, there’s no standardised way to declare the project licence in Gradle:
+// https://discuss.gradle.org/t/how-to-declare-a-license-for-a-gradle-project/26114
+
 android {
     compileSdkVersion 26
 
