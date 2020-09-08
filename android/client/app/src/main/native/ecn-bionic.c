@@ -32,6 +32,8 @@
 
 #define MSGBUFSZ 48
 
+#define sb(a)	&(a), sizeof(a)
+
 int
 ecnbits_setup(int s)
 {
@@ -217,11 +219,11 @@ ecnbits_jrecv(int fd, int dopeek, unsigned short *tcv, struct iovec *iov,
 	    tcv)) != (ssize_t)-1) {
 		switch (ss.s.ss_family) {
 		case AF_INET:
-			(*cb)(ep, ap, &ss.in.sin_addr.s_addr, 4,
+			(*cb)(ep, ap, sb(ss.in.sin_addr.s_addr),
 			    ntohs(ss.in.sin_port));
 			break;
 		case AF_INET6:
-			(*cb)(ep, ap, &ss.in6.sin6_addr.s6_addr, 16,
+			(*cb)(ep, ap, sb(ss.in6.sin6_addr.s6_addr),
 			    ntohs(ss.in6.sin6_port));
 			break;
 		default:
