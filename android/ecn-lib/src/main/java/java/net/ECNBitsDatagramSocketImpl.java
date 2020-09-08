@@ -16,7 +16,8 @@ package java.net;
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * Refer to android/lib/COPYING for the full text of that licence.
+ * The full text of that licence can be found in the following file:
+ * ‣ android/ecn-lib/src/main/resources/COPYING
  *
  * As a special exception, the copyright holders of this library give
  * you permission to link this library with independent modules to

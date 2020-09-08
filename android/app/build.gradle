@@ -22,23 +22,12 @@ android {
         }
     }
 
-    externalNativeBuild {
-        cmake {
-            path "src/main/native/CMakeLists.txt"
-        }
-    }
-
     compileOptions {
         sourceCompatibility = 1.8
         targetCompatibility = 1.8
     }
     //noinspection GradleDependency
     buildToolsVersion = '28.0.3'
-
-    // due to private API use
-    lintOptions {
-        abortOnError false
-    }
 }
 
 dependencies {
@@ -56,6 +45,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.12'
 
     implementation 'org.evolvis.tartools:rfc822:0.3'
+    implementation project(":ecn-lib")
 
     testImplementation 'junit:junit:4.13'
 

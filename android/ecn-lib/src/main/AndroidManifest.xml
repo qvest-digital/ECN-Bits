@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	package="de.telekom.llcto.ecn_bits.android.lib">
+
+	<uses-permission android:name="android.permission.INTERNET" />
+</manifest>

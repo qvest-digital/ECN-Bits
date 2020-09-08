@@ -1,0 +1,58 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 26
+
+    defaultConfig {
+        minSdkVersion 26
+        //noinspection OldTargetApi
+        targetSdkVersion 26
+        versionCode 1
+        versionName "0.1"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+        return void // WTF‽
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/native/CMakeLists.txt"
+            return void // WTF‽
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
+    //noinspection GradleDependency
+    buildToolsVersion = '28.0.3'
+
+    // due to private API use
+    lintOptions {
+        abortOnError false
+        return void // WTF‽
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    //noinspection AnnotationProcessorOnCompilePath because both are needed :/
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+
+    testImplementation 'junit:junit:4.13'
+    //noinspection GradleDependency
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    //noinspection GradleDependency
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+}
