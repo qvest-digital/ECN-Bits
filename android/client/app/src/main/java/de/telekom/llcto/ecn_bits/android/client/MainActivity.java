@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
 
     private final ArrayList<String> outputLines = new ArrayList<>();
 
-    private String newlinePortraitOnly = "\n";
+    private String contentSeparator = "\n";
 
     private EditText hostnameText;
     private EditText portText;
@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
 
         final Point appSize = new Point();
         getWindowManager().getDefaultDisplay().getSize(appSize);
-        newlinePortraitOnly = appSize.x > appSize.y ? "│" : "\n";
+        contentSeparator = appSize.x > appSize.y ? "│" : "\n";
 
         outputLines.clear();
         outputListView = findViewById(R.id.outputList);
@@ -398,7 +398,7 @@ public class MainActivity extends AppCompatActivity {
                         oneSuccess = true;
                         final String userData = new String(buf, StandardCharsets.UTF_8);
                         final String logLine = String.format("• %s %s%s%s",
-                          stamp, Bits.print(trafficClass), newlinePortraitOnly,
+                          stamp, Bits.print(trafficClass), contentSeparator,
                           userData.trim());
                         runOnUiThread(() -> addOutputLine(logLine));
                     }
@@ -584,7 +584,7 @@ public class MainActivity extends AppCompatActivity {
                         buf.flip();
                         final String userData = StandardCharsets.UTF_8.decode(buf).toString();
                         final String logLine = String.format("→ %s %s (%d)%s%s",
-                          stamp, "[ECN?]", read, newlinePortraitOnly, userData.trim());
+                          stamp, "[ECN?]", read, contentSeparator, userData.trim());
                         runOnUiThread(() -> addOutputLine(logLine));
                         // does not fall through to sleep below
                         continue;
