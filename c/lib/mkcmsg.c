@@ -74,11 +74,11 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 #if defined(__linux__)
 		/* send two, for v4-mapped */
 		cmsg = CMSG_NXTHDR(&mh, cmsg);
-		/* FALLTHROUGH */
 #else
 		/* sending multiple cmsg headers is a Linux extension */
 		break;
 #endif
+		/* FALLTHROUGH */
 	case AF_INET:
 		cmsg->cmsg_level = IPPROTO_IP;
 		cmsg->cmsg_type = IP_TOS;
