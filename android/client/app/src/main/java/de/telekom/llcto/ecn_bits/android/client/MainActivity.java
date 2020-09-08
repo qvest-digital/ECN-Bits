@@ -300,13 +300,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @AllArgsConstructor
-    private static class Bounds {
+    private static class UIntExtractorBounds {
         final int lower;
         final int upper;
         final String what;
     }
 
-    private Map.Entry<String, Integer> uintExtractor(final String s, final Bounds b) {
+    private Map.Entry<String, Integer> uintExtractor(final String s, final UIntExtractorBounds b) {
         if ("".equals(s)) {
             return new AbstractMap.SimpleEntry<>("empty " + b.what, null);
         }
@@ -329,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
     public void clkSend(final View v) {
         final IPorFQDN hostname = getFieldValue(true, hostnameText, this::fqdnOrIPExtractor, "hostname");
         final Integer port = getFieldValue(false, portText, this::uintExtractor,
-          new Bounds(1, 65535, "port"));
+          new UIntExtractorBounds(1, 65535, "port"));
         //if (Stream.of(hostname, port).anyMatch(Objects::isNull)) fails in UnIntelliJ
         if (hostname == null || port == null) {
             return;
@@ -484,7 +484,7 @@ public class MainActivity extends AppCompatActivity {
 
         final IPorFQDN hostname = getFieldValue(true, hostnameText, this::fqdnOrIPExtractor, "hostname");
         final Integer port = getFieldValue(false, portText, this::uintExtractor,
-          new Bounds(1, 65535, "port"));
+          new UIntExtractorBounds(1, 65535, "port"));
         final Bits outBits = getDropdownSelectedValueOr(bitsDropdown,
           BitsAdapter.values, BitsAdapter.values[0]).getBit();
         if (hostname == null || port == null) {
