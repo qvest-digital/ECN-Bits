@@ -194,7 +194,7 @@ do_packet(int s)
 	int af;
 	void *cmsgbuf;
 	size_t cmsgsz;
-	char ecns[3];
+	char tcs[3];
 
 	io.iov_base = data;
 	io.iov_len = sizeof(data) - 1;
@@ -229,12 +229,12 @@ do_packet(int s)
 	}
 
 	if (ECNBITS_VALID(ecn))
-		snprintf(ecns, sizeof(ecns), "%02X", ECNBITS_TCOCT(ecn));
+		snprintf(tcs, sizeof(tcs), "%02X", ECNBITS_TCOCT(ecn));
 	else
-		memcpy(ecns, "??", 3);
+		memcpy(tcs, "??", 3);
 	printf("%s %s %s %s{%s} <%s>\n", tm, trc,
 	    revlookup(mh.msg_name, mh.msg_namelen),
-	    ECNBITS_DESC(ecn), ecns, data);
+	    ECNBITS_DESC(ecn), tcs, data);
 
 	if ((af = ecnbits_stoaf(s)) == -1) {
 		warn("getsockname");
@@ -250,7 +250,7 @@ do_packet(int s)
 
 	len = snprintf(data, sizeof(data), "%s %s %s{%s} %s -> 0",
 	    revlookup(mh.msg_name, mh.msg_namelen),
-	    tm, ECNBITS_DESC(ecn), ecns, trc);
+	    tm, ECNBITS_DESC(ecn), tcs, trc);
 	io.iov_len = len;
 	do {
 		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,

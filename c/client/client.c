@@ -167,6 +167,7 @@ do_connect(int s)
 	unsigned short ecn;
 	time_t tt;
 	char tm[21];
+	char tcs[3];
 
 	memcpy(buf, "hi!", 3);
 	if ((n = write(s, buf, 3)) != 3) {
@@ -204,7 +205,11 @@ do_connect(int s)
 		if (buf[n - 2] == '\r')
 			buf[n - 2] = '\0';
 	}
-	fprintf(stderr, "%s %s <%s>\n", tm, ECNBITS_DESC(ecn), buf);
+	if (ECNBITS_VALID(ecn))
+		snprintf(tcs, sizeof(tcs), "%02X", ECNBITS_TCOCT(ecn));
+	else
+		memcpy(tcs, "??", 3);
+	fprintf(stderr, "%s %s{%s} <%s>\n", tm, ECNBITS_DESC(ecn), tcs, buf);
 	rv = 0;
 	goto loop;
 }
