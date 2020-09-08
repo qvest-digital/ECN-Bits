@@ -1,6 +1,6 @@
-┏━━━━━━━━━━━━━━━━━━━━┓
-┃ ECN-Bits • Linux/C ┃
-┗━━━━━━━━━━━━━━━━━━━━┛
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ECN-Bits • C/CLI for Linux/FreeBSD ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 ┌─────────────┐
 │ Compilation │
@@ -17,6 +17,9 @@ Running “make install” will install the library, its manual pages
 and development headers; this honours the standard PREFIX variable.
 “make uninstall” will erase these installed files from the system.
 (On BSD systems use “gmake install” and “gmake uninstall”.)
+
+Statically linked against musl libc, the examples will also work
+on Android, e.g. via adb shell; useful for testing.
 
 ┌───────────┐
 │ Structure │

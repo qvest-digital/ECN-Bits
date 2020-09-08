@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: September 3 2020 $
+.Dd $Mdocdate: September 8 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -162,14 +162,10 @@ Note that the
 value is only used to set the default outgoing traffic class.
 It can still be overridden by using
 .Xr sendmsg 2
-with a
+with a suitable
 .Xr cmsg 3
-control message of
-.Dv IPV6_TCLASS
-.Pq Dv IPPROTO_IPV6
-or
-.Dv IP_TOS
-.Pq Dv IPPROTO_IP ;
+control message such as one created by
+.Xr ecnbits_mkcmsg 3 ;
 the ECN-Bits c/server example demonstrates this technique.
 .Sh RETURN VALUES
 The

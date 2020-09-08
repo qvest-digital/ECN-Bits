@@ -137,6 +137,8 @@ otherwise, its length is expected in
 In both cases,
 .Ar *lenp
 will be overwritten with the actual length of the data stored into the buffer.
+.Pp
+These functions are thread-safe (as long as the buffer is not shared).
 .Sh RETURN VALUES
 The
 .Fn ecnbits_stoaf

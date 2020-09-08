@@ -17,7 +17,7 @@ Development funded by Deutsche Telekom.
 │ Covered operating environments │
 └────────────────────────────────┘
 
-• C (usable from C++ and others):
+• C/CLI (usable from C++ and others):
   Linux, FreeBSD, MidnightBSD (tested)
   possibly Darwin: Mac OSX, iOS
   Windows 8 and newer probably
