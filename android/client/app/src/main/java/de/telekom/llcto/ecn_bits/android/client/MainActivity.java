@@ -71,7 +71,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-@SuppressWarnings("FieldCanBeLocal")
+@SuppressWarnings({ "FieldCanBeLocal", /* UnIntelliJ bug */ "RedundantSuppression" })
 public class MainActivity extends AppCompatActivity {
     private static final String OUTPUT_LINES = "outputLines";
     private static final String OUTPUT_POS = "outputPos";
@@ -257,12 +257,13 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    //private Map.Entry<String, String> stringExtractor(final String s, final String what) {
-    //    if ("".equals(s)) {
-    //        return new AbstractMap.SimpleEntry<>("empty " + what, null);
-    //    }
-    //    return new AbstractMap.SimpleEntry<>(null, s);
-    //}
+    @SuppressWarnings("unused")
+    private Map.Entry<String, String> stringExtractor(final String s, final String what) {
+        if ("".equals(s)) {
+            return new AbstractMap.SimpleEntry<>("empty " + what, null);
+        }
+        return new AbstractMap.SimpleEntry<>(null, s);
+    }
 
     private static class IPorFQDN {
         final boolean resolved;

@@ -24,6 +24,8 @@ package de.telekom.llcto.ecn_bits.android.lib;
 /**
  * Enumerates the possible ECN bits.
  *
+ * See {@link java.net.ECNBitsDatagramSocket} for how to actually retrieve them.
+ *
  * @author mirabilos (t.glaser@tarent.de)
  */
 public enum Bits {
