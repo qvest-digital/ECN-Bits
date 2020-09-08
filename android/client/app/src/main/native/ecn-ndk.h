@@ -26,7 +26,9 @@
 extern "C" {
 #endif
 
-#define ECNBITS_INVALID		((unsigned short)0x0100U)
+#define ECNBITS_INVALID_BIT	((unsigned short)0x0100U)
+#define ECNBITS_ISVALID_BIT	((unsigned short)0x0200U)
+#define ECNBITS_VALID(result)	(((unsigned short)(result) >> 8) == 0x02U)
 
 int ecnbits_setup(int socketfd);
 ssize_t ecnbits_jrecv(int fd, int dopeek, unsigned short *tc, struct iovec *iov,

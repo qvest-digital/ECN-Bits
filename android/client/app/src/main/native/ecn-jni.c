@@ -231,7 +231,7 @@ nativeRecv(JNIEnv *env, jobject self, jobject args)
 	(*env)->SetIntField(env, args, o.read, (int)nbytes);
 	(*env)->SetByteField(env, args, o.tc, tc & 0xFF);
 	(*env)->SetBooleanField(env, args, o.tcValid,
-	    tc == ECNBITS_INVALID ? JNI_FALSE : JNI_TRUE);
+	    ECNBITS_VALID(tc) ? JNI_TRUE : JNI_FALSE);
 
 	return (0);
 }

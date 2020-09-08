@@ -24,6 +24,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 /*#include <netinet6/in6.h>*/
+#include <errno.h>
 #include <stddef.h>
 #include <string.h>
 #include <android/log.h>
@@ -142,7 +143,7 @@ recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
 		    (unsigned int)d[2], (unsigned int)d[3], len);
 		return;
 	}
-	*e = (unsigned short)b1;
+	*e = (unsigned short)(b1 & 0xFFU) | ECNBITS_ISVALID_BIT;
 }
 
 static ssize_t
@@ -152,7 +153,7 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e)
 	ssize_t rv;
 	char msgbuf[MSGBUFSZ];
 
-	*e = ECNBITS_INVALID;
+	*e = ECNBITS_INVALID_BIT;
 
 	if (!msgh->msg_control) {
 		msgh->msg_control = msgbuf;
