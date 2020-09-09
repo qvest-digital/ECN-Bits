@@ -34,6 +34,11 @@
 
 #include "ecn-bits.h"
 
+#ifndef _WIN32
+typedef int SOCKET;
+#define INVALID_SOCKET (-1)
+#endif
+
 static int do_resolve(const char *host, const char *service);
 static int do_connect(int sfd);
 
@@ -70,7 +75,8 @@ main(int argc, char *argv[])
 static int
 do_resolve(const char *host, const char *service)
 {
-	int i, s, rv = 1;
+	int i, rv = 1;
+	SOCKET s;
 	struct addrinfo *ai, *ap;
 	char nh[INET6_ADDRSTRLEN];
 	char np[/* 0‥65535 + NUL */ 6];
@@ -109,7 +115,7 @@ do_resolve(const char *host, const char *service)
 		}
 
 		if ((s = socket(ap->ai_family, ap->ai_socktype,
-		    ap->ai_protocol)) == -1) {
+		    ap->ai_protocol)) == INVALID_SOCKET) {
 			i = errno;
 			putc('\n', stderr);
 			errno = i;

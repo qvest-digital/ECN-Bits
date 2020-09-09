@@ -36,6 +36,11 @@
 
 #include "ecn-bits.h"
 
+#ifndef _WIN32
+typedef int SOCKET;
+#define INVALID_SOCKET (-1)
+#endif
+
 #define NUMSOCK 16
 static struct pollfd pfd[NUMSOCK];
 
@@ -98,7 +103,8 @@ revlookup(const struct sockaddr *addr, socklen_t addrlen)
 static int
 do_resolve(const char *host, const char *service)
 {
-	int i, s;
+	int i;
+	SOCKET s;
 	struct addrinfo *ai, *ap;
 	int n = 0;
 
@@ -127,7 +133,7 @@ do_resolve(const char *host, const char *service)
 		}
 
 		if ((s = socket(ap->ai_family, ap->ai_socktype,
-		    ap->ai_protocol)) == -1) {
+		    ap->ai_protocol)) == INVALID_SOCKET) {
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
