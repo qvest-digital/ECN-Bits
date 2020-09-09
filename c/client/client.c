@@ -220,7 +220,7 @@ do_connect(int s)
 	char tcs[3];
 
 	memcpy(buf, "hi!", 3);
-	if ((n = write(s, buf, 3)) != 3) {
+	if ((n = send(s, buf, 3, 0)) != 3) {
 		if (n == (ssize_t)-1) {
 			//XXX Win32
 			warn("send");
