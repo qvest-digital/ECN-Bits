@@ -20,10 +20,14 @@
  */
 
 #include <sys/types.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#else
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#endif
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>

@@ -20,7 +20,11 @@
  */
 
 #include <sys/types.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#else
 #include <sys/socket.h>
+#endif
 #include <errno.h>
 
 #include "ecn-bits.h"
