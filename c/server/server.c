@@ -38,7 +38,8 @@
 
 #ifndef _WIN32
 typedef int SOCKET;
-#define INVALID_SOCKET (-1)
+#define INVALID_SOCKET	(-1)
+#define closesocket	close
 #endif
 
 #define NUMSOCK 16
@@ -178,7 +179,7 @@ do_resolve(const char *host, const char *service)
 			errno = i;
 			warn("setsockopt");
 #endif
-			close(s);
+			closesocket(s);
 			continue;
 		}
 
@@ -192,7 +193,7 @@ do_resolve(const char *host, const char *service)
 			errno = i;
 			warn("ecnbits_setup: incoming traffic class");
 #endif
-			close(s);
+			closesocket(s);
 			continue;
 		}
 		/*
@@ -211,7 +212,7 @@ do_resolve(const char *host, const char *service)
 			errno = i;
 			warn("bind");
 #endif
-			close(s);
+			closesocket(s);
 			continue;
 		}
 

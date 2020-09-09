@@ -36,7 +36,8 @@
 
 #ifndef _WIN32
 typedef int SOCKET;
-#define INVALID_SOCKET (-1)
+#define INVALID_SOCKET	(-1)
+#define closesocket	close
 #endif
 
 static int do_resolve(const char *host, const char *service);
@@ -156,7 +157,7 @@ do_resolve(const char *host, const char *service)
 			errno = i;
 			warn("ecnbits_setup: incoming traffic class");
 #endif
-			close(s);
+			closesocket(s);
 			continue;
 		}
 		if (ECNBITS_TC_FATAL(ecnbits_tc(s, ap->ai_family, out_tc))) {
@@ -169,7 +170,7 @@ do_resolve(const char *host, const char *service)
 			errno = i;
 			warn("ecnbits_setup: outgoing traffic class");
 #endif
-			close(s);
+			closesocket(s);
 			continue;
 		}
 
@@ -183,18 +184,18 @@ do_resolve(const char *host, const char *service)
 			errno = i;
 			warn("connect");
 #endif
-			close(s);
+			closesocket(s);
 			continue;
 		}
 
 		fprintf(stderr, " connected\n");
 		if (do_connect(s)) {
-			close(s);
+			closesocket(s);
 			continue;
 		}
 
 		rv = 0;
-		close(s);
+		closesocket(s);
 		/* return */
 	}
 
