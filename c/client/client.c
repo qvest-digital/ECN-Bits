@@ -105,6 +105,9 @@ main(int argc, char *argv[])
 
 	if (do_resolve(argv[1], argv[2]))
 		errx(1, "Could not connect to server or received no response");
+#ifdef _WIN32
+	WSACleanup();
+#endif
 	return (0);
 }
 
