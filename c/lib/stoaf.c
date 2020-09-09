@@ -21,7 +21,9 @@
 
 #include <sys/types.h>
 #ifdef _WIN32
+#pragma warning(push,1)
 #include <winsock2.h>
+#pragma warning(pop)
 #else
 #include <sys/socket.h>
 #endif
