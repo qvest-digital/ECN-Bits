@@ -30,7 +30,7 @@
 static const int on = 1;
 
 int
-ecnbits_prep(int socketfd, int af)
+ecnbits_prep(SOCKET socketfd, int af)
 {
 	switch (af) {
 	case AF_INET:

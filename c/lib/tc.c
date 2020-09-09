@@ -71,7 +71,7 @@ ecnbits_tcfatal(int rv)
 #endif
 
 int
-ecnbits_tc(int socketfd, int af, unsigned char iptos)
+ecnbits_tc(SOCKET socketfd, int af, unsigned char iptos)
 {
 	int tos = (int)(unsigned int)iptos;
 

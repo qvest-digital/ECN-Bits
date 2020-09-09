@@ -22,6 +22,10 @@
 #ifndef ECN_BITS_H
 #define ECN_BITS_H
 
+#ifndef _WIN32
+#define SOCKET int
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -70,22 +74,22 @@ int ecnbits_tcfatal(int);
 #endif
 
 /* socket operations */
-int ecnbits_prep(int socketfd, int af);
-int ecnbits_tc(int socketfd, int af, unsigned char iptos);
-ssize_t ecnbits_rdmsg(int socketfd, struct msghdr *msg, int flags,
+int ecnbits_prep(SOCKET fd, int af);
+int ecnbits_tc(SOCKET fd, int af, unsigned char iptos);
+ssize_t ecnbits_rdmsg(SOCKET fd, struct msghdr *msg, int flags,
     unsigned short *ecnresult);
 
 /* utility functions */
 void *ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc);
-int ecnbits_stoaf(int socketfd);
+int ecnbits_stoaf(SOCKET fd);
 
 /* wrapped calls */
-ssize_t ecnbits_recvmsg(int socketfd, struct msghdr *msg, int flags,
+ssize_t ecnbits_recvmsg(SOCKET fd, struct msghdr *msg, int flags,
     unsigned short *ecnresult);
-ssize_t ecnbits_recvfrom(int socketfd, void *buf, size_t buflen,
+ssize_t ecnbits_recvfrom(SOCKET fd, void *buf, size_t buflen,
     int flags, struct sockaddr *src_addr, socklen_t *addrlen,
     unsigned short *ecnresult);
-ssize_t ecnbits_recv(int socketfd, void *buf, size_t buflen,
+ssize_t ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
     int flags,
     unsigned short *ecnresult);
 
@@ -95,6 +99,13 @@ ssize_t ecnbits_recv(int socketfd, void *buf, size_t buflen,
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifndef ECNBITS_INTERNAL
+/* clean up, except for the library */
+#ifndef _WIN32
+#undef SOCKET
+#endif
 #endif
 
 #endif

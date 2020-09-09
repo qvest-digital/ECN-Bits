@@ -29,7 +29,7 @@
 #include "ecn-bits.h"
 
 ssize_t
-ecnbits_recvmsg(int s, struct msghdr *mh, int flags, unsigned short *e)
+ecnbits_recvmsg(SOCKET s, struct msghdr *mh, int flags, unsigned short *e)
 {
 	ssize_t rv;
 	int eno;

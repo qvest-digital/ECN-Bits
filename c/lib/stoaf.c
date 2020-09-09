@@ -27,7 +27,7 @@
 
 #if (AF_INET != -1) && (AF_INET6 != -1)
 int
-ecnbits_stoaf(int socketfd)
+ecnbits_stoaf(SOCKET socketfd)
 {
 	struct sockaddr sa;
 	socklen_t slen = sizeof(sa);
