@@ -99,11 +99,11 @@ recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
 
 static char msgbuf[2048];
 
-ssize_t
+SOCKIOT
 ecnbits_rdmsg(SOCKET s, struct msghdr *msgh, int flags, unsigned short *e)
 {
 	struct cmsghdr *cmsg;
-	ssize_t rv;
+	SOCKIOT rv;
 	int eno;
 
 	*e = ECNBITS_INVALID_BIT;
@@ -114,7 +114,7 @@ ecnbits_rdmsg(SOCKET s, struct msghdr *msgh, int flags, unsigned short *e)
 	}
 
 	rv = recvmsg(s, msgh, flags);
-	if (rv == (ssize_t)-1)
+	if (rv == SOCKET_ERROR)
 		return (rv);
 	eno = errno;
 

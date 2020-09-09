@@ -32,10 +32,10 @@
 
 #include "ecn-bits.h"
 
-ssize_t
+SOCKIOT
 ecnbits_recvmsg(SOCKET s, struct msghdr *mh, int flags, unsigned short *e)
 {
-	ssize_t rv;
+	SOCKIOT rv;
 	int eno;
 	struct msghdr mrpl;
 

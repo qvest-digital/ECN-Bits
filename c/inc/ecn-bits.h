@@ -81,7 +81,7 @@ int ecnbits_tcfatal(int);
 /* socket operations */
 int ecnbits_prep(SOCKET fd, int af);
 int ecnbits_tc(SOCKET fd, int af, unsigned char iptos);
-ssize_t ecnbits_rdmsg(SOCKET fd, struct msghdr *msg, int flags,
+SOCKIOT ecnbits_rdmsg(SOCKET fd, struct msghdr *msg, int flags,
     unsigned short *ecnresult);
 
 /* utility functions */
@@ -89,12 +89,12 @@ void *ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc);
 int ecnbits_stoaf(SOCKET fd);
 
 /* wrapped calls */
-ssize_t ecnbits_recvmsg(SOCKET fd, struct msghdr *msg, int flags,
+SOCKIOT ecnbits_recvmsg(SOCKET fd, struct msghdr *msg, int flags,
     unsigned short *ecnresult);
-ssize_t ecnbits_recvfrom(SOCKET fd, void *buf, size_t buflen,
+SOCKIOT ecnbits_recvfrom(SOCKET fd, void *buf, size_t buflen,
     int flags, struct sockaddr *src_addr, socklen_t *addrlen,
     unsigned short *ecnresult);
-ssize_t ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
+SOCKIOT ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
     int flags,
     unsigned short *ecnresult);
 

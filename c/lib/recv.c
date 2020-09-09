@@ -29,7 +29,7 @@
 
 #include "ecn-bits.h"
 
-ssize_t
+SOCKIOT
 ecnbits_recv(SOCKET s, void *buf, size_t buflen, int flags, unsigned short *e)
 {
 	struct msghdr m;
