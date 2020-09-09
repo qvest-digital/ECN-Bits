@@ -64,7 +64,7 @@ OBJS=		$(SRCS:.c=.obj)
 !ENDIF
 
 !IFDEF PROG
-LIBS=		$(LIBS) ecn-bits.lib
+LIBS=		$(LIBS) ecn-bits.lib Ws2_32.lib
 CLEANFILES=	$(CLEANFILES) $(PROG).exe
 !IFNDEF DPADD
 DPADD=		../lib/ecn-bits.lib
