@@ -38,7 +38,10 @@ ecnbits_stoaf(SOCKET socketfd)
 		case AF_INET6:
 			return (sa.sa_family);
 		default:
-			errno = EAFNOSUPPORT;
+#ifdef _WIN32
+			WSASetLastError(WSAEAFNOSUPPORT);
+#endif
+			errno = WSAEAFNOSUPPORT;
 		}
 	return (-1);
 }

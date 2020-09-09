@@ -50,7 +50,10 @@ ecnbits_prep(SOCKET socketfd, int af)
 		}
 		break;
 	default:
-		errno = EAFNOSUPPORT;
+#ifdef _WIN32
+		WSASetLastError(WSAEAFNOSUPPORT);
+#endif
+		errno = WSAEAFNOSUPPORT;
 		return (2);
 	}
 	return (0);

@@ -93,7 +93,10 @@ ecnbits_tc(SOCKET socketfd, int af, unsigned char iptos)
 		}
 		break;
 	default:
-		errno = EAFNOSUPPORT;
+#ifdef _WIN32
+		WSASetLastError(WSAEAFNOSUPPORT);
+#endif
+		errno = WSAEAFNOSUPPORT;
 		return (2);
 	}
 	return (0);

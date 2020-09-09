@@ -101,10 +101,12 @@ ssize_t ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
 }
 #endif
 
-#ifndef ECNBITS_INTERNAL
-/* clean up, except for the library */
 #ifndef _WIN32
+/* clean up, except for the library */
+#ifndef ECNBITS_INTERNAL
 #undef SOCKET
+#else
+#define WSAEAFNOSUPPORT EAFNOSUPPORT
 #endif
 #endif
 
