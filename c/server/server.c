@@ -48,6 +48,25 @@ static int do_resolve(const char *host, const char *service);
 static void do_packet(int sockfd);
 static const char *revlookup(const struct sockaddr *addr, socklen_t addrlen);
 
+#ifdef _WIN32
+static void
+ws2warn(const char *msg)
+{
+	int errcode = WSAGetLastError();
+	wchar_t *errstr = NULL;
+
+	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+	    NULL, errcode, 0, (LPWSTR)&errstr, 1, NULL)) {
+		warnx("%s: %S", msg, errstr);
+		LocalFree(errstr);
+	} else {
+		if (errstr)
+			LocalFree(errstr);
+		warnx("%s: Winsock error %d", msg, errcode);
+	}
+}
+#endif
+
 int
 main(int argc, char *argv[])
 {
@@ -63,6 +82,7 @@ main(int argc, char *argv[])
 	fflush(NULL);
  loop:
 	if (poll(pfd, nfd, -1) < 0)
+		//XXX Win32
 		err(1, "poll");
 	i = 0;
 	while (i < nfd) {
@@ -134,29 +154,44 @@ do_resolve(const char *host, const char *service)
 
 		if ((s = socket(ap->ai_family, ap->ai_socktype,
 		    ap->ai_protocol)) == INVALID_SOCKET) {
+#ifdef _WIN32
+			putc('\n', stderr);
+			ws2warn("socket");
+#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
 			warn("socket");
+#endif
 			continue;
 		}
 
 		i = 1;
 		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
 		    (const void *)&i, sizeof(i))) {
+#ifdef _WIN32
+			putc('\n', stderr);
+			ws2warn("setsockopt");
+#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
 			warn("setsockopt");
+#endif
 			close(s);
 			continue;
 		}
 
 		if (ECNBITS_PREP_FATAL(ecnbits_prep(s, ap->ai_family))) {
+#ifdef _WIN32
+			putc('\n', stderr);
+			ws2warn("ecnbits_setup: incoming traffic class");
+#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
 			warn("ecnbits_setup: incoming traffic class");
+#endif
 			close(s);
 			continue;
 		}
@@ -167,10 +202,15 @@ do_resolve(const char *host, const char *service)
 		 */
 
 		if (bind(s, ap->ai_addr, ap->ai_addrlen)) {
+#ifdef _WIN32
+			putc('\n', stderr);
+			ws2warn("bind");
+#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
 			warn("bind");
+#endif
 			close(s);
 			continue;
 		}
@@ -213,6 +253,7 @@ do_packet(int s)
 
 	len = ecnbits_rdmsg(s, &mh, 0, &ecn);
 	if (len == (ssize_t)-1) {
+		//XXX Win32
 		warn("recvmsg");
 		return;
 	}
@@ -243,6 +284,7 @@ do_packet(int s)
 	    ECNBITS_DESC(ecn), tcs, data);
 
 	if ((af = ecnbits_stoaf(s)) == -1) {
+		//XXX Win32
 		warn("getsockname");
 		return;
 	}
