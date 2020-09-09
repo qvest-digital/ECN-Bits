@@ -249,9 +249,8 @@ do_connect(int s)
 		return (1);
 	}
 
-	if ((n = ecnbits_read(s, buf, sizeof(buf) - 1, &ecn)) == -1) {
-		//XXX Win32
-		warn("recv");
+	if ((n = ecnbits_read(s, buf, sizeof(buf) - 1, &ecn)) == SOCKET_ERROR) {
+		ws2warn("recv");
 		return (1);
 	}
 	time(&tt);
