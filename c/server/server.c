@@ -44,6 +44,7 @@
 typedef int SOCKET;
 #define INVALID_SOCKET	(-1)
 #define closesocket	close
+#define ws2warn		warn
 #endif
 
 #define NUMSOCK 16
@@ -289,8 +290,7 @@ do_packet(int s)
 	    ECNBITS_DESC(ecn), tcs, data);
 
 	if ((af = ecnbits_stoaf(s)) == -1) {
-		//XXX Win32
-		warn("getsockname");
+		ws2warn("getsockname");
 		return;
 	}
 	/* pre-allocate one cmsg buffer to reuse */
