@@ -42,6 +42,11 @@
 typedef int SOCKET;
 #define INVALID_SOCKET	(-1)
 #define closesocket	close
+#define ws2warn		warn
+typedef ssize_t SOCKIOT;
+#define SOCKET_ERROR	((SOCKIOT)-1)
+#else
+typedef int SOCKIOT;
 #endif
 
 static int do_resolve(const char *host, const char *service);
@@ -211,7 +216,7 @@ static int
 do_connect(int s)
 {
 	char buf[512];
-	ssize_t n;
+	SOCKIOT n;
 	struct pollfd pfd;
 	int rv = 1;
 	unsigned short ecn;
@@ -221,9 +226,8 @@ do_connect(int s)
 
 	memcpy(buf, "hi!", 3);
 	if ((n = send(s, buf, 3, 0)) != 3) {
-		if (n == (ssize_t)-1) {
-			//XXX Win32
-			warn("send");
+		if (n == SOCKET_ERROR) {
+			ws2warn("send");
 			return (1);
 		}
 		warnx("wrote %zu bytes but got %zd", (size_t)3, n);
