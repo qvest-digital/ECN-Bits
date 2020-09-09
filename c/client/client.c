@@ -52,6 +52,9 @@ typedef int SOCKIOT;
 static int do_resolve(const char *host, const char *service);
 static int do_connect(int sfd);
 
+#ifdef _WIN32
+static WSADATA wsaData;
+#endif
 static unsigned char out_tc = ECNBITS_ECT0;
 
 #ifdef _WIN32
@@ -76,6 +79,10 @@ ws2warn(const char *msg)
 int
 main(int argc, char *argv[])
 {
+#ifdef _WIN32
+	if (WSAStartup(MAKEWORD(2,2), &wsaData))
+		errx(100, "could not initialise Winsock2");
+#endif
 	if (argc == 4) {
 		long mnum;
 		char *mep;

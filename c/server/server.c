@@ -53,6 +53,9 @@ typedef int SOCKIOT;
 
 #define NUMSOCK 16
 static struct pollfd pfd[NUMSOCK];
+#ifdef _WIN32
+static WSADATA wsaData;
+#endif
 
 static int do_resolve(const char *host, const char *service);
 static void do_packet(int sockfd);
@@ -82,6 +85,10 @@ main(int argc, char *argv[])
 {
 	int nfd, i;
 
+#ifdef _WIN32
+	if (WSAStartup(MAKEWORD(2,2), &wsaData))
+		errx(100, "could not initialise Winsock2");
+#endif
 	if (argc < 2 || argc > 3)
 		errx(1, "Usage: %s [servername] port", argv[0]);
 
