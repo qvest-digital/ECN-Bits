@@ -74,13 +74,13 @@ $(PROG).exe: $(OBJS) $(DPADD)
 	$(CC) $(CFLAGS) $(LDFLAGS) /Fe$@ $(OBJS) $(LIBS) /link $(LINKFLAGS)
 !ENDIF
 
-!IFDEF LIB
-CLEANFILES=	$(CLEANFILES) $(LIB).lib
+!IFDEF MKLIB
+CLEANFILES=	$(CLEANFILES) $(MKLIB).lib
 !IFNDEF DPADD
 DPADD=
 !ENDIF
-all: $(LIB).lib
-$(LIB).lib: $(OBJS) $(DPADD)
+all: $(MKLIB).lib
+$(MKLIB).lib: $(OBJS) $(DPADD)
 	lib.exe /OUT:$@ $(OBJS)
 !ENDIF
 

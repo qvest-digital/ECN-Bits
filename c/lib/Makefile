@@ -21,7 +21,7 @@
 
 CPPFLAGS=	$(CPPFLAGS) -DECNBITS_INTERNAL
 
-LIB=		ecn-bits
+MKLIB=		ecn-bits
 
 SRCS=		$(SRCS) desc.c
 SRCS=		$(SRCS) mkcmsg.c
