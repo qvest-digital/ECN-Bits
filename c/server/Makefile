@@ -18,19 +18,7 @@
 # of dealing in the work, even if advised of the possibility of such
 # damage or existence of a defect, except proven that it results out
 # of said person’s immediate fault when using the work as intended.
-#-
-# Makefile for (GNU) make on Linux, gmake on BSD
 
-SUBDIRS=	lib client server
-TARGETS=	clean all install uninstall
+PROG=	server
 
-all:
-
-${TARGETS}: ${SUBDIRS}
-
-${SUBDIRS}:
-	${MAKE} -C $@ ${MAKECMDGOALS}
-
-client server: lib
-
-.PHONY: ${SUBDIRS} ${TARGETS}
+!include ../NMAKE.mak

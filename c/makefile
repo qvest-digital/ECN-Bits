@@ -19,18 +19,19 @@
 # damage or existence of a defect, except proven that it results out
 # of said person’s immediate fault when using the work as intended.
 #-
-# Makefile for (GNU) make on Linux, gmake on BSD
+# Makefile for NMAKE on Windows
 
-SUBDIRS=	lib client server
-TARGETS=	clean all install uninstall
-
+# default target
 all:
 
-${TARGETS}: ${SUBDIRS}
-
-${SUBDIRS}:
-	${MAKE} -C $@ ${MAKECMDGOALS}
-
-client server: lib
-
-.PHONY: ${SUBDIRS} ${TARGETS}
+# recursive build
+all clean:
+	@echo ==^> lib
+	@pushd lib & $(MAKE) /nologo /$(MAKEFLAGS) $@ & popd
+	@echo ^<== lib
+	@echo ==^> client
+	@pushd client & $(MAKE) /nologo /$(MAKEFLAGS) $@ & popd
+	@echo ^<== client
+	@echo ==^> server
+	@pushd server & $(MAKE) /nologo /$(MAKEFLAGS) $@ & popd
+	@echo ^<== server

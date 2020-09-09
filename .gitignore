@@ -1,5 +1,8 @@
 *.a
+*.exe
+*.lib
 *.o
+*.obj
 *.so
 *.so.*
 c/client/client

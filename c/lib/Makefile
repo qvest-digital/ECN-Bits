@@ -18,19 +18,20 @@
 # of dealing in the work, even if advised of the possibility of such
 # damage or existence of a defect, except proven that it results out
 # of said person’s immediate fault when using the work as intended.
-#-
-# Makefile for (GNU) make on Linux, gmake on BSD
 
-SUBDIRS=	lib client server
-TARGETS=	clean all install uninstall
+CPPFLAGS=	$(CPPFLAGS) -DECNBITS_INTERNAL
 
-all:
+LIB=		ecn-bits
 
-${TARGETS}: ${SUBDIRS}
+SRCS=		$(SRCS) desc.c
+SRCS=		$(SRCS) mkcmsg.c
+SRCS=		$(SRCS) prep.c
+SRCS=		$(SRCS) rdmsg.c
+SRCS=		$(SRCS) recv.c
+SRCS=		$(SRCS) recvfrom.c
+SRCS=		$(SRCS) recvmsg.c
+SRCS=		$(SRCS) short.c
+SRCS=		$(SRCS) stoaf.c
+SRCS=		$(SRCS) tc.c
 
-${SUBDIRS}:
-	${MAKE} -C $@ ${MAKECMDGOALS}
-
-client server: lib
-
-.PHONY: ${SUBDIRS} ${TARGETS}
+!include ../NMAKE.mak
