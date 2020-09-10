@@ -39,6 +39,10 @@
 
 #include "ecn-bits.h"
 
+#ifndef _WIN32
+#define WSA_CMSG_DATA CMSG_DATA
+#endif
+
 static size_t
 cmsg_actual_data_len(const struct cmsghdr *cmsg)
 {
@@ -52,7 +56,7 @@ cmsg_actual_data_len(const struct cmsghdr *cmsg)
 	ptrdiff_t pd;
 
 	ptr[0].cmsg = cmsg;
-	pd = CMSG_DATA(cmsg) - ptr[0].uc;
+	pd = WSA_CMSG_DATA(cmsg) - ptr[0].uc;
 	return ((size_t)cmsg->cmsg_len - (size_t)pd);
 }
 
@@ -60,7 +64,7 @@ static void
 recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
 {
 	unsigned char b1, b2;
-	unsigned char *d = CMSG_DATA(cmsg);
+	unsigned char *d = WSA_CMSG_DATA(cmsg);
 
 	/* https://bugs.debian.org/966459 */
 	switch (cmsg_actual_data_len(cmsg)) {
@@ -127,7 +131,7 @@ ecnbits_rdmsg(SOCKET s, LPWSAMSG msgh, int flags, unsigned short *e)
 #endif
 	while (cmsg) {
 #ifdef DEBUG
-		unsigned char *dp = CMSG_DATA(cmsg);
+		unsigned char *dp = WSA_CMSG_DATA(cmsg);
 		size_t dl = cmsg_actual_data_len(cmsg), di = 0;
 
 		fprintf(stderr, "D: cmsg hdr (%d, %d) len %zu\n",

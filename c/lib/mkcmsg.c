@@ -37,6 +37,10 @@
 
 #include "ecn-bits.h"
 
+#ifndef _WIN32
+#define WSA_CMSG_DATA CMSG_DATA
+#endif
+
 void *
 ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 {
@@ -81,7 +85,7 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 		cmsg->cmsg_level = IPPROTO_IPV6;
 		cmsg->cmsg_type = IPV6_TCLASS;
 		cmsg->cmsg_len = CMSG_LEN(sizeof(i));
-		memcpy(CMSG_DATA(cmsg), &i, sizeof(i));
+		memcpy(WSA_CMSG_DATA(cmsg), &i, sizeof(i));
 #if defined(__linux__)
 		/* send two, for v4-mapped */
 		cmsg = CMSG_NXTHDR(&mh, cmsg);
@@ -101,10 +105,10 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 		 * we get a char, this sends an int.
 		 */
 		cmsg->cmsg_len = CMSG_LEN(sizeof(i));
-		memcpy(CMSG_DATA(cmsg), &i, sizeof(i));
+		memcpy(WSA_CMSG_DATA(cmsg), &i, sizeof(i));
 #else
 		cmsg->cmsg_len = CMSG_LEN(sizeof(tc));
-		memcpy(CMSG_DATA(cmsg), &tc, sizeof(tc));
+		memcpy(WSA_CMSG_DATA(cmsg), &tc, sizeof(tc));
 #endif
 		break;
 	}
