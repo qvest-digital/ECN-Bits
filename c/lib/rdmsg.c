@@ -101,11 +101,11 @@ recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
 
 static char msgbuf[2048];
 
-ssize_t
+SSIZE_T
 ecnbits_rdmsg(SOCKET s, LPWSAMSG msgh, int flags, unsigned short *e)
 {
 	struct cmsghdr *cmsg;
-	ssize_t rv;
+	SSIZE_T rv;
 	int eno;
 
 	*e = ECNBITS_INVALID_BIT;
@@ -116,7 +116,7 @@ ecnbits_rdmsg(SOCKET s, LPWSAMSG msgh, int flags, unsigned short *e)
 	}
 
 	rv = recvmsg(s, msgh, flags);
-	if (rv == (ssize_t)-1)
+	if (rv == (SSIZE_T)-1)
 		return (rv);
 	eno = errno;
 

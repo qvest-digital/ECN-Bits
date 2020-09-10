@@ -31,7 +31,7 @@
 
 #include "ecn-bits.h"
 
-ssize_t
+SSIZE_T
 ecnbits_recv(SOCKET s, void *buf, size_t buflen, int flags, unsigned short *e)
 {
 	WSAMSG m;

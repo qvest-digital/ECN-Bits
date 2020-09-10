@@ -43,6 +43,7 @@
 #include "ecn-bits.h"
 
 #ifndef _WIN32
+#define SSIZE_T		ssize_t
 typedef int SOCKET;
 #define INVALID_SOCKET	(-1)
 #define closesocket	close
@@ -244,7 +245,7 @@ static void
 do_packet(int s)
 {
 	static char data[512];
-	ssize_t len;
+	SSIZE_T len;
 	struct sockaddr_storage ss;
 #ifdef _WIN32
 	WSAMSG mh;
@@ -271,7 +272,7 @@ do_packet(int s)
 	mh.msg_iovlen = 1;
 
 	len = ecnbits_rdmsg(s, &mh, 0, &ecn);
-	if (len == (ssize_t)-1) {
+	if (len == (SSIZE_T)-1) {
 		ws2warn("recvmsg");
 		return;
 	}

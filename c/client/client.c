@@ -41,11 +41,12 @@
 #include "ecn-bits.h"
 
 #ifndef _WIN32
+#define SSIZE_T		ssize_t
 typedef int SOCKET;
 #define INVALID_SOCKET	(-1)
 #define closesocket	close
 #define ws2warn		warn
-typedef ssize_t SOCKIOT;
+typedef SSIZE_T SOCKIOT;
 #define SOCKET_ERROR	((SOCKIOT)-1)
 #else
 typedef int SOCKIOT;
@@ -229,7 +230,7 @@ do_connect(int s)
 {
 	char buf[512];
 	SOCKIOT nsend;
-	ssize_t nrecv;
+	SSIZE_T nrecv;
 	struct pollfd pfd;
 	int rv = 1;
 	unsigned short ecn;
@@ -243,7 +244,7 @@ do_connect(int s)
 			ws2warn("send");
 			return (1);
 		}
-		warnx("wrote %zu bytes but got %zd", (size_t)3, (ssize_t)nsend);
+		warnx("wrote %zu bytes but got %zd", (size_t)3, (SSIZE_T)nsend);
 	}
 
  loop:
@@ -263,7 +264,7 @@ do_connect(int s)
 	}
 
 	if ((nrecv = ecnbits_read(s, buf, sizeof(buf) - 1,
-	    &ecn)) == (ssize_t)-1) {
+	    &ecn)) == (SSIZE_T)-1) {
 		ws2warn("recv");
 		return (1);
 	}

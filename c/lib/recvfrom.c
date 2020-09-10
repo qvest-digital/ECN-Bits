@@ -31,11 +31,11 @@
 
 #include "ecn-bits.h"
 
-ssize_t
+SSIZE_T
 ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
     struct sockaddr *addr, socklen_t *addrlenp, unsigned short *e)
 {
-	ssize_t rv;
+	SSIZE_T rv;
 	WSAMSG m;
 	struct iovec io;
 
@@ -55,7 +55,7 @@ ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
 
 	rv = ecnbits_rdmsg(s, &m, flags, e);
 
-	if (rv != (ssize_t)-1) {
+	if (rv != (SSIZE_T)-1) {
 		if (addr)
 			*addrlenp = m.msg_namelen;
 	}

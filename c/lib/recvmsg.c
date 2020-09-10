@@ -34,10 +34,10 @@
 
 #include "ecn-bits.h"
 
-ssize_t
+SSIZE_T
 ecnbits_recvmsg(SOCKET s, LPWSAMSG mh, int flags, unsigned short *e)
 {
-	ssize_t rv;
+	SSIZE_T rv;
 	int eno;
 	WSAMSG mrpl;
 
