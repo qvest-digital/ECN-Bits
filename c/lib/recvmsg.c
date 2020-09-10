@@ -35,6 +35,11 @@
 
 #include "ecn-bits.h"
 
+#ifdef _WIN32
+#define msg_control	Control.buf
+#define msg_controllen	Control.len
+#endif
+
 SSIZE_T
 ecnbits_recvmsg(SOCKET s, LPWSAMSG mh, int flags, unsigned short *e)
 {

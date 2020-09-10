@@ -42,6 +42,10 @@ ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
 	WSABUF io;
 #define iov_base buf
 #define iov_len len
+#define msg_name name
+#define msg_namelen namelen
+#define msg_iov lpBuffers
+#define msg_iovlen dwBufferCount
 #else
 	struct iovec io;
 #endif

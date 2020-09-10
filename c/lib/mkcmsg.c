@@ -38,9 +38,16 @@
 #include "ecn-bits.h"
 
 #ifndef _WIN32
-#define WSA_CMSG_DATA CMSG_DATA
+#define WSA_CMSG_DATA	CMSG_DATA
+#else
+#define msg_control	Control.buf
+#define msg_controllen	Control.len
 #endif
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4706)
+#endif
 void *
 ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 {
@@ -113,4 +120,7 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 		break;
 	}
 	return (buf);
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 }

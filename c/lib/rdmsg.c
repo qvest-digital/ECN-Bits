@@ -40,7 +40,14 @@
 #include "ecn-bits.h"
 
 #ifndef _WIN32
-#define WSA_CMSG_DATA CMSG_DATA
+#define WSA_CMSG_DATA	CMSG_DATA
+#else
+#define msg_control	Control.buf
+#define msg_controllen	Control.len
+#endif
+
+#ifdef _MSC_VER
+#pragma warning(disable:4711)
 #endif
 
 static size_t
