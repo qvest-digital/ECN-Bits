@@ -111,6 +111,7 @@ SSIZE_T ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
 #undef SOCKET
 #undef WSAMSG
 #undef LPWSAMSG
+#undef SSIZE_T
 #endif
 #else
 /* building the library itself, additional compatibility/utilities */
