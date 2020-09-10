@@ -133,3 +133,6 @@ may not work except perhaps on Linux.
 
 Use in multi-threaded applications is safe if the conditions
 documented under CAVEATS in ecnbits_rdmsg(3) are met.
+
+The traffic class for outgoing packets cannot be set under
+Windows®, native or WSL, at all. This is a system limitation.

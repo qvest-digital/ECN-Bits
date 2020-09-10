@@ -18,12 +18,13 @@ Development funded by Deutsche Telekom.
 └────────────────────────────────┘
 
 • C/CLI (usable from C++ and others):
-  Linux, FreeBSD, MidnightBSD (tested)
+  Linux, FreeBSD, MidnightBSD (tested), Android (tested on Android 8 “Oreo”)
+  Windows (being ported; tested on Windows 10 only)
   possibly Darwin: Mac OSX, iOS
-  Windows 8 and newer probably (being ported)
   ‣ see c/
   ‣ library, manpages; client and server example
   ‣ NetBSD, OpenBSD and derivatives don’t support reading IP traffic class
+  ‣ Windows® does not support setting IP traffic class, not even from WSL
 
 • Linux/Android, Java with native components
   (possibly reusable for regular Linux with OpenJDK)
