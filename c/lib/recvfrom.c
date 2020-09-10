@@ -38,7 +38,13 @@ ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
 {
 	SSIZE_T rv;
 	WSAMSG m;
+#ifdef _WIN32
+	WSABUF io;
+#define iov_base buf
+#define iov_len len
+#else
 	struct iovec io;
+#endif
 
 	if (!e)
 		return recvfrom(s, buf, buflen, flags, addr, addrlenp);

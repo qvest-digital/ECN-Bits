@@ -36,7 +36,13 @@ SSIZE_T
 ecnbits_recv(SOCKET s, void *buf, size_t buflen, int flags, unsigned short *e)
 {
 	WSAMSG m;
+#ifdef _WIN32
+	WSABUF io;
+#define iov_base buf
+#define iov_len len
+#else
 	struct iovec io;
+#endif
 
 	if (!e)
 		return recv(s, buf, buflen, flags);

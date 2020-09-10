@@ -250,10 +250,13 @@ do_packet(int s)
 	struct sockaddr_storage ss;
 #ifdef _WIN32
 	WSAMSG mh;
+	WSABUF io;
+#define iov_base buf
+#define iov_len len
 #else
 	struct msghdr mh;
-#endif
 	struct iovec io;
+#endif
 	unsigned short ecn;
 	time_t tt;
 	char tm[21];
