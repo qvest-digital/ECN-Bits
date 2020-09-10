@@ -39,14 +39,14 @@
 #include "ecn-bits.h"
 
 #ifndef _WIN32
-typedef struct cmsghdr *LPWSACMSGHDR;
+typedef struct cmsghdr WSACMSGHDR, *LPWSACMSGHDR;
 #endif
 
 static size_t
-cmsg_actual_data_len(const LPWSACMSGHDR cmsg)
+cmsg_actual_data_len(const WSACMSGHDR *cmsg)
 {
 	union {
-		const LPWSACMSGHDR cmsg;
+		const WSACMSGHDR *cmsg;
 		const unsigned char *uc;
 	} ptr[(
 		/* compile-time assertions */
