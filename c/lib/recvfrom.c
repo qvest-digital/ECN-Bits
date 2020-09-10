@@ -31,11 +31,11 @@
 
 #include "ecn-bits.h"
 
-SOCKIOT
+ssize_t
 ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
     struct sockaddr *addr, socklen_t *addrlenp, unsigned short *e)
 {
-	SOCKIOT rv;
+	ssize_t rv;
 	struct msghdr m;
 	struct iovec io;
 
@@ -55,7 +55,7 @@ ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
 
 	rv = ecnbits_rdmsg(s, &m, flags, e);
 
-	if (rv != SOCKET_ERROR) {
+	if (rv != (ssize_t)-1) {
 		if (addr)
 			*addrlenp = m.msg_namelen;
 	}

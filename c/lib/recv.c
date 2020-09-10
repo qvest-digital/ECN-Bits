@@ -31,7 +31,7 @@
 
 #include "ecn-bits.h"
 
-SOCKIOT
+ssize_t
 ecnbits_recv(SOCKET s, void *buf, size_t buflen, int flags, unsigned short *e)
 {
 	struct msghdr m;
