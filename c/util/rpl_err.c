@@ -79,10 +79,9 @@ rplerr_getprogname(void)
 
 	if (!progname) {
 		LPWSTR buf = NULL;
-		DWORD len = 0;
+		DWORD len = 0, n;
 		do {
 			LPWSTR cp;
-			DWORD n;
 
 			len += MAX_PATH;
 			if (!(cp = realloc(buf, len * sizeof(buf[0])))) {
