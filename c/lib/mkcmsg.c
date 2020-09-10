@@ -67,10 +67,6 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 		mlen = CMSG_SPACE(sizeof(int));
 		break;
 	default:
-#ifdef _WIN32
-		/* perhaps not necessary here */
-		WSASetLastError(WSAEAFNOSUPPORT);
-#endif
 		errno = WSAEAFNOSUPPORT;
 		return (NULL);
 	}
