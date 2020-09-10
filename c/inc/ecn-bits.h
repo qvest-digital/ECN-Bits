@@ -87,6 +87,12 @@ SSIZE_T ecnbits_rdmsg(SOCKET fd, LPWSAMSG msg, int flags,
 void *ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc);
 int ecnbits_stoaf(SOCKET fd);
 
+#ifdef _WIN32
+/* convenience functions: POSIXish sendmsg(2) and recvmsg(2) over Winsock2 */
+SSIZE_T ecnws2_sendmsg(SOCKET fd, LPWSAMSG msg, int flags);
+SSIZE_T ecnws2_recvmsg(SOCKET fd, LPWSAMSG msg, int flags);
+#endif
+
 /* wrapped calls */
 SSIZE_T ecnbits_recvmsg(SOCKET fd, LPWSAMSG msg, int flags,
     unsigned short *ecnresult);
