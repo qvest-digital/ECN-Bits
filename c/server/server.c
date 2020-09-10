@@ -47,10 +47,6 @@ typedef int SOCKET;
 #define INVALID_SOCKET	(-1)
 #define closesocket	close
 #define ws2warn		warn
-typedef ssize_t SOCKIOT;
-#define SOCKET_ERROR	((SOCKIOT)-1)
-#else
-typedef int SOCKIOT;
 #endif
 
 #define NUMSOCK 16

@@ -24,11 +24,7 @@
 
 /* compat defines (see end of file) */
 #ifndef _WIN32
-#define SOCKET		int
-#define SOCKIOT		ssize_t
-#define SOCKET_ERROR	((SOCKIOT)-1)
-#else
-#define SOCKIOT		int
+#define SOCKET			int
 #endif
 
 #ifdef __cplusplus
@@ -108,10 +104,8 @@ ssize_t ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
 
 #ifndef ECNBITS_INTERNAL
 /* clean up compat defines except if building the library itself */
-#undef SOCKIOT
 #ifndef _WIN32
 #undef SOCKET
-#undef SOCKET_ERROR
 #endif
 #else
 /* building the library itself, additional compatibility/utilities */
