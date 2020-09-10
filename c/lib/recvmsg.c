@@ -35,11 +35,11 @@
 #include "ecn-bits.h"
 
 ssize_t
-ecnbits_recvmsg(SOCKET s, struct msghdr *mh, int flags, unsigned short *e)
+ecnbits_recvmsg(SOCKET s, LPWSAMSG mh, int flags, unsigned short *e)
 {
 	ssize_t rv;
 	int eno;
-	struct msghdr mrpl;
+	WSAMSG mrpl;
 
 	if (!e)
 		return (recvmsg(s, mh, flags));

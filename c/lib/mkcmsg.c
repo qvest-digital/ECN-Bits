@@ -44,7 +44,7 @@ void *
 ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 {
 	LPWSACMSGHDR cmsg;
-	struct msghdr mh;
+	WSAMSG mh;
 	size_t mlen;
 	int i = (int)(unsigned int)tc;
 

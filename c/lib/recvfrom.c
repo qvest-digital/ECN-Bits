@@ -36,7 +36,7 @@ ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
     struct sockaddr *addr, socklen_t *addrlenp, unsigned short *e)
 {
 	ssize_t rv;
-	struct msghdr m;
+	WSAMSG m;
 	struct iovec io;
 
 	if (!e)

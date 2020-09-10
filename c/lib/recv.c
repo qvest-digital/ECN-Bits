@@ -34,7 +34,7 @@
 ssize_t
 ecnbits_recv(SOCKET s, void *buf, size_t buflen, int flags, unsigned short *e)
 {
-	struct msghdr m;
+	WSAMSG m;
 	struct iovec io;
 
 	if (!e)

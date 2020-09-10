@@ -246,7 +246,11 @@ do_packet(int s)
 	static char data[512];
 	ssize_t len;
 	struct sockaddr_storage ss;
+#ifdef _WIN32
+	WSAMSG mh;
+#else
 	struct msghdr mh;
+#endif
 	struct iovec io;
 	unsigned short ecn;
 	time_t tt;

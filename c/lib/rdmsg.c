@@ -106,7 +106,7 @@ recvtos_cmsg(LPWSACMSGHDR cmsg, unsigned short *e)
 static char msgbuf[2048];
 
 ssize_t
-ecnbits_rdmsg(SOCKET s, struct msghdr *msgh, int flags, unsigned short *e)
+ecnbits_rdmsg(SOCKET s, LPWSAMSG msgh, int flags, unsigned short *e)
 {
 	LPWSACMSGHDR cmsg;
 	ssize_t rv;

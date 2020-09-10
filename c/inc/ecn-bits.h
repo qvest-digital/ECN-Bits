@@ -25,6 +25,8 @@
 /* compat defines (see end of file) */
 #ifndef _WIN32
 #define SOCKET			int
+#define WSAMSG			struct msghdr
+#define LPWSAMSG		struct msghdr *
 #endif
 
 #ifdef __cplusplus
@@ -77,7 +79,7 @@ int ecnbits_tcfatal(int);
 /* socket operations */
 int ecnbits_prep(SOCKET fd, int af);
 int ecnbits_tc(SOCKET fd, int af, unsigned char iptos);
-ssize_t ecnbits_rdmsg(SOCKET fd, struct msghdr *msg, int flags,
+ssize_t ecnbits_rdmsg(SOCKET fd, LPWSAMSG msg, int flags,
     unsigned short *ecnresult);
 
 /* utility functions */
@@ -85,7 +87,7 @@ void *ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc);
 int ecnbits_stoaf(SOCKET fd);
 
 /* wrapped calls */
-ssize_t ecnbits_recvmsg(SOCKET fd, struct msghdr *msg, int flags,
+ssize_t ecnbits_recvmsg(SOCKET fd, LPWSAMSG msg, int flags,
     unsigned short *ecnresult);
 ssize_t ecnbits_recvfrom(SOCKET fd, void *buf, size_t buflen,
     int flags, struct sockaddr *src_addr, socklen_t *addrlen,
@@ -106,6 +108,8 @@ ssize_t ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
 /* clean up compat defines except if building the library itself */
 #ifndef _WIN32
 #undef SOCKET
+#undef WSAMSG
+#undef LPWSAMSG
 #endif
 #else
 /* building the library itself, additional compatibility/utilities */
