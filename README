@@ -20,7 +20,7 @@ Development funded by Deutsche Telekom.
 • C/CLI (usable from C++ and others):
   Linux, FreeBSD, MidnightBSD (tested)
   possibly Darwin: Mac OSX, iOS
-  Windows 8 and newer probably
+  Windows 8 and newer probably (being ported)
   ‣ see c/
   ‣ library, manpages; client and server example
   ‣ NetBSD, OpenBSD and derivatives don’t support reading IP traffic class
