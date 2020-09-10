@@ -38,11 +38,15 @@
 
 #include "ecn-bits.h"
 
+#ifndef _WIN32
+typedef struct cmsghdr *LPWSACMSGHDR;
+#endif
+
 static size_t
-cmsg_actual_data_len(const struct cmsghdr *cmsg)
+cmsg_actual_data_len(const LPWSACMSGHDR cmsg)
 {
 	union {
-		const struct cmsghdr *cmsg;
+		const LPWSACMSGHDR cmsg;
 		const unsigned char *uc;
 	} ptr[(
 		/* compile-time assertions */
@@ -56,7 +60,7 @@ cmsg_actual_data_len(const struct cmsghdr *cmsg)
 }
 
 static void
-recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
+recvtos_cmsg(LPWSACMSGHDR cmsg, unsigned short *e)
 {
 	unsigned char b1, b2;
 	unsigned char *d = CMSG_DATA(cmsg);
@@ -104,7 +108,7 @@ static char msgbuf[2048];
 ssize_t
 ecnbits_rdmsg(SOCKET s, struct msghdr *msgh, int flags, unsigned short *e)
 {
-	struct cmsghdr *cmsg;
+	LPWSACMSGHDR cmsg;
 	ssize_t rv;
 	int eno;
 

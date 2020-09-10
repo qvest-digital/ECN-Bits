@@ -36,10 +36,14 @@
 
 #include "ecn-bits.h"
 
+#ifndef _WIN32
+typedef struct cmsghdr *LPWSACMSGHDR;
+#endif
+
 void *
 ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 {
-	struct cmsghdr *cmsg;
+	LPWSACMSGHDR cmsg;
 	struct msghdr mh;
 	size_t mlen;
 	int i = (int)(unsigned int)tc;
