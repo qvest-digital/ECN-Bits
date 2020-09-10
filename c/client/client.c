@@ -29,14 +29,22 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #endif
+#ifdef _WIN32
+#include "rpl_err.h"
+#else
 #include <err.h>
+#endif
 #include <errno.h>
+#ifndef _WIN32
 #include <netdb.h>
 #include <poll.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #include <time.h>
 
 #include "ecn-bits.h"
@@ -285,3 +293,7 @@ do_connect(int s)
 	rv = 0;
 	goto loop;
 }
+
+#ifdef _WIN32
+#include "rpl_err.c"
+#endif

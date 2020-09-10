@@ -31,15 +31,23 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #endif
+#ifdef _WIN32
+#include "rpl_err.h"
+#else
 #include <err.h>
+#endif
 #include <errno.h>
+#ifndef _WIN32
 #include <netdb.h>
 #include <poll.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #include "ecn-bits.h"
 
@@ -328,3 +336,7 @@ do_packet(int s)
 		sendmsg(s, &mh, 0);
 	} while (++data[len - 1] < '4');
 }
+
+#ifdef _WIN32
+#include "rpl_err.c"
+#endif
