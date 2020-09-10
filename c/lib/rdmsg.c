@@ -44,6 +44,7 @@
 #else
 #define msg_control	Control.buf
 #define msg_controllen	Control.len
+#define recvmsg		ecnws2_recvmsg
 #endif
 
 #ifdef _MSC_VER

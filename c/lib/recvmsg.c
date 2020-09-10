@@ -38,6 +38,7 @@
 #ifdef _WIN32
 #define msg_control	Control.buf
 #define msg_controllen	Control.len
+#define recvmsg		ecnws2_recvmsg
 #endif
 
 SSIZE_T

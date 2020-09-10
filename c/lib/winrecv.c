@@ -23,6 +23,7 @@
 #pragma warning(push,1)
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <mswsock.h>
 #pragma warning(pop)
 
 #include "ecn-bits.h"

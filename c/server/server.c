@@ -70,6 +70,7 @@ typedef int SOCKET;
 #define msg_control	Control.buf
 #define msg_controllen	Control.len
 #define msg_flags	dwFlags
+#define sendmsg		ecnws2_sendmsg
 #endif
 
 #define NUMSOCK 16
