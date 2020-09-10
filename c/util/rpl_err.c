@@ -41,34 +41,67 @@ extern const char *__progname;
 #define RPLERR_PROGFMT	"%s"
 #endif
 
+static void
+vrpl_err(int docode, int code, const char *fmt, va_list ap)
+{
+	fprintf(stderr, RPLERR_PROGFMT, RPLERR_PROGNAME);
+	if (fmt) {
+		fprintf(stderr, ": ");
+		vfprintf(stderr, fmt, ap);
+	}
+	if (docode)
+		fprintf(stderr, ": %s\n",
+#ifdef _WIN32
+		    code == WSAEAFNOSUPPORT ?
+		    "Address family not supported by protocol family" :
+#endif
+		    strerror(code));
+	else
+		putc('\n', stderr);
+}
+
 void
 err(int eval, const char *fmt, ...)
 {
-	fprintf(stderr, RPLERR_PROGFMT ": %s: %s\n",
-	    RPLERR_PROGNAME, fmt, /* stub */ __func__);
+	int code = errno;
+	va_list ap;
+
+	va_start(ap, fmt);
+	vrpl_err(1, code, fmt, ap);
+	va_end(ap);
 	exit(eval);
 }
 
 void
 errx(int eval, const char *fmt, ...)
 {
-	fprintf(stderr, RPLERR_PROGFMT ": %s: %s\n",
-	    RPLERR_PROGNAME, fmt, /* stub */ __func__);
+	va_list ap;
+
+	va_start(ap, fmt);
+	vrpl_err(0, 0, fmt, ap);
+	va_end(ap);
 	exit(eval);
 }
 
 void
 warn(const char *fmt, ...)
 {
-	fprintf(stderr, RPLERR_PROGFMT ": %s: %s\n",
-	    RPLERR_PROGNAME, fmt, /* stub */ __func__);
+	int code = errno;
+	va_list ap;
+
+	va_start(ap, fmt);
+	vrpl_err(1, code, fmt, ap);
+	va_end(ap);
 }
 
 void
 warnx(const char *fmt, ...)
 {
-	fprintf(stderr, RPLERR_PROGFMT ": %s: %s\n",
-	    RPLERR_PROGNAME, fmt, /* stub */ __func__);
+	va_list ap;
+
+	va_start(ap, fmt);
+	vrpl_err(0, 0, fmt, ap);
+	va_end(ap);
 }
 
 #ifdef _WIN32
