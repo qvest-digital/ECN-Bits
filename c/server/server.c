@@ -21,6 +21,7 @@
 
 #include <sys/types.h>
 #ifdef _WIN32
+#pragma warning(disable:4710 4706 5045)
 #pragma warning(push,1)
 #include <winsock2.h>
 #include <ws2tcpip.h>
