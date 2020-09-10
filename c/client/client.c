@@ -228,7 +228,8 @@ static int
 do_connect(int s)
 {
 	char buf[512];
-	SOCKIOT n;
+	SOCKIOT nsend;
+	ssize_t nrecv;
 	struct pollfd pfd;
 	int rv = 1;
 	unsigned short ecn;
@@ -237,12 +238,12 @@ do_connect(int s)
 	char tcs[3];
 
 	memcpy(buf, "hi!", 3);
-	if ((n = send(s, buf, 3, 0)) != 3) {
-		if (n == SOCKET_ERROR) {
+	if ((nsend = send(s, buf, 3, 0)) != 3) {
+		if (nsend == SOCKET_ERROR) {
 			ws2warn("send");
 			return (1);
 		}
-		warnx("wrote %zu bytes but got %zd", (size_t)3, n);
+		warnx("wrote %zu bytes but got %zd", (size_t)3, (ssize_t)nsend);
 	}
 
  loop:
@@ -261,17 +262,18 @@ do_connect(int s)
 		return (1);
 	}
 
-	if ((n = ecnbits_read(s, buf, sizeof(buf) - 1, &ecn)) == SOCKET_ERROR) {
+	if ((nrecv = ecnbits_read(s, buf, sizeof(buf) - 1,
+	    &ecn)) == (ssize_t)-1) {
 		ws2warn("recv");
 		return (1);
 	}
 	time(&tt);
 	strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt));
-	buf[n] = '\0';
-	if (n > 2 && buf[n - 1] == '\n') {
-		buf[n - 1] = '\0';
-		if (buf[n - 2] == '\r')
-			buf[n - 2] = '\0';
+	buf[nrecv] = '\0';
+	if (nrecv > 2 && buf[nrecv - 1] == '\n') {
+		buf[nrecv - 1] = '\0';
+		if (buf[nrecv - 2] == '\r')
+			buf[nrecv - 2] = '\0';
 	}
 	if (ECNBITS_VALID(ecn))
 		snprintf(tcs, sizeof(tcs), "%02X", ECNBITS_TCOCT(ecn));

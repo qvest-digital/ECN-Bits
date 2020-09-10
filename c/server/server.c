@@ -248,7 +248,7 @@ static void
 do_packet(int s)
 {
 	static char data[512];
-	SOCKIOT len;
+	ssize_t len;
 	struct sockaddr_storage ss;
 	struct msghdr mh;
 	struct iovec io;
@@ -271,7 +271,7 @@ do_packet(int s)
 	mh.msg_iovlen = 1;
 
 	len = ecnbits_rdmsg(s, &mh, 0, &ecn);
-	if (len == SOCKET_ERROR) {
+	if (len == (ssize_t)-1) {
 		ws2warn("recvmsg");
 		return;
 	}
