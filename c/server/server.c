@@ -57,6 +57,16 @@ typedef int SOCKET;
 #define INVALID_SOCKET	(-1)
 #define closesocket	close
 #define ws2warn		warn
+#else
+#define iov_base	buf
+#define iov_len		len
+#define msg_name	name
+#define msg_namelen	namelen
+#define msg_iov		lpBuffers
+#define msg_iovlen	dwBufferCount
+#define msg_control	Control.buf
+#define msg_controllen	Control.len
+#define msg_flags	dwFlags
 #endif
 
 #define NUMSOCK 16
@@ -263,8 +273,6 @@ do_packet(int s)
 #ifdef _WIN32
 	WSAMSG mh;
 	WSABUF io;
-#define iov_base buf
-#define iov_len len
 #else
 	struct msghdr mh;
 	struct iovec io;
@@ -282,7 +290,7 @@ do_packet(int s)
 	io.iov_len = sizeof(data) - 1;
 
 	memset(&mh, 0, sizeof(mh));
-	mh.msg_name = &ss;
+	mh.msg_name = (void *)&ss;
 	mh.msg_namelen = sizeof(ss);
 	mh.msg_iov = &io;
 	mh.msg_iovlen = 1;
