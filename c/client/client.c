@@ -138,8 +138,10 @@ do_resolve(const char *host, const char *service)
 	ap->ai_socktype = SOCK_DGRAM;
 	ap->ai_flags = AI_ADDRCONFIG; /* note lack of AI_V4MAPPED */
 	switch ((i = getaddrinfo(host, service, ap, &ai))) {
+#ifndef _WIN32
 	case EAI_SYSTEM:
 		err(1, "getaddrinfo");
+#endif
 	default:
 		errx(1, "%s returned %s", "getaddrinfo", gai_strerror(i));
 	case 0:
@@ -151,9 +153,11 @@ do_resolve(const char *host, const char *service)
 		switch ((i = getnameinfo(ap->ai_addr, ap->ai_addrlen,
 		    nh, sizeof(nh), np, sizeof(np),
 		    NI_NUMERICHOST | NI_NUMERICSERV))) {
+#ifndef _WIN32
 		case EAI_SYSTEM:
 			warn("getnameinfo");
 			if (0)
+#endif
 				/* FALLTHROUGH */
 		default:
 			  warnx("%s returned %s", "getnameinfo",

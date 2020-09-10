@@ -129,9 +129,11 @@ revlookup(const struct sockaddr *addr, socklen_t addrlen)
 	switch ((i = getnameinfo(addr, addrlen,
 	    nh, sizeof(nh), np, sizeof(np),
 	    NI_NUMERICHOST | NI_NUMERICSERV))) {
+#ifndef _WIN32
 	case EAI_SYSTEM:
 		warn("getnameinfo");
 		if (0)
+#endif
 			/* FALLTHROUGH */
 	default:
 		  warnx("%s returned %s", "getnameinfo",
@@ -159,8 +161,10 @@ do_resolve(const char *host, const char *service)
 	ap->ai_socktype = SOCK_DGRAM;
 	ap->ai_flags = AI_ADDRCONFIG | AI_PASSIVE; /* no AI_V4MAPPED either */
 	switch ((i = getaddrinfo(host, service, ap, &ai))) {
+#ifndef _WIN32
 	case EAI_SYSTEM:
 		err(1, "getaddrinfo");
+#endif
 	default:
 		errx(1, "%s returned %s", "getaddrinfo", gai_strerror(i));
 	case 0:
