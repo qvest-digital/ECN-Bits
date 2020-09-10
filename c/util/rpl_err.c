@@ -32,7 +32,7 @@
 #include "rpl_err.h"
 
 #ifdef _WIN32
-static LPWSTR rplerr_getprogname(void);
+static inline LPWSTR rplerr_getprogname(void);
 #define RPLERR_PROGNAME	rplerr_getprogname()
 #define RPLERR_PROGFMT	"%S"	/* would be %ls in POSIX but… */
 #else

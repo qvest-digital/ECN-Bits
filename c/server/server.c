@@ -91,7 +91,12 @@ ws2warn(const char *msg)
 	wchar_t *errstr = NULL;
 
 	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-	    NULL, errcode, 0, (LPWSTR)&errstr, 1, NULL)) {
+	    NULL, errcode, 0, (LPWSTR)&errstr, 1, NULL) && *errstr) {
+		wchar_t wc;
+		size_t ofs = wcslen(errstr);
+		while (--ofs > 0 && ((wc = errstr[ofs]) == L'\r' || wc == L'\n'))
+			errstr[ofs] = L'\0';
+
 		warnx("%s: %S", msg, errstr);	/* would be %ls in POSIX but… */
 		LocalFree(errstr);
 	} else {
