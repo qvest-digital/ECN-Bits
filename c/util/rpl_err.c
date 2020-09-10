@@ -44,7 +44,7 @@ extern const char *__progname;
 void
 err(int eval, const char *fmt, ...)
 {
-	fprintf(stderr, RPLERR_PROGFMT ": %s: %s",
+	fprintf(stderr, RPLERR_PROGFMT ": %s: %s\n",
 	    RPLERR_PROGNAME, fmt, /* stub */ __func__);
 	exit(eval);
 }
@@ -52,7 +52,7 @@ err(int eval, const char *fmt, ...)
 void
 errx(int eval, const char *fmt, ...)
 {
-	fprintf(stderr, RPLERR_PROGFMT ": %s: %s",
+	fprintf(stderr, RPLERR_PROGFMT ": %s: %s\n",
 	    RPLERR_PROGNAME, fmt, /* stub */ __func__);
 	exit(eval);
 }
@@ -60,14 +60,14 @@ errx(int eval, const char *fmt, ...)
 void
 warn(const char *fmt, ...)
 {
-	fprintf(stderr, RPLERR_PROGFMT ": %s: %s",
+	fprintf(stderr, RPLERR_PROGFMT ": %s: %s\n",
 	    RPLERR_PROGNAME, fmt, /* stub */ __func__);
 }
 
 void
 warnx(const char *fmt, ...)
 {
-	fprintf(stderr, RPLERR_PROGFMT ": %s: %s",
+	fprintf(stderr, RPLERR_PROGFMT ": %s: %s\n",
 	    RPLERR_PROGNAME, fmt, /* stub */ __func__);
 }
 
@@ -94,7 +94,20 @@ rplerr_getprogname(void)
 				return (L"(cannot get program name)");
 			}
 		} while (n >= len);
-		progname = buf;
+
+		goto first;
+		do {
+			if (*buf == L'/' || *buf == L'\\') {
+				if (*++buf) {
+ first:
+					progname = buf;
+				}
+			} else
+				++buf;
+		} while (*buf);
+		if ((buf = wcsrchr(progname, L'.')) &&
+		    _wcsicmp(buf, L".exe") == 0)
+			*buf = L'\0';
 	}
 	return (progname);
 }

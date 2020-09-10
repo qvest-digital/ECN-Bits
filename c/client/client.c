@@ -80,7 +80,7 @@ ws2warn(const char *msg)
 
 	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 	    NULL, errcode, 0, (LPWSTR)&errstr, 1, NULL)) {
-		warnx("%s: %S", msg, errstr);
+		warnx("%s: %S", msg, errstr);	/* would be %ls in POSIX but… */
 		LocalFree(errstr);
 	} else {
 		if (errstr)
