@@ -41,6 +41,7 @@
 #ifndef _WIN32
 #include <netdb.h>
 #include <poll.h>
+#define WSAPoll poll
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,6 +59,7 @@ typedef int SOCKET;
 #define INVALID_SOCKET	(-1)
 #define closesocket	close
 #define ws2warn		warn
+#define ws2err		err
 #else
 #define iov_base	buf
 #define iov_len		len
@@ -97,6 +99,13 @@ ws2warn(const char *msg)
 		warnx("%s: Winsock error %d", msg, errcode);
 	}
 }
+
+static void
+ws2err(int errorlevel, const char *msg)
+{
+	ws2warn(msg);
+	exit(errorlevel);
+}
 #endif
 
 int
@@ -117,9 +126,8 @@ main(int argc, char *argv[])
 	putc('\n', stderr);
 	fflush(NULL);
  loop:
-	if (poll(pfd, nfd, -1) < 0)
-		//XXX Win32
-		err(1, "poll");
+	if (WSAPoll(pfd, nfd, -1) < 0)
+		ws2err(1, "poll");
 	i = 0;
 	while (i < nfd) {
 		if (pfd[i].revents & POLLIN)

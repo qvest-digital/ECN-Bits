@@ -39,6 +39,7 @@
 #ifndef _WIN32
 #include <netdb.h>
 #include <poll.h>
+#define WSAPoll poll
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -264,7 +265,7 @@ do_connect(int s)
  loop:
 	pfd.fd = s;
 	pfd.events = POLLIN;
-	switch (poll(&pfd, 1, 1000)) {
+	switch (WSAPoll(&pfd, 1, 1000)) {
 	case 1:
 		break;
 	case 0:
@@ -272,8 +273,7 @@ do_connect(int s)
 			warnx("timeout waiting for packet");
 		return (rv);
 	default:
-		//XXX Win32
-		warn("poll");
+		ws2warn("poll");
 		return (1);
 	}
 
