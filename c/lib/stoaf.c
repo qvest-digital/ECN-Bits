@@ -36,14 +36,14 @@
 int
 ecnbits_stoaf(SOCKET socketfd)
 {
-	struct sockaddr sa;
-	socklen_t slen = sizeof(sa);
+	struct sockaddr_storage ss;
+	socklen_t slen = sizeof(ss);
 
-	if (getsockname(socketfd, &sa, &slen) == 0)
-		switch (sa.sa_family) {
+	if (getsockname(socketfd, (struct sockaddr *)&ss, &slen) == 0)
+		switch (ss.ss_family) {
 		case AF_INET:
 		case AF_INET6:
-			return (sa.sa_family);
+			return (ss.ss_family);
 		default:
 #ifdef _WIN32
 			WSASetLastError(WSAEAFNOSUPPORT);
