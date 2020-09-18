@@ -20,7 +20,7 @@
  */
 
 #include <sys/types.h>
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 #pragma warning(disable:4710 4706 5045)
 #pragma warning(push,1)
 #include <winsock2.h>
@@ -32,13 +32,13 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #endif
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 #include "rpl_err.h"
 #else
 #include <err.h>
 #endif
 #include <errno.h>
-#ifndef _WIN32
+#if !(defined(_WIN32) || defined(WIN32))
 #include <netdb.h>
 #include <poll.h>
 #define WSAPoll poll
@@ -47,20 +47,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#ifndef _WIN32
+#if !(defined(_WIN32) || defined(WIN32))
 #include <unistd.h>
 #endif
 
 #include "ecn-bits.h"
 
-#ifndef _WIN32
-#define SSIZE_T		ssize_t
-typedef int SOCKET;
-#define INVALID_SOCKET	(-1)
-#define closesocket	close
-#define ws2warn		warn
-#define ws2err		err
-#else
+#if defined(_WIN32) || defined(WIN32)
 #define iov_base	buf
 #define iov_len		len
 #define msg_name	name
@@ -71,11 +64,18 @@ typedef int SOCKET;
 #define msg_controllen	Control.len
 #define msg_flags	dwFlags
 #define sendmsg		ecnws2_sendmsg
+#else
+#define SSIZE_T		ssize_t
+typedef int SOCKET;
+#define INVALID_SOCKET	(-1)
+#define closesocket	close
+#define ws2warn		warn
+#define ws2err		err
 #endif
 
 #define NUMSOCK 16
 static struct pollfd pfd[NUMSOCK];
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 static WSADATA wsaData;
 #endif
 
@@ -83,7 +83,7 @@ static int do_resolve(const char *host, const char *service);
 static void do_packet(int sockfd);
 static const char *revlookup(const struct sockaddr *addr, socklen_t addrlen);
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 static void
 ws2warn(const char *msg)
 {
@@ -119,7 +119,7 @@ main(int argc, char *argv[])
 {
 	int nfd, i;
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 	if (WSAStartup(MAKEWORD(2,2), &wsaData))
 		errx(100, "could not initialise Winsock2");
 #endif
@@ -154,7 +154,7 @@ revlookup(const struct sockaddr *addr, socklen_t addrlen)
 	switch ((i = getnameinfo(addr, addrlen,
 	    nh, sizeof(nh), np, sizeof(np),
 	    NI_NUMERICHOST | NI_NUMERICSERV))) {
-#ifndef _WIN32
+#if !(defined(_WIN32) || defined(WIN32))
 	case EAI_SYSTEM:
 		warn("getnameinfo");
 		if (0)
@@ -186,7 +186,7 @@ do_resolve(const char *host, const char *service)
 	ap->ai_socktype = SOCK_DGRAM;
 	ap->ai_flags = AI_ADDRCONFIG | AI_PASSIVE; /* no AI_V4MAPPED either */
 	switch ((i = getaddrinfo(host, service, ap, &ai))) {
-#ifndef _WIN32
+#if !(defined(_WIN32) || defined(WIN32))
 	case EAI_SYSTEM:
 		err(1, "getaddrinfo");
 #endif
@@ -208,7 +208,7 @@ do_resolve(const char *host, const char *service)
 
 		if ((s = socket(ap->ai_family, ap->ai_socktype,
 		    ap->ai_protocol)) == INVALID_SOCKET) {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 			putc('\n', stderr);
 			ws2warn("socket");
 #else
@@ -223,7 +223,7 @@ do_resolve(const char *host, const char *service)
 		i = 1;
 		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
 		    (const void *)&i, sizeof(i))) {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 			putc('\n', stderr);
 			ws2warn("setsockopt");
 #else
@@ -237,7 +237,7 @@ do_resolve(const char *host, const char *service)
 		}
 
 		if (ECNBITS_PREP_FATAL(ecnbits_prep(s, ap->ai_family))) {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 			putc('\n', stderr);
 			ws2warn("ecnbits_setup: incoming traffic class");
 #else
@@ -256,7 +256,7 @@ do_resolve(const char *host, const char *service)
 		 */
 
 		if (bind(s, ap->ai_addr, ap->ai_addrlen)) {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 			putc('\n', stderr);
 			ws2warn("bind");
 #else
@@ -285,7 +285,7 @@ do_packet(int s)
 	static char data[512];
 	SSIZE_T len;
 	struct sockaddr_storage ss;
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 	WSAMSG mh;
 	WSABUF io;
 #else
@@ -352,7 +352,7 @@ do_packet(int s)
 	}
 	mh.msg_control = cmsgbuf;
 	mh.msg_controllen = cmsgsz;
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 	/* avoids sendmsg(2) errors */
 	mh.msg_control = NULL;
 	mh.msg_controllen = 0;
@@ -370,6 +370,6 @@ do_packet(int s)
 	} while (++data[len - 1] < '4');
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 #include "rpl_err.c"
 #endif

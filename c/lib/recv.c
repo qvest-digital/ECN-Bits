@@ -20,7 +20,7 @@
  */
 
 #include <sys/types.h>
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 #pragma warning(push,1)
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -36,7 +36,7 @@ SSIZE_T
 ecnbits_recv(SOCKET s, void *buf, size_t buflen, int flags, unsigned short *e)
 {
 	WSAMSG m;
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 	WSABUF io;
 #define iov_base buf
 #define iov_len len

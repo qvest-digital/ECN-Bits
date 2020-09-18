@@ -20,7 +20,7 @@
  */
 
 #include <sys/types.h>
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 #pragma warning(disable:4710 4706 5045)
 #pragma warning(push,1)
 #include <winsock2.h>
@@ -30,13 +30,13 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #endif
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 #include "rpl_err.h"
 #else
 #include <err.h>
 #endif
 #include <errno.h>
-#ifndef _WIN32
+#if !(defined(_WIN32) || defined(WIN32))
 #include <netdb.h>
 #include <poll.h>
 #define WSAPoll poll
@@ -44,14 +44,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef _WIN32
+#if !(defined(_WIN32) || defined(WIN32))
 #include <unistd.h>
 #endif
 #include <time.h>
 
 #include "ecn-bits.h"
 
-#ifndef _WIN32
+#if defined(_WIN32) || defined(WIN32)
+typedef int SOCKIOT;
+#else
 #define SSIZE_T		ssize_t
 typedef int SOCKET;
 #define INVALID_SOCKET	(-1)
@@ -59,19 +61,17 @@ typedef int SOCKET;
 #define ws2warn		warn
 typedef SSIZE_T SOCKIOT;
 #define SOCKET_ERROR	((SOCKIOT)-1)
-#else
-typedef int SOCKIOT;
 #endif
 
 static int do_resolve(const char *host, const char *service);
 static int do_connect(int sfd);
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 static WSADATA wsaData;
 #endif
 static unsigned char out_tc = ECNBITS_ECT0;
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 static void
 ws2warn(const char *msg)
 {
@@ -98,7 +98,7 @@ ws2warn(const char *msg)
 int
 main(int argc, char *argv[])
 {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 	if (WSAStartup(MAKEWORD(2,2), &wsaData))
 		errx(100, "could not initialise Winsock2");
 #endif
@@ -124,7 +124,7 @@ main(int argc, char *argv[])
 
 	if (do_resolve(argv[1], argv[2]))
 		errx(1, "Could not connect to server or received no response");
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 	WSACleanup();
 #endif
 	return (0);
@@ -145,7 +145,7 @@ do_resolve(const char *host, const char *service)
 	ap->ai_socktype = SOCK_DGRAM;
 	ap->ai_flags = AI_ADDRCONFIG; /* note lack of AI_V4MAPPED */
 	switch ((i = getaddrinfo(host, service, ap, &ai))) {
-#ifndef _WIN32
+#if !(defined(_WIN32) || defined(WIN32))
 	case EAI_SYSTEM:
 		err(1, "getaddrinfo");
 #endif
@@ -160,7 +160,7 @@ do_resolve(const char *host, const char *service)
 		switch ((i = getnameinfo(ap->ai_addr, ap->ai_addrlen,
 		    nh, sizeof(nh), np, sizeof(np),
 		    NI_NUMERICHOST | NI_NUMERICSERV))) {
-#ifndef _WIN32
+#if !(defined(_WIN32) || defined(WIN32))
 		case EAI_SYSTEM:
 			warn("getnameinfo");
 			if (0)
@@ -178,7 +178,7 @@ do_resolve(const char *host, const char *service)
 
 		if ((s = socket(ap->ai_family, ap->ai_socktype,
 		    ap->ai_protocol)) == INVALID_SOCKET) {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 			putc('\n', stderr);
 			ws2warn("socket");
 #else
@@ -190,7 +190,7 @@ do_resolve(const char *host, const char *service)
 			continue;
 		}
 		if (ECNBITS_PREP_FATAL(ecnbits_prep(s, ap->ai_family))) {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 			putc('\n', stderr);
 			ws2warn("ecnbits_setup: incoming traffic class");
 #else
@@ -203,7 +203,7 @@ do_resolve(const char *host, const char *service)
 			continue;
 		}
 		if (ECNBITS_TC_FATAL(ecnbits_tc(s, ap->ai_family, out_tc))) {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 			putc('\n', stderr);
 			ws2warn("ecnbits_setup: outgoing traffic class");
 #else
@@ -217,7 +217,7 @@ do_resolve(const char *host, const char *service)
 		}
 
 		if (connect(s, ap->ai_addr, ap->ai_addrlen)) {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 			putc('\n', stderr);
 			ws2warn("connect");
 #else
@@ -304,6 +304,6 @@ do_connect(int s)
 	goto loop;
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 #include "rpl_err.c"
 #endif

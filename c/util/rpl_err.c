@@ -21,7 +21,7 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #endif
@@ -31,7 +31,7 @@
 #include <stdlib.h>
 #include "rpl_err.h"
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 static inline LPWSTR rplerr_getprogname(void);
 #define RPLERR_PROGNAME	rplerr_getprogname()
 #define RPLERR_PROGFMT	"%S"	/* would be %ls in POSIX but… */
@@ -51,7 +51,7 @@ vrpl_err(int docode, int code, const char *fmt, va_list ap)
 	}
 	if (docode)
 		fprintf(stderr, ": %s\n",
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 		    code == WSAEAFNOSUPPORT ?
 		    "Address family not supported by protocol family" :
 #endif
@@ -104,7 +104,7 @@ warnx(const char *fmt, ...)
 	va_end(ap);
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 static LPWSTR
 rplerr_getprogname(void)
 {

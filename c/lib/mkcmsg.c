@@ -20,7 +20,7 @@
  */
 
 #include <sys/types.h>
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 #pragma warning(push,1)
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -37,11 +37,11 @@
 
 #include "ecn-bits.h"
 
-#ifndef _WIN32
-#define WSA_CMSG_DATA	CMSG_DATA
-#else
+#if defined(_WIN32) || defined(WIN32)
 #define msg_control	Control.buf
 #define msg_controllen	Control.len
+#else
+#define WSA_CMSG_DATA	CMSG_DATA
 #endif
 
 #ifdef _MSC_VER
@@ -100,7 +100,7 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 	case AF_INET:
 		cmsg->cmsg_level = IPPROTO_IP;
 		cmsg->cmsg_type = IP_TOS;
-#if defined(__linux__) || defined(_WIN32)
+#if defined(__linux__) || defined(_WIN32) || defined(WIN32)
 		/*
 		 * The generic case below works on Linux 5.7 (Debian) but
 		 * fails on Linux 3.18 (Android); this here works on both

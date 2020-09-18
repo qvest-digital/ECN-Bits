@@ -20,7 +20,7 @@
  */
 
 #include <sys/types.h>
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 #pragma warning(push,1)
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -100,7 +100,7 @@ ecnbits_tc(SOCKET socketfd, int af, unsigned char iptos)
 		}
 		break;
 	default:
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 		WSASetLastError(WSAEAFNOSUPPORT);
 #endif
 		errno = WSAEAFNOSUPPORT;

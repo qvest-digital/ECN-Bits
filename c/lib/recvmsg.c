@@ -20,7 +20,7 @@
  */
 
 #include <sys/types.h>
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 #pragma warning(push,1)
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -35,7 +35,7 @@
 
 #include "ecn-bits.h"
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 #define msg_control	Control.buf
 #define msg_controllen	Control.len
 #define recvmsg		ecnws2_recvmsg

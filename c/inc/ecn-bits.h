@@ -23,7 +23,7 @@
 #define ECN_BITS_H
 
 /* compat defines (see end of file) */
-#ifndef _WIN32
+#if !(defined(_WIN32) || defined(WIN32))
 #define SOCKET			int
 #define WSAMSG			struct msghdr
 #define LPWSAMSG		struct msghdr *
@@ -87,7 +87,7 @@ SSIZE_T ecnbits_rdmsg(SOCKET fd, LPWSAMSG msg, int flags,
 void *ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc);
 int ecnbits_stoaf(SOCKET fd);
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 /* convenience functions: POSIXish sendmsg(2) and recvmsg(2) over Winsock2 */
 SSIZE_T ecnws2_sendmsg(SOCKET fd, LPWSAMSG msg, int flags);
 SSIZE_T ecnws2_recvmsg(SOCKET fd, LPWSAMSG msg, int flags);
@@ -113,7 +113,7 @@ SSIZE_T ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
 
 #ifndef ECNBITS_INTERNAL
 /* clean up compat defines except if building the library itself */
-#ifndef _WIN32
+#if !(defined(_WIN32) || defined(WIN32))
 #undef SOCKET
 #undef WSAMSG
 #undef LPWSAMSG
@@ -121,7 +121,7 @@ SSIZE_T ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
 #endif
 #else
 /* building the library itself, additional compatibility/utilities */
-#ifndef _WIN32
+#if !(defined(_WIN32) || defined(WIN32))
 #define WSAEAFNOSUPPORT	EAFNOSUPPORT
 #endif
 #endif
