@@ -1,8 +1,10 @@
 *.a
 *.exe
+*.ilk
 *.lib
 *.o
 *.obj
+*.pdb
 *.so
 *.so.*
 .vs/
