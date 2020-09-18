@@ -30,7 +30,9 @@
 
 all:
 
+!IF [cmd /C IF EXIST *.obj exit 1]
 CLEANFILES=	$(CLEANFILES) *.obj
+!ENDIF
 
 !IF [cmd /C IF EXIST *.ilk exit 1]
 CLEANFILES=	$(CLEANFILES) *.ilk
@@ -74,7 +76,9 @@ OBJS=		$(SRCS:.c=.obj)
 
 !IFDEF PROG
 LIBS=		$(LIBS) ecn-bits.lib Ws2_32.lib
+!IF EXISTS($(PROG).exe)
 CLEANFILES=	$(CLEANFILES) $(PROG).exe
+!ENDIF
 !IFNDEF DPADD
 DPADD=		../lib/ecn-bits.lib
 !ENDIF
@@ -84,7 +88,9 @@ $(PROG).exe: $(OBJS) $(DPADD)
 !ENDIF
 
 !IFDEF MKLIB
+!IF EXISTS($(MKLIB).lib)
 CLEANFILES=	$(CLEANFILES) $(MKLIB).lib
+!ENDIF
 !IFNDEF DPADD
 DPADD=
 !ENDIF
@@ -94,4 +100,6 @@ $(MKLIB).lib: $(OBJS) $(DPADD)
 !ENDIF
 
 clean:
+!IFDEF CLEANFILES
 	-del $(CLEANFILES)
+!ENDIF
