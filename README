@@ -43,7 +43,14 @@ Development funded by Deutsche Telekom.
   ? might work on Darwin (Mac OSX and iOS)
 
 – Windows: C/CLI
-  • tbd
+  ‣ see ws2/README
+  • library, CLI client/server examples, copied from Linux/BSD C/CLI
+    but adapted for Winsock2
+  • manpages including preformatted plaintext form for GUI users
+  • tested on Windows 10
+  • additionally all systems the Linux/BSD C/CLI works on are supported
+    (but given the Winsock2 idioms, it’s too complex an example for them)
+  ! the outgoing traffic class cannot, at all, be set on Windows
 
 – Windows, C♯/.net
   • planning stages

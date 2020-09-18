@@ -1,0 +1,211 @@
+.\" -*- mode: nroff -*-
+.\"-
+.\" Copyright © 2008, 2009, 2010, 2016, 2018, 2020
+.\"	mirabilos <m@mirbsd.org>
+.\" Copyright © 2020
+.\"	mirabilos <t.glaser@tarent.de>
+.\" Licensor: Deutsche Telekom
+.\"
+.\" Provided that these terms and disclaimer and all copyright notices
+.\" are retained or reproduced in an accompanying document, permission
+.\" is granted to deal in this work without restriction, including un‐
+.\" limited rights to use, publicly perform, distribute, sell, modify,
+.\" merge, give away, or sublicence.
+.\"
+.\" This work is provided “AS IS” and WITHOUT WARRANTY of any kind, to
+.\" the utmost extent permitted by applicable law, neither express nor
+.\" implied; without malicious intent or gross negligence. In no event
+.\" may a licensor, author or contributor be held liable for indirect,
+.\" direct, other damage, loss, or other issues arising in any way out
+.\" of dealing in the work, even if advised of the possibility of such
+.\" damage or existence of a defect, except proven that it results out
+.\" of said person’s immediate fault when using the work as intended.
+.\"-
+.\" Try to make GNU groff and AT&T nroff more compatible
+.\" * ` generates ‘ in gnroff, so use \`
+.\" * ' generates ’ in gnroff, \' generates ´, so use \*(aq
+.\" * - generates ‐ in gnroff, \- generates −, so .tr it to -
+.\"   thus use - for hyphens and \- for minus signs and option dashes
+.\" * ~ is size-reduced and placed atop in groff, so use \*(TI
+.\" * ^ is size-reduced and placed atop in groff, so use \*(ha
+.\" * \(en does not work in nroff, so use \*(en for a solo en dash
+.\" *   and \*(EM for a correctly spaced em dash
+.\" * <>| are problematic, so redefine and use \*(Lt\*(Gt\*(Ba
+.\" Also make sure to use \& *before* a punctuation char that is to not
+.\" be interpreted as punctuation, and especially with two-letter words
+.\" but also (after) a period that does not end a sentence (“e.g.\&”).
+.\" The section after the "doc" macropackage has been loaded contains
+.\" additional code to convene between the UCB mdoc macropackage (and
+.\" its variant as BSD mdoc in groff) and the GNU mdoc macropackage.
+.\"
+.ie \n(.g \{\
+.	if \*[.T]ascii .tr \-\N'45'
+.	if \*[.T]latin1 .tr \-\N'45'
+.	if \*[.T]utf8 .tr \-\N'45'
+.	ds <= \[<=]
+.	ds >= \[>=]
+.	ds Rq \[rq]
+.	ds Lq \[lq]
+.	ds sL \(aq
+.	ds sR \(aq
+.	if \*[.T]utf8 .ds sL `
+.	if \*[.T]ps .ds sL `
+.	if \*[.T]utf8 .ds sR '
+.	if \*[.T]ps .ds sR '
+.	ds aq \(aq
+.	ds TI \(ti
+.	ds ha \(ha
+.	ds en \(en
+.\}
+.el \{\
+.	ds aq '
+.	ds TI ~
+.	ds ha ^
+.	ds en \(em
+.\}
+.ie n \{\
+.	ds EM \ \*(en\ \&
+.\}
+.el \{\
+.	ds EM \f(TR\^\(em\^\fP
+.\}
+.\"
+.\" Implement .Dd with the Mdocdate RCS keyword
+.\"
+.rn Dd xD
+.de Dd
+.ie \\$1$Mdocdate: \{\
+.	xD \\$2 \\$3, \\$4
+.\}
+.el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
+..
+.\"
+.\" .Dd must come before the macropackage-specific setup code.
+.\"
+.Dd $Mdocdate: September 7 2020 $
+.\"
+.\" Check which macro package we use, and do other -mdoc setup.
+.\"
+.ie \n(.g \{\
+.	if \*[.T]utf8 .tr \[la]\*(Lt
+.	if \*[.T]utf8 .tr \[ra]\*(Gt
+.	ie d volume-ds-1 .ds tT gnu
+.	el .ie d doc-volume-ds-1 .ds tT gnp
+.	el .ds tT bsd
+.\}
+.el .ds tT ucb
+.\"-
+.Dt ECNBITS_VALID 3
+.Os ECN-Bits
+.Sh NAME
+.Nm ECNBITS_BITS ,
+.Nm ECNBITS_DESC ,
+.Nm ECNBITS_DSCP ,
+.Nm ECNBITS_TCOCT ,
+.Nm ECNBITS_VALID ,
+.Nm ecnbits_meanings ,
+.Nm ecnbits_shortnames
+.Nd handling ECN-Bits return values
+.Sh SYNOPSIS
+.In sys/types.h
+.In sys/socket.h
+.In ecn\-bits.h
+.Ft unsigned char
+.Fn ECNBITS_BITS "unsigned short result"
+.Ft const char *
+.Fn ECNBITS_DESC "unsigned short result"
+.Ft unsigned char
+.Fn ECNBITS_DSCP "unsigned short result"
+.Ft unsigned char
+.Fn ECNBITS_TCOCT "unsigned short result"
+.Ft int
+.Fn ECNBITS_VALID "unsigned short result"
+.Vt extern const char *ecnbits_meanings[4];
+.Vt extern const char *ecnbits_shortnames[4];
+.Sh DESCRIPTION
+The
+.Fn ECNBITS_VALID ,
+.Fn ECNBITS_BITS
+and (if needed)
+.Fn ECNBITS_DSCP
+and
+.Fn ECNBITS_TCOCT
+macros aid in obtaining
+the result value of an ECN-Bits library function.
+The DiffServ bits are exposed for user convenience.
+.Pp
+The
+.Fn ECNBITS_DESC
+macro can be used to format, as fixed-width string,
+the result value of an ECN-Bits library function.
+The
+.Dv ecnbits_shortnames
+array contains the corresponding fixed-width string
+for all valid ECN bit representations.
+The
+.Dv ecnbits_meanings
+array contains longer, human-readable, variable-width
+explanations for all valid ECN bit representations.
+.Pp
+The following are valid ECN bit representations:
+.Bd -literal
+#define ECNBITS_NON	0 /* non-ECN-capable transport */
+#define ECNBITS_ECT0	2 /* ECN-capable; L4S: legacy transport */
+#define ECNBITS_ECT1	1 /* ECN-capable; L4S: L4S-aware transport */
+#define ECNBITS_CE	3 /* congestion experienced */
+.Ed
+.Pp
+These macros and constant memory locations are thread-safe.
+.Sh RETURN VALUES
+The
+.Fn ECNBITS_VALID
+macro expands to 1 if the result is valid, else 0.
+The
+.Fn ECNBITS_BITS
+macro evaluates to the ECN bits of a valid result, that is,
+one of the four constants shown above.
+The
+.Fn ECNBITS_DSCP
+macro evaluates to the DSCP bits of a valid result, that is,
+the traffic class minus the ECN bits.
+The
+.Fn ECNBITS_TCOCT
+macro evaluates to the full traffic class octet of a valid result.
+The
+.Fn ECNBITS_DESC
+macro evaluates to a pointer to a constant string six
+ASCII characters wide explaining the result; invalid results
+are represented as
+.Dq "??ECN?" .
+.Sh EXAMPLES
+The following code fragment illustrates the usage:
+.Bd -literal -offset indent
+unsigned short ecnresult;
+
+if (ecnbits_recv(/* ... */, &ecnresult) == (size_t)\-1)
+	return;
+
+printf("%s\en", ECNBITS_DESC(ecnresult));
+if (ECNBITS_VALID(ecnresult))
+	printf("%s\en", ecnbits_meanings[ECNBITS_BITS(ecnresult)]);
+.Ed
+.Pp
+.Fn ECNBITS_BITS ecnresult
+is also what needs to be reported back to the sender.
+.Sh SEE ALSO
+.Xr ecnbits_rdmsg 3 ,
+.Xr ecnbits_recvfrom 3 ,
+.Xr ecnbits_tc 3
+.Pp
+.Bl -tag -width 2n
+.It Pa https://github.com/tarent/ECN\-Bits
+home of the ECN-Bits library
+.It Pa https://github.com/EricssonResearch/scream
+SCReAM, an example design for a managed latency-adaptive application
+.El
+.Sh AUTHORS
+.An mirabilos Aq t.glaser@tarent.de
+for Deutsche Telekom.
+.Sh LICENCE
+The MirOS Licence
+.Pq short name : Li MirBSD

@@ -1,0 +1,250 @@
+.\" -*- mode: nroff -*-
+.\"-
+.\" Copyright © 2008, 2009, 2010, 2016, 2018, 2020
+.\"	mirabilos <m@mirbsd.org>
+.\" Copyright © 2020
+.\"	mirabilos <t.glaser@tarent.de>
+.\" Licensor: Deutsche Telekom
+.\"
+.\" Provided that these terms and disclaimer and all copyright notices
+.\" are retained or reproduced in an accompanying document, permission
+.\" is granted to deal in this work without restriction, including un‐
+.\" limited rights to use, publicly perform, distribute, sell, modify,
+.\" merge, give away, or sublicence.
+.\"
+.\" This work is provided “AS IS” and WITHOUT WARRANTY of any kind, to
+.\" the utmost extent permitted by applicable law, neither express nor
+.\" implied; without malicious intent or gross negligence. In no event
+.\" may a licensor, author or contributor be held liable for indirect,
+.\" direct, other damage, loss, or other issues arising in any way out
+.\" of dealing in the work, even if advised of the possibility of such
+.\" damage or existence of a defect, except proven that it results out
+.\" of said person’s immediate fault when using the work as intended.
+.\"-
+.\" Try to make GNU groff and AT&T nroff more compatible
+.\" * ` generates ‘ in gnroff, so use \`
+.\" * ' generates ’ in gnroff, \' generates ´, so use \*(aq
+.\" * - generates ‐ in gnroff, \- generates −, so .tr it to -
+.\"   thus use - for hyphens and \- for minus signs and option dashes
+.\" * ~ is size-reduced and placed atop in groff, so use \*(TI
+.\" * ^ is size-reduced and placed atop in groff, so use \*(ha
+.\" * \(en does not work in nroff, so use \*(en for a solo en dash
+.\" *   and \*(EM for a correctly spaced em dash
+.\" * <>| are problematic, so redefine and use \*(Lt\*(Gt\*(Ba
+.\" Also make sure to use \& *before* a punctuation char that is to not
+.\" be interpreted as punctuation, and especially with two-letter words
+.\" but also (after) a period that does not end a sentence (“e.g.\&”).
+.\" The section after the "doc" macropackage has been loaded contains
+.\" additional code to convene between the UCB mdoc macropackage (and
+.\" its variant as BSD mdoc in groff) and the GNU mdoc macropackage.
+.\"
+.ie \n(.g \{\
+.	if \*[.T]ascii .tr \-\N'45'
+.	if \*[.T]latin1 .tr \-\N'45'
+.	if \*[.T]utf8 .tr \-\N'45'
+.	ds <= \[<=]
+.	ds >= \[>=]
+.	ds Rq \[rq]
+.	ds Lq \[lq]
+.	ds sL \(aq
+.	ds sR \(aq
+.	if \*[.T]utf8 .ds sL `
+.	if \*[.T]ps .ds sL `
+.	if \*[.T]utf8 .ds sR '
+.	if \*[.T]ps .ds sR '
+.	ds aq \(aq
+.	ds TI \(ti
+.	ds ha \(ha
+.	ds en \(en
+.\}
+.el \{\
+.	ds aq '
+.	ds TI ~
+.	ds ha ^
+.	ds en \(em
+.\}
+.ie n \{\
+.	ds EM \ \*(en\ \&
+.\}
+.el \{\
+.	ds EM \f(TR\^\(em\^\fP
+.\}
+.\"
+.\" Implement .Dd with the Mdocdate RCS keyword
+.\"
+.rn Dd xD
+.de Dd
+.ie \\$1$Mdocdate: \{\
+.	xD \\$2 \\$3, \\$4
+.\}
+.el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
+..
+.\"
+.\" .Dd must come before the macropackage-specific setup code.
+.\"
+.Dd $Mdocdate: July 31 2020 $
+.\"
+.\" Check which macro package we use, and do other -mdoc setup.
+.\"
+.ie \n(.g \{\
+.	if \*[.T]utf8 .tr \[la]\*(Lt
+.	if \*[.T]utf8 .tr \[ra]\*(Gt
+.	ie d volume-ds-1 .ds tT gnu
+.	el .ie d doc-volume-ds-1 .ds tT gnp
+.	el .ds tT bsd
+.\}
+.el .ds tT ucb
+.\"-
+.Dt ECNBITS_RECVFROM 3
+.Os ECN-Bits
+.Sh NAME
+.Nm ecnbits_read ,
+.Nm ecnbits_recv ,
+.Nm ecnbits_recvfrom
+.Nd "receive a message (read a packet) from a socket and determine the traffic class including ECN bits"
+.Sh SYNOPSIS
+.In sys/types.h
+.In sys/socket.h
+.In ecn\-bits.h
+.Ft ssize_t
+.Fn ecnbits_read "int socketfd" "void *buf" "size_t buflen" "unsigned short *ecnresult"
+.Ft ssize_t
+.Fn ecnbits_recv "int socketfd" "void *buf" "size_t buflen" "int flags" "unsigned short *ecnresult"
+.Ft ssize_t
+.Fn ecnbits_recvfrom "int socketfd" "void *buf" "size_t buflen" "int flags" "struct sockaddr *src_addr" "socklen_t *addrlen" "unsigned short *ecnresult"
+.Sh DESCRIPTION
+The
+.Fn ecnbits_read
+macro is equivalent to calling the
+.Fn ecnbits_recv
+function with a
+.Ar flags
+argument of 0.
+See
+.Sx CAVEATS
+below.
+.Pp
+The
+.Fn ecnbits_recv
+and
+.Fn ecnbits_recvfrom
+functions work equivalent to the system functions
+.Xr recv 2
+and
+.Xr recvfrom 2
+respectively, but take an extra argument
+.Ar ecnresult .
+If
+.Ar ecnresult
+is
+.Dv NULL ,
+these functions just pass control to the equivalent system function.
+Otherwise, an equivalent
+.Xr recvmsg 2
+system call is executed in order to be able to determine the
+traffic class octet of the received packet.
+.Pp
+If
+.Ar ecnresult
+is not
+.Dv NULL
+and the call was successful
+.Pq did not return Li (ssize_t)\-1 ,
+the location pointed to by
+.Ar ecnresult
+will, upon return, contain the traffic class of the received packet, in
+.Xr ECNBITS_VALID 3
+format, if determining it was possible (otherwise, it will read as not valid).
+If the socket was not set up with
+.Xr ecnbits_prep 3
+beforehand, determining the traffic class octet is usually not possible.
+.Pp
+As with the equivalent system function,
+.Fn ecnbits_recvfrom
+stores the address of the packet sender in the user-allocated
+.Ar src_addr
+argument; for connected sockets or if the user is not interested in it,
+.Dv NULL
+should be passed for
+.Ar src_addr .
+See
+.Xr recvfrom 2
+for the description of
+.Ar flags .
+.Sh RETURN VALUES
+The
+.Fn ecnbits_read ,
+.Fn ecnbits_recv
+and
+.Fn ecnbits_recvfrom
+functions return the number of bytes received if successful;
+otherwise the value \-1 is returned and the global variable
+.Va errno
+is set to indicate the error.
+.Sh EXAMPLES
+The following code fragment illustrates the usage:
+.Bd -literal -offset indent
+char buf[512];
+unsigned short ecnresult;
+
+if (ecnbits_read(fd, buf, sizeof(buf), &ecnresult) == (size_t)\-1)
+	err(1, "read");
+if (ECNBITS_VALID(ecnresult))
+	printf("%s\en", ecnbits_meanings[ECNBITS_BITS(ecnresult)]);
+.Ed
+.Pp
+Note that the socket, after creation, must have been set up with a call to
+.Xr ecnbits_prep 3
+(once) prior to use with these functions.
+.Sh ERRORS
+These functions return the same errors as the underlying system calls:
+.Xr recv 2
+or
+.Xr recvfrom 2
+if
+.Ar ecnresult
+is
+.Dv NULL ,
+.Xr recvmsg 2
+otherwise.
+.Sh SEE ALSO
+.Xr recv 2 ,
+.Xr recvfrom 2 ,
+.Xr recvmsg 2 ,
+.Xr ECNBITS_BITS 3 ,
+.Xr ecnbits_rdmsg 3 ,
+.Xr ecnbits_tc 3
+.Pp
+.Bl -tag -width 2n
+.It Pa https://github.com/tarent/ECN\-Bits
+home of the ECN-Bits library
+.It Pa https://github.com/EricssonResearch/scream
+SCReAM, an example design for a managed latency-adaptive application
+.El
+.Sh AUTHORS
+.An mirabilos Aq t.glaser@tarent.de
+for Deutsche Telekom.
+.Sh CAVEATS
+.Nm ecnbits_read ,
+.Nm ecnbits_recv
+and
+.Nm ecnbits_recvfrom
+are not thread-safe.
+.Pp
+The semantics of
+.Xr read 2
+and
+.Xr recv 2
+upon reading a zero-length datagram differ:
+the latter consumes the pending datagram, while the former has no effect.
+.Fn ecnbits_read
+uses
+.Xr recv 2
+semantics, not those of
+.Xr read 2 .
+.Pp
+Please also read the STANDARDS section of
+.Xr ecnbits_prep 3 .
+.Sh LICENCE
+The MirOS Licence
+.Pq short name : Li MirBSD
