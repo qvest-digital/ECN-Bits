@@ -1,0 +1,39 @@
+See ../README for what this is all about.
+
+This library mostly offers the following entry points:
+• java.net.ECNBitsDatagramSocket (extends DatagramSocket)
+• de.telekom.llcto.ecn_bits.android.lib.Bits
+
+There’s no equivalent function for DatagramChannel, and
+it is not likely one will be added, as some involved classes
+are “final” and so not extensible.
+
+Netty integration is possible, as future extension.
+
+The current implementation tries to reuse as much of the
+system implementation as possible, using reflection and
+proxying to gain access to it. From Android 9 onwards, each
+version reduces this kind of access. This library was written
+targetting Android 8, as oldest currently-supported version,
+and will, with some adaptions, most likely work on Android 9
+or 10, but no later. A workaround would mean implementing a
+good part of the network stack. The best option would be making
+Google add an API to retrieve the traffic class.
+
+The library is wholly contained in the ecn-lib/ directory.
+It can be added to other projects by importing into your project:
+https://developer.android.com/studio/projects/android-library#AddDependency
+
+The app/ subdirectory contains an example application. The
+example client talks to a server (for example the one from
+the C/CLI library) using DatagramSocket (“send packet”) or
+DatagramChannel (“start channel”); the latter does not handle
+ECN bits (see above). We could switch it to use Netty instead.
+
+When testing on the Android emulator note that its network
+emulation removes the ECN bits from packets. Use either a
+connection to localhost (by compiling the C/CLI library, e.g.
+with musl libc, statically and running the server on localhost)
+or test on “bare metal” (real hardware), or connect to a VPN
+from inside the emulator. We could add the server as example
+GUI application, later.

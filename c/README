@@ -1,6 +1,6 @@
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ ECN-Bits • C/CLI for Linux/FreeBSD ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ECN-Bits • C/CLI for Linux/FreeBSD/MidnightBSD ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 ┌─────────────┐
 │ Compilation │
@@ -129,7 +129,7 @@ accept that (but since they disable v4-mapped by default,
 this is no problem in reality). This library only attempts
 somewhat supporting this on Linux, as Android uses that.
 As implication, binding to only an IPv6 address, server-side,
-may not work except perhaps on Linux.
+may not work except perhaps on Linux (including WSL).
 
 Use in multi-threaded applications is safe if the conditions
 documented under CAVEATS in ecnbits_rdmsg(3) are met.

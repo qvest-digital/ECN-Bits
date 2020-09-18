@@ -17,21 +17,39 @@ Development funded by Deutsche Telekom.
 │ Covered operating environments │
 └────────────────────────────────┘
 
-• C/CLI (usable from C++ and others):
-  Linux, FreeBSD, MidnightBSD (tested), Android (tested on Android 8 “Oreo”)
-  Windows (being ported; tested on Windows 10 only)
-  possibly Darwin: Mac OSX, iOS
-  ‣ see c/
-  ‣ library, manpages; client and server example
-  ‣ NetBSD, OpenBSD and derivatives don’t support reading IP traffic class
-  ‣ Windows® does not support setting IP traffic class, not even from WSL
+– Android/Linux: Java/JNI
+  ‣ see android/README
+  • library (AAR), with JNI component written in C,
+    easily added into your own projects
+    + java.net.ECNBitsDatagramSocket (extends DatagramSocket)
+      to communicate and get the IP traffic class
+    + de.telekom.llcto.ecn_bits.android.lib.Bits
+      to access the ECN bits contained in the traffic class byte
+    ! targetting Android 8 (Oreo, API 26/27) and up
+    ! only tested on Android 8; higher versions need extra workarounds
+    - no equivalent for DatagramChannel (probably unfeasible)
+    – Netty integration: considered, not yet implemented
+    : Status: mostly done; cleaning up and documenting
+  • demo client GUI application
 
-• Linux/Android, Java with native components
-  (possibly reusable for regular Linux with OpenJDK)
-  ‣ partially done, cleaning up and documenting
+– Linux/BSD: C/CLI
+  ‣ see c/README
+  • library, manpages
+  • CLI client and server examples (run for usage instructions)
+  + known working on Linux, FreeBSD/MidnightBSD
+  + also on the Linux variant Android runs on, e.g. built with musl libc
+  + works on WSL, except setting the outgoing traffic class silently fails
+  - cannot work on NetBSD, OpenBSD and derivatives: no API to get the TC
+  ? might work on Darwin (Mac OSX and iOS)
 
-• Windows, C♯/.net and/or C/C++
-  ‣ pre-planning
+– Windows: C/CLI
+  • tbd
+
+– Windows, C♯/.net
+  • planning stages
+
+– iOS (Apple)
+  • pre-planning
 
 ┌────────────────┐
 │ About ECN bits │
@@ -62,3 +80,9 @@ the IP header; nothing more. SCReAM (Ericsson Research)
 is a good example of how to actually adapt use of band‐
 width based on network conditions:
 ‣ https://github.com/EricssonResearch/scream
+
+Another way to retrieve the IP traffic class (therefore
+also the ECN bits) is packet sniffing — while this adds
+latency and has concerns in production (security etc.),
+it’s a viable path for testing. This is being worked on
+by another team; it will be linked to later.
