@@ -32,6 +32,14 @@ all:
 
 CLEANFILES=	$(CLEANFILES) *.obj
 
+!IF [cmd /C IF EXIST *.ilk exit 1]
+CLEANFILES=	$(CLEANFILES) *.ilk
+!ENDIF
+
+!IF [cmd /C IF EXIST *.pdb exit 1]
+CLEANFILES=	$(CLEANFILES) *.pdb
+!ENDIF
+
 !IFNDEF CC
 CC=		cl.exe
 !ENDIF
