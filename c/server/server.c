@@ -360,7 +360,8 @@ do_packet(int s)
 	do {
 		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,
 		    data[len - 1] - '0');
-		sendmsg(s, &mh, 0);
+		if (sendmsg(s, &mh, 0) == (SSIZE_T)-1)
+			ws2warn("sendmsg");
 	} while (++data[len - 1] < '4');
 }
 
