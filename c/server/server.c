@@ -352,6 +352,11 @@ do_packet(int s)
 	}
 	mh.msg_control = cmsgbuf;
 	mh.msg_controllen = cmsgsz;
+#ifdef _WIN32
+	/* avoids sendmsg(2) errors */
+	mh.msg_control = NULL;
+	mh.msg_controllen = 0;
+#endif
 
 	len = snprintf(data, sizeof(data), "%s %s %s{%s} %s -> 0",
 	    revlookup(mh.msg_name, mh.msg_namelen),
