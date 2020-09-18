@@ -55,4 +55,14 @@ MLINKS+=	ecnbits_recvfrom.3 ecnbits_recv.3
 MLINKS+=	ecnbits_stoaf.3 ecnbits_mkcmsg.3
 MLINKS+=	ecnbits_tc.3 ecnbits_prep.3
 
+CATS:=		$(addsuffix .txt,$(basename ${MAN}))
+cats:
+	-rm -f ${CATS}
+	for man in ${MAN}; do \
+		cat=$${man%.*}.txt; \
+		nroff -Tascii -mdoc -c "$$man" | col -bx | \
+		    sed 's/$$/\r/' >"$$cat" || exit 1; \
+	done
+	@ls -l ${CATS}
+
 include ${TOP}/BOTTOM.mk
