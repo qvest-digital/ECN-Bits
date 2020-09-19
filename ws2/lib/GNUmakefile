@@ -37,10 +37,10 @@ SRCS+=		short.c
 SRCS+=		stoaf.c
 
 MAN+=		ECNBITS_VALID.3
+MAN+=		ecnbits_prep.3
 MAN+=		ecnbits_rdmsg.3
 MAN+=		ecnbits_recvfrom.3
 MAN+=		ecnbits_stoaf.3
-MAN+=		ecnbits_prep.3
 
 MLINKS+=	ECNBITS_VALID.3 ECNBITS_BITS.3
 MLINKS+=	ECNBITS_VALID.3 ECNBITS_DESC.3
