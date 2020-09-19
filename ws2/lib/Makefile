@@ -21,7 +21,7 @@
 
 CPPFLAGS=	$(CPPFLAGS) -DECNBITS_INTERNAL
 
-MKLIB=		ecn-bits
+MKLIB=		ecn-bitw
 
 SRCS=		$(SRCS) desc.c
 SRCS=		$(SRCS) prep.c

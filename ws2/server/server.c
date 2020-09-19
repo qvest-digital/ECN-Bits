@@ -51,7 +51,7 @@
 #include <unistd.h>
 #endif
 
-#include "ecn-bits.h"
+#include "ecn-bitw.h"
 
 #if defined(_WIN32) || defined(WIN32)
 #define iov_base	buf

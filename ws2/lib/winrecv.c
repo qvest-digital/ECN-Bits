@@ -26,7 +26,7 @@
 #include <mswsock.h>
 #pragma warning(pop)
 
-#include "ecn-bits.h"
+#include "ecn-bitw.h"
 
 SSIZE_T
 ecnws2_recvmsg(SOCKET fd, LPWSAMSG msg, int flags)

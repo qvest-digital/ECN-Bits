@@ -32,7 +32,7 @@
 #endif
 #include <errno.h>
 
-#include "ecn-bits.h"
+#include "ecn-bitw.h"
 
 static const int on = 1;
 

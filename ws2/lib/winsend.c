@@ -25,7 +25,7 @@
 #include <ws2tcpip.h>
 #pragma warning(pop)
 
-#include "ecn-bits.h"
+#include "ecn-bitw.h"
 
 SSIZE_T
 ecnws2_sendmsg(SOCKET fd, LPWSAMSG msg, int flags)

@@ -114,10 +114,10 @@ CLEANFILES+=	${LIBINSTFILES}
 endif
 
 ifdef PROG
-LIBS+=		-lecn-bits
+LIBS+=		-lecn-bitw
 MAN?=		${PROG}.1
 CLEANFILES+=	${PROG}
-DPADD?=		${TOP}/lib/libecn-bits.a
+DPADD?=		${TOP}/lib/libecn-bitw.a
 all: ${PROG}
 ${PROG}: ${OBJS} ${DPADD}
 	${LINK.c} -o $@ ${OBJS} ${LIBS}

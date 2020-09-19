@@ -33,7 +33,7 @@
 #include <errno.h>
 #include <string.h>
 
-#include "ecn-bits.h"
+#include "ecn-bitw.h"
 
 #if defined(_WIN32) || defined(WIN32)
 #define msg_control	Control.buf

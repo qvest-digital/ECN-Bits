@@ -30,7 +30,7 @@
 #endif
 #include <errno.h>
 
-#include "ecn-bits.h"
+#include "ecn-bitw.h"
 
 #if (AF_INET != -1) && (AF_INET6 != -1)
 int

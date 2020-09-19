@@ -49,7 +49,7 @@
 #endif
 #include <time.h>
 
-#include "ecn-bits.h"
+#include "ecn-bitw.h"
 
 #if defined(_WIN32) || defined(WIN32)
 typedef int SOCKIOT;

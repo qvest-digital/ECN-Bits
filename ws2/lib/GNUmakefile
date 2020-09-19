@@ -24,8 +24,8 @@ include ${TOP}
 
 CPPFLAGS+=	-DECNBITS_INTERNAL
 
-LIB=		ecn-bits
-HDRS+=		ecn-bits.h
+LIB=		ecn-bitw
+HDRS+=		ecn-bitw.h
 
 SRCS+=		desc.c
 SRCS+=		prep.c
