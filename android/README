@@ -30,6 +30,9 @@ the C/CLI library) using DatagramSocket (“send packet”) or
 DatagramChannel (“start channel”); the latter does not handle
 ECN bits (see above). We could switch it to use Netty instead.
 
+Normal Android build mechanisms (./gradlew build) or building
+in IntelliJ / Android Studio should be used.
+
 When testing on the Android emulator note that its network
 emulation removes the ECN bits from packets. Use either a
 connection to localhost (by compiling the C/CLI library, e.g.
