@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: September 8 2020 $
+.Dd $Mdocdate: September 19 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -121,7 +121,7 @@ This works well with datagram sockets (UDP); use with stream sockets
 (TCP) may not work completely, for example the operating system may
 change the sent traffic class value; operating on v4-mapped IPv6 sockets
 .Pq Li ::FFFF.0.0.0.0/96
-may be unsupported (although known to work under Linux/Android);
+may be unsupported (although known to work under Linux/Android/WSL);
 no outgoing traffic class can be set under Windows\(rg or WSL.
 These functions are thread-safe.
 .Pp
