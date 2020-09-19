@@ -55,8 +55,8 @@ cats:
 	-rm -f ${CATS}
 	for man in ${MAN}; do \
 		cat=$${man%.*}.txt; \
-		nroff -Tascii -mdoc -c "$$man" | col -bx | \
-		    sed 's/$$/\r/' >"$$cat" || exit 1; \
+		set -e; set -o pipefail; \
+		nroff -Tascii -mdoc -c "$$man" | col -bx >"$$cat"; \
 	done
 	@ls -l ${CATS}
 
