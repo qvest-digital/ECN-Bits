@@ -308,7 +308,7 @@ do_packet(int s)
 	mh.msg_iov = &io;
 	mh.msg_iovlen = 1;
 
-	len = ecnbits_rdmsg(s, &mh, 0, &ecn);
+	len = ecnbits_recvmsg(s, &mh, 0, &ecn);
 	if (len == (SSIZE_T)-1) {
 		ws2warn("recvmsg");
 		return;
