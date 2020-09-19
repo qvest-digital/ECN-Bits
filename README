@@ -29,10 +29,10 @@ Development funded by Deutsche Telekom.
     ! only tested on Android 8; higher versions need extra workarounds
     - no equivalent for DatagramChannel (probably unfeasible)
     – Netty integration: considered, not yet implemented
-    : Status: mostly done; cleaning up and documenting
+    : Status: mostly done; cleaning up and documenting; testing on 9/10
   • demo client GUI application
 
-– Linux/BSD: C/CLI
+– Linux/BSD: C/CLI (libecn-bits.a/so)
   ‣ see c/README
   • library, manpages
   • CLI client and server examples (run for usage instructions)
@@ -42,7 +42,7 @@ Development funded by Deutsche Telekom.
   - cannot work on NetBSD, OpenBSD and derivatives: no API to get the TC
   ? might work on Darwin (Mac OSX and iOS)
 
-– Windows: C/CLI
+– Windows: C/CLI (ecn-bitw.lib)
   ‣ see ws2/README
   • library, CLI client/server examples, copied from Linux/BSD C/CLI
     but adapted for Winsock2
@@ -52,6 +52,8 @@ Development funded by Deutsche Telekom.
     (but given the Winsock2 idioms, it’s too complex an example for them)
   ! the outgoing traffic class cannot, at all, be set on Windows
   - so the server example doesn’t do it and just sends back one packet
+  - functions dealing with setting the outgoing tc were also removed
+  : Status: documentation of differences to Linux/BSD necessary
 
 – Windows, C♯/.net
   • planning stages

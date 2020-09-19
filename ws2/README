@@ -56,11 +56,11 @@ These applications demonstrate how to use the ECN-Bits library
 and are deliberately simple. See SCReAM for an actual example
 of how to develop L4Sified bandwidth-adaptive applications.
 
-Run the server on one system: ./server [host] port
+Run the server on one system: server.exe [host] port
 (The arguments are for what IP/port this should bind to.
 Numeric and NSS values are supported.)
 
-Run the client on another (or same) system: ./client host post
+Run the client on another (or same) system: client.exe host post
 (The arguments are for what system to connect to.)
 
 The client will send a “hello” packet to the server, which
