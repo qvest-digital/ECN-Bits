@@ -21,6 +21,9 @@ and development headers; this honours the standard PREFIX variable.
 Statically linked against musl libc, the examples will also work
 on Android, e.g. via adb shell; useful for testing.
 
+Link a program with -lecn-bits to use the library; functions and
+headers are documented in the manual pages.
+
 ┌───────────┐
 │ Structure │
 └───────────┘

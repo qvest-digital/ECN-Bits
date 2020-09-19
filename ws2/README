@@ -23,17 +23,24 @@ variables are set up correctly for building, then issue the command…
 … to build. To clean up again, run:
 	nmake clean
 
+Link a program against ecn-bitw.lib (Unix: with -lecn-bitw) to use
+the library; headers and functions are documented in the manual pages.
+
 ┌───────────┐
 │ Structure │
 └───────────┘
 
 inc/ ‣ development headers (public) for the library
 lib/ ‣ library source code, manual pages (documentation)
+       Note: *.3 are manpage sources, *.txt are preformatted
+       (generated from the sources) for easier viewing under
+       a GUI environment
 
 client/ and server/
 ‣ example applications, see below
 
-util/ ‣ additional support files used by the client and server examples
+util/
+‣ additional support files used by the client and server examples
 
 *.mk, GNUmakefile
 ‣ build system for Unix and WSL
