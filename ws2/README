@@ -53,13 +53,8 @@ Run the server on one system: ./server [host] port
 (The arguments are for what IP/port this should bind to.
 Numeric and NSS values are supported.)
 
-Run the client on another (or same) system: ./client host post [tc]
+Run the client on another (or same) system: ./client host post
 (The arguments are for what system to connect to.)
-
-tc sets the outgoing traffic class: NO, ECT0, ECT1, CE, or a
-decimal, octal (leading 0) or hexadecimal (leading 0x) integer
-between 0 and 255, inclusive (default: ECT0)
-Note: when run on Windows (including WSL) this is silently ignored.
 
 The client will send a “hello” packet to the server, which
 receives it, displays a line with the timestamp it received
@@ -95,3 +90,6 @@ Using v4-mapped IPv6 addresses works on WSL but not on native Windows.
 
 The traffic class for outgoing packets cannot be set under
 Windows®, native or WSL, at all. This is a system limitation.
+For this reason this version (ws2/ aka libecn-bitw) does not
+ship certain functions dealing with outgoing traffic class
+setting; if needed, the c/ (libecn-bits) version contains them.
