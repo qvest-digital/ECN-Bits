@@ -28,7 +28,6 @@ LIB=		ecn-bits
 HDRS+=		ecn-bits.h
 
 SRCS+=		desc.c
-SRCS+=		mkcmsg.c
 SRCS+=		prep.c
 SRCS+=		rdmsg.c
 SRCS+=		recv.c
@@ -36,13 +35,12 @@ SRCS+=		recvfrom.c
 SRCS+=		recvmsg.c
 SRCS+=		short.c
 SRCS+=		stoaf.c
-SRCS+=		tc.c
 
 MAN+=		ECNBITS_VALID.3
 MAN+=		ecnbits_rdmsg.3
 MAN+=		ecnbits_recvfrom.3
 MAN+=		ecnbits_stoaf.3
-MAN+=		ecnbits_tc.3
+MAN+=		ecnbits_prep.3
 
 MLINKS+=	ECNBITS_VALID.3 ECNBITS_BITS.3
 MLINKS+=	ECNBITS_VALID.3 ECNBITS_DESC.3
@@ -51,8 +49,6 @@ MLINKS+=	ECNBITS_VALID.3 ECNBITS_TCOCT.3
 MLINKS+=	ecnbits_rdmsg.3 ecnbits_recvmsg.3
 MLINKS+=	ecnbits_recvfrom.3 ecnbits_read.3
 MLINKS+=	ecnbits_recvfrom.3 ecnbits_recv.3
-MLINKS+=	ecnbits_stoaf.3 ecnbits_mkcmsg.3
-MLINKS+=	ecnbits_tc.3 ecnbits_prep.3
 
 CATS:=		$(addsuffix .txt,$(basename ${MAN}))
 cats:

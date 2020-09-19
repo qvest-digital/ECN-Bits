@@ -98,15 +98,12 @@
 .Dt ECNBITS_STOAF 3
 .Os ECN-Bits
 .Sh NAME
-.Nm ecnbits_mkcmsg ,
 .Nm ecnbits_stoaf
-.Nd ECN-Bits utility functions
+.Nd ECN-Bits utility function
 .Sh SYNOPSIS
 .In ecn\-bits.h
 .Ft int
 .Fn ecnbits_stoaf "int socketfd"
-.Ft "void *"
-.Fn ecnbits_mkcmsg "void *buf" "size_t *lenp" "int af" "unsigned char tc"
 .Sh DESCRIPTION
 The
 .Fn ecnbits_stoaf
@@ -117,28 +114,7 @@ Note that v4-mapped IPv6 sockets will (correctly) report as
 not
 .Dv AF_INET .
 .Pp
-The
-.Fn ecnbits_mkcmsg
-function fills in a buffer with control messages suitable for use with
-.Xr sendmsg 2
-to set the traffic class octet on an outgoing packet to
-.Ar tc .
-The
-.Ar af
-argument is expected to be the traffic class on the socket.
-If the
-.Ar buf
-argument is
-.Dv NULL ,
-a buffer of suitable length is allocated dynamically, which the caller must
-.Xr free 3 ;
-otherwise, its length is expected in
-.Ar *lenp .
-In both cases,
-.Ar *lenp
-will be overwritten with the actual length of the data stored into the buffer.
-.Pp
-These functions are thread-safe (as long as the buffer is not shared).
+This function is thread-safe.
 .Sh RETURN VALUES
 The
 .Fn ecnbits_stoaf
@@ -149,16 +125,6 @@ or
 if successful; otherwise the value \-1 is returned and the global variable
 .Va errno
 is set to indicate the error.
-.Pp
-The
-.Fn ecnbits_mkcmsg
-function returns the buffer (either its
-.Ar buf
-argument or the allocated one) if successful; otherwise the value
-.Dv NULL
-is returned and the global variable
-.Va errno
-is set to indicate the error.
 .Sh ERRORS
 .Fn ecnbits_stoaf
 returns any errors returned by
@@ -166,36 +132,9 @@ returns any errors returned by
 as well as
 .Dv EAFNOSUPPORT
 if the socket is not of a supported address family.
-.Pp
-.Fn ecnbits_mkcmsg
-returns any errors returned by
-.Xr calloc 3
-as well as
-.Dv ERANGE
-if the passed
-.Ar *lenp
-is too small and
-.Dv EAFNOSUPPORT
-if the socket is not of a supported address family
-.Pq Li AF_INET No or Li AF_INET6 .
-.Pp
-Note:
-.Fn ecnbits_mkcmsg
-is guaranteed to not fail if the address family is correct,
-a buffer is given and of the appropriate size.
-If a previous call to
-.Fn ecnbits_mkcmsg
-with the same address family allocated a buffer, and that buffer
-and its size are reused, these conditions are fulfilled.
-Within one program, the buffer size depends only on the address family.
 .Sh SEE ALSO
 .Xr getsockname 2 ,
-.Xr cmsg 3 ,
-.Xr ecnbits_tc 3 ,
-.Xr ip 4 ,
-.Xr ip6 4 ,
-.Xr ip 7 ,
-.Xr ipv6 7
+.Xr ecnbits_prep 3
 .Sh AUTHORS
 .An mirabilos Aq t.glaser@tarent.de
 for Deutsche Telekom.

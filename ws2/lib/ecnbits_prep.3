@@ -95,11 +95,10 @@
 .\}
 .el .ds tT ucb
 .\"-
-.Dt ECNBITS_TC 3
+.Dt ECNBITS_PREP 3
 .Os ECN-Bits
 .Sh NAME
-.Nm ecnbits_prep ,
-.Nm ecnbits_tc
+.Nm ecnbits_prep
 .Nd set up a socket to retrieve packets' ECN bits
 .Sh SYNOPSIS
 .In sys/types.h
@@ -107,23 +106,17 @@
 .In ecn\-bits.h
 .Ft int
 .Fn ecnbits_prep "int socketfd" "int af"
-.Ft int
-.Fn ecnbits_tc "int socketfd" "int af" "unsigned char iptos"
 .Sh DESCRIPTION
 The
 .Fn ecnbits_prep
 function sets up a network socket (IPv6 or legacy IPv4) to retrieve
-ECN bits, or rather, the traffic class octet, from incoming packets,
-whereas the
-.Fn ecnbits_tc
-function sets the default traffic class outgoing packets are sent with.
+ECN bits, or rather, the traffic class octet, from incoming packets.
 This works well with datagram sockets (UDP); use with stream sockets
 (TCP) may not work completely, for example the operating system may
 change the sent traffic class value; operating on v4-mapped IPv6 sockets
 .Pq Li ::FFFF.0.0.0.0/96
-may be unsupported (although known to work under Linux/Android);
-no outgoing traffic class can be set under Windows\(rg or WSL.
-These functions are thread-safe.
+may be unsupported (although known to work under Linux/Android/WSL).
+This function is thread-safe.
 .Pp
 The
 .Ar socketfd
@@ -136,37 +129,6 @@ this is the same as the first argument to
 .Xr socket 2
 .Pq Li domain .
 Only these address families are known.
-.Pp
-The
-.Ar iptos
-value is expected to contain the traffic class octet intended to be
-sent out with this socket; this can be one of the ECN values...
-.Bd -literal
-#define ECNBITS_NON	0 /* non-ECN-capable transport */
-#define ECNBITS_ECT0	2 /* ECN-capable; L4S: legacy transport */
-#define ECNBITS_ECT1	1 /* ECN-capable; L4S: L4S-aware transport */
-#define ECNBITS_CE	3 /* congestion experienced */
-.Ed
-.Pp
-\&... possibly or'd with a system-provided value such as
-.Dv IPTOS_LOWDELAY ,
-a DSCP and/or class value or really anything appropriate.
-The operating system defaults usually to either
-.Li 0 Pq Li ECNBITS_NON
-or
-.Li 2 Pq Li ECNBITS_ECT0 .
-Note that ISPs can change the traffic class of packets they transmit.
-.Pp
-Note that the
-.Ar iptos
-value is only used to set the default outgoing traffic class.
-It can still be overridden by using
-.Xr sendmsg 2
-with a suitable
-.Xr cmsg 3
-control message such as one created by
-.Xr ecnbits_mkcmsg 3 ;
-the ECN-Bits c/server example demonstrates this technique.
 .Sh RETURN VALUES
 The
 .Fn ecnbits_prep
@@ -175,16 +137,6 @@ function sets the global variable
 to indicate any problem and returns the value 2 on error, 1 if v4-mapped
 support could not be set up (compare against
 .Dv ECNBITS_PREP_FATAL
-.Pq see Sx EXAMPLES No below
-to determine if this should be ignored), and 0 on success.
-.Pp
-The
-.Fn ecnbits_tc
-function sets the global variable
-.Va errno
-to indicate any problem and returns the value 2 on error, 1 if v4-mapped
-support could not be set up (compare against
-.Dv ECNBITS_TC_FATAL
 .Pq see Sx EXAMPLES No below
 to determine if this should be ignored), and 0 on success.
 .Sh EXAMPLES
@@ -197,8 +149,6 @@ if ((fd = socket(AF_INET6, SOCK_DGRAM, 0)) == \-1)
 /* do other setsockopt, if needed */
 if (ECNBITS_PREP_FATAL(ecnbits_prep(fd, AF_INET6)))
 	err(1, "ecnbits_setup: incoming traffic class");
-if (ECNBITS_TC_FATAL(ecnbits_tc(fd, AF_INET6, ECNBITS_ECT0)))
-	err(1, "ecnbits_setup: outgoing traffic class");
 /* connect, bind, etc. */
 .Ed
 .Sh ERRORS

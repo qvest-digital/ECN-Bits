@@ -24,7 +24,6 @@ CPPFLAGS=	$(CPPFLAGS) -DECNBITS_INTERNAL
 MKLIB=		ecn-bits
 
 SRCS=		$(SRCS) desc.c
-SRCS=		$(SRCS) mkcmsg.c
 SRCS=		$(SRCS) prep.c
 SRCS=		$(SRCS) rdmsg.c
 SRCS=		$(SRCS) recv.c
@@ -32,7 +31,6 @@ SRCS=		$(SRCS) recvfrom.c
 SRCS=		$(SRCS) recvmsg.c
 SRCS=		$(SRCS) short.c
 SRCS=		$(SRCS) stoaf.c
-SRCS=		$(SRCS) tc.c
 SRCS=		$(SRCS) winrecv.c
 SRCS=		$(SRCS) winsend.c
 

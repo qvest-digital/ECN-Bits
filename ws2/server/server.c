@@ -249,11 +249,6 @@ do_resolve(const char *host, const char *service)
 			closesocket(s);
 			continue;
 		}
-		/*
-		 * ecnbits_tc not needed, as this server uses sendmsg(2) with
-		 * explicit tc setting exclusively, but it would be called
-		 * here if we used it
-		 */
 
 		if (bind(s, ap->ai_addr, ap->ai_addrlen)) {
 #if defined(_WIN32) || defined(WIN32)

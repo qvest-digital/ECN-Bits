@@ -65,26 +65,12 @@ extern const char *ecnbits_shortnames[4];
 #define ECNBITS_PREP_FATAL(rv) ((rv) >= 2)
 #endif
 
-#if defined(_WIN32) || defined(WIN32)
-#define ECNBITS_TC_FATAL(rv) ((rv), 0)
-#elif defined(__linux__) && !defined(__ANDROID__)
-#ifdef ECNBITS_INTERNAL
-#define ECNBITS_WSLCHECK
-#endif
-int ecnbits_tcfatal(int);
-#define ECNBITS_TC_FATAL(rv) ecnbits_tcfatal(rv)
-#else
-#define ECNBITS_TC_FATAL(rv) ((rv) >= 2)
-#endif
-
 /* socket operations */
 int ecnbits_prep(SOCKET fd, int af);
-int ecnbits_tc(SOCKET fd, int af, unsigned char iptos);
 SSIZE_T ecnbits_rdmsg(SOCKET fd, LPWSAMSG msg, int flags,
     unsigned short *ecnresult);
 
 /* utility functions */
-void *ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc);
 int ecnbits_stoaf(SOCKET fd);
 
 #if defined(_WIN32) || defined(WIN32)
