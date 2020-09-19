@@ -10,3 +10,5 @@
 .vs/
 c/client/client
 c/server/server
+ws2/client/client
+ws2/server/server
