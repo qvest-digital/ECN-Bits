@@ -20,33 +20,20 @@
  */
 
 #include <sys/types.h>
-#if defined(_WIN32) || defined(WIN32)
-#pragma warning(push,1)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma warning(pop)
-#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#endif
 #include <errno.h>
 #include <string.h>
 
 #include "ecn-bits.h"
 
-#if defined(_WIN32) || defined(WIN32)
-#define msg_control	Control.buf
-#define msg_controllen	Control.len
-#define recvmsg		ecnws2_recvmsg
-#endif
-
-SSIZE_T
-ecnbits_recvmsg(SOCKET s, LPWSAMSG mh, int flags, unsigned short *e)
+ssize_t
+ecnbits_recvmsg(int s, struct msghdr *mh, int flags, unsigned short *e)
 {
-	SSIZE_T rv;
+	ssize_t rv;
 	int eno;
-	WSAMSG mrpl;
+	struct msghdr mrpl;
 
 	if (!e)
 		return (recvmsg(s, mh, flags));

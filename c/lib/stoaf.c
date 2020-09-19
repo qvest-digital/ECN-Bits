@@ -20,35 +20,25 @@
  */
 
 #include <sys/types.h>
-#if defined(_WIN32) || defined(WIN32)
-#pragma warning(push,1)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma warning(pop)
-#else
 #include <sys/socket.h>
-#endif
 #include <errno.h>
 
 #include "ecn-bits.h"
 
 #if (AF_INET != -1) && (AF_INET6 != -1)
 int
-ecnbits_stoaf(SOCKET socketfd)
+ecnbits_stoaf(int socketfd)
 {
 	struct sockaddr_storage ss;
 	socklen_t slen = sizeof(ss);
 
-	if (getsockname(socketfd, (struct sockaddr *)&ss, &slen) == 0)
+	if (getsockname(socketfd, (void *)&ss, &slen) == 0)
 		switch (ss.ss_family) {
 		case AF_INET:
 		case AF_INET6:
 			return (ss.ss_family);
 		default:
-#if defined(_WIN32) || defined(WIN32)
-			WSASetLastError(WSAEAFNOSUPPORT);
-#endif
-			errno = WSAEAFNOSUPPORT;
+			errno = EAFNOSUPPORT;
 		}
 	return (-1);
 }

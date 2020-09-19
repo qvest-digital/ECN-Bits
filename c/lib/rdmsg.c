@@ -20,16 +20,9 @@
  */
 
 #include <sys/types.h>
-#if defined(_WIN32) || defined(WIN32)
-#pragma warning(push,1)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma warning(pop)
-#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#endif
 #include <errno.h>
 #include <stddef.h>
 #ifdef DEBUG
@@ -38,18 +31,6 @@
 #endif
 
 #include "ecn-bits.h"
-
-#if defined(_WIN32) || defined(WIN32)
-#define msg_control	Control.buf
-#define msg_controllen	Control.len
-#define recvmsg		ecnws2_recvmsg
-#else
-#define WSA_CMSG_DATA	CMSG_DATA
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(disable:4711)
-#endif
 
 static size_t
 cmsg_actual_data_len(const struct cmsghdr *cmsg)
@@ -64,7 +45,7 @@ cmsg_actual_data_len(const struct cmsghdr *cmsg)
 	ptrdiff_t pd;
 
 	ptr[0].cmsg = cmsg;
-	pd = WSA_CMSG_DATA(cmsg) - ptr[0].uc;
+	pd = CMSG_DATA(cmsg) - ptr[0].uc;
 	return ((size_t)cmsg->cmsg_len - (size_t)pd);
 }
 
@@ -72,7 +53,7 @@ static void
 recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
 {
 	unsigned char b1, b2;
-	unsigned char *d = WSA_CMSG_DATA(cmsg);
+	unsigned char *d = CMSG_DATA(cmsg);
 
 	/* https://bugs.debian.org/966459 */
 	switch (cmsg_actual_data_len(cmsg)) {
@@ -114,11 +95,11 @@ recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
 
 static char msgbuf[2048];
 
-SSIZE_T
-ecnbits_rdmsg(SOCKET s, LPWSAMSG msgh, int flags, unsigned short *e)
+ssize_t
+ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e)
 {
 	struct cmsghdr *cmsg;
-	SSIZE_T rv;
+	ssize_t rv;
 	int eno;
 
 	*e = ECNBITS_INVALID_BIT;
@@ -129,7 +110,7 @@ ecnbits_rdmsg(SOCKET s, LPWSAMSG msgh, int flags, unsigned short *e)
 	}
 
 	rv = recvmsg(s, msgh, flags);
-	if (rv == (SSIZE_T)-1)
+	if (rv == (ssize_t)-1)
 		return (rv);
 	eno = errno;
 
@@ -139,7 +120,7 @@ ecnbits_rdmsg(SOCKET s, LPWSAMSG msgh, int flags, unsigned short *e)
 #endif
 	while (cmsg) {
 #ifdef DEBUG
-		unsigned char *dp = WSA_CMSG_DATA(cmsg);
+		unsigned char *dp = CMSG_DATA(cmsg);
 		size_t dl = cmsg_actual_data_len(cmsg), di = 0;
 
 		fprintf(stderr, "D: cmsg hdr (%d, %d) len %zu\n",

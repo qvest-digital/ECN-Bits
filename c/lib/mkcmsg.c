@@ -20,39 +20,21 @@
  */
 
 #include <sys/types.h>
-#if defined(_WIN32) || defined(WIN32)
-#pragma warning(push,1)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma warning(pop)
-#else
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#endif
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "ecn-bits.h"
 
-#if defined(_WIN32) || defined(WIN32)
-#define msg_control	Control.buf
-#define msg_controllen	Control.len
-#else
-#define WSA_CMSG_DATA	CMSG_DATA
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4706)
-#endif
 void *
 ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 {
 	struct cmsghdr *cmsg;
-	WSAMSG mh;
+	struct msghdr mh;
 	size_t mlen;
 	int i = (int)(unsigned int)tc;
 
@@ -67,7 +49,7 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 		mlen = CMSG_SPACE(sizeof(int));
 		break;
 	default:
-		errno = WSAEAFNOSUPPORT;
+		errno = EAFNOSUPPORT;
 		return (NULL);
 	}
 
@@ -88,7 +70,7 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 		cmsg->cmsg_level = IPPROTO_IPV6;
 		cmsg->cmsg_type = IPV6_TCLASS;
 		cmsg->cmsg_len = CMSG_LEN(sizeof(i));
-		memcpy(WSA_CMSG_DATA(cmsg), &i, sizeof(i));
+		memcpy(CMSG_DATA(cmsg), &i, sizeof(i));
 #if defined(__linux__)
 		/* send two, for v4-mapped */
 		cmsg = CMSG_NXTHDR(&mh, cmsg);
@@ -109,15 +91,12 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 		 * traffic class cannot be set!) also wants this.
 		 */
 		cmsg->cmsg_len = CMSG_LEN(sizeof(i));
-		memcpy(WSA_CMSG_DATA(cmsg), &i, sizeof(i));
+		memcpy(CMSG_DATA(cmsg), &i, sizeof(i));
 #else
 		cmsg->cmsg_len = CMSG_LEN(sizeof(tc));
-		memcpy(WSA_CMSG_DATA(cmsg), &tc, sizeof(tc));
+		memcpy(CMSG_DATA(cmsg), &tc, sizeof(tc));
 #endif
 		break;
 	}
 	return (buf);
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 }

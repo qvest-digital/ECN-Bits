@@ -20,88 +20,28 @@
  */
 
 #include <sys/types.h>
-#if defined(_WIN32) || defined(WIN32)
-#pragma warning(disable:4710 4706 5045)
-#pragma warning(push,1)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma warning(pop)
-#else
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#endif
-#if defined(_WIN32) || defined(WIN32)
-#include "rpl_err.h"
-#else
 #include <err.h>
-#endif
 #include <errno.h>
-#if !(defined(_WIN32) || defined(WIN32))
 #include <netdb.h>
 #include <poll.h>
-#define WSAPoll poll
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if !(defined(_WIN32) || defined(WIN32))
 #include <unistd.h>
-#endif
 #include <time.h>
 
 #include "ecn-bits.h"
 
-#if defined(_WIN32) || defined(WIN32)
-typedef int SOCKIOT;
-#else
-#define SSIZE_T		ssize_t
-typedef int SOCKET;
-#define INVALID_SOCKET	(-1)
-#define closesocket	close
-#define ws2warn		warn
-typedef SSIZE_T SOCKIOT;
-#define SOCKET_ERROR	((SOCKIOT)-1)
-#endif
-
 static int do_resolve(const char *host, const char *service);
 static int do_connect(int sfd);
 
-#if defined(_WIN32) || defined(WIN32)
-static WSADATA wsaData;
-#endif
 static unsigned char out_tc = ECNBITS_ECT0;
-
-#if defined(_WIN32) || defined(WIN32)
-static void
-ws2warn(const char *msg)
-{
-	int errcode = WSAGetLastError();
-	wchar_t *errstr = NULL;
-
-	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-	    NULL, errcode, 0, (LPWSTR)&errstr, 1, NULL) && *errstr) {
-		wchar_t wc;
-		size_t ofs = wcslen(errstr);
-		while (--ofs > 0 && ((wc = errstr[ofs]) == L'\r' || wc == L'\n'))
-			errstr[ofs] = L'\0';
-
-		warnx("%s: %S", msg, errstr);	/* would be %ls in POSIX but… */
-		LocalFree(errstr);
-	} else {
-		if (errstr)
-			LocalFree(errstr);
-		warnx("%s: Winsock error %d", msg, errcode);
-	}
-}
-#endif
 
 int
 main(int argc, char *argv[])
 {
-#if defined(_WIN32) || defined(WIN32)
-	if (WSAStartup(MAKEWORD(2,2), &wsaData))
-		errx(100, "could not initialise Winsock2");
-#endif
 	if (argc == 4) {
 		long mnum;
 		char *mep;
@@ -124,17 +64,13 @@ main(int argc, char *argv[])
 
 	if (do_resolve(argv[1], argv[2]))
 		errx(1, "Could not connect to server or received no response");
-#if defined(_WIN32) || defined(WIN32)
-	WSACleanup();
-#endif
 	return (0);
 }
 
 static int
 do_resolve(const char *host, const char *service)
 {
-	int i, rv = 1;
-	SOCKET s;
+	int i, s, rv = 1;
 	struct addrinfo *ai, *ap;
 	char nh[INET6_ADDRSTRLEN];
 	char np[/* 0‥65535 + NUL */ 6];
@@ -145,10 +81,8 @@ do_resolve(const char *host, const char *service)
 	ap->ai_socktype = SOCK_DGRAM;
 	ap->ai_flags = AI_ADDRCONFIG; /* note lack of AI_V4MAPPED */
 	switch ((i = getaddrinfo(host, service, ap, &ai))) {
-#if !(defined(_WIN32) || defined(WIN32))
 	case EAI_SYSTEM:
 		err(1, "getaddrinfo");
-#endif
 	default:
 		errx(1, "%s returned %s", "getaddrinfo", gai_strerror(i));
 	case 0:
@@ -160,11 +94,9 @@ do_resolve(const char *host, const char *service)
 		switch ((i = getnameinfo(ap->ai_addr, ap->ai_addrlen,
 		    nh, sizeof(nh), np, sizeof(np),
 		    NI_NUMERICHOST | NI_NUMERICSERV))) {
-#if !(defined(_WIN32) || defined(WIN32))
 		case EAI_SYSTEM:
 			warn("getnameinfo");
 			if (0)
-#endif
 				/* FALLTHROUGH */
 		default:
 			  warnx("%s returned %s", "getnameinfo",
@@ -177,67 +109,47 @@ do_resolve(const char *host, const char *service)
 		}
 
 		if ((s = socket(ap->ai_family, ap->ai_socktype,
-		    ap->ai_protocol)) == INVALID_SOCKET) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("socket");
-#else
+		    ap->ai_protocol)) == -1) {
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
 			warn("socket");
-#endif
 			continue;
 		}
 		if (ECNBITS_PREP_FATAL(ecnbits_prep(s, ap->ai_family))) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("ecnbits_setup: incoming traffic class");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
 			warn("ecnbits_setup: incoming traffic class");
-#endif
-			closesocket(s);
+			close(s);
 			continue;
 		}
 		if (ECNBITS_TC_FATAL(ecnbits_tc(s, ap->ai_family, out_tc))) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("ecnbits_setup: outgoing traffic class");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
 			warn("ecnbits_setup: outgoing traffic class");
-#endif
-			closesocket(s);
+			close(s);
 			continue;
 		}
 
 		if (connect(s, ap->ai_addr, ap->ai_addrlen)) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("connect");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
 			warn("connect");
-#endif
-			closesocket(s);
+			close(s);
 			continue;
 		}
 
 		fprintf(stderr, " connected\n");
 		if (do_connect(s)) {
-			closesocket(s);
+			close(s);
 			continue;
 		}
 
 		rv = 0;
-		closesocket(s);
+		close(s);
 		/* return */
 	}
 
@@ -249,8 +161,7 @@ static int
 do_connect(int s)
 {
 	char buf[512];
-	SOCKIOT nsend;
-	SSIZE_T nrecv;
+	ssize_t n;
 	struct pollfd pfd;
 	int rv = 1;
 	unsigned short ecn;
@@ -259,18 +170,18 @@ do_connect(int s)
 	char tcs[3];
 
 	memcpy(buf, "hi!", 3);
-	if ((nsend = send(s, buf, 3, 0)) != 3) {
-		if (nsend == SOCKET_ERROR) {
-			ws2warn("send");
+	if ((n = write(s, buf, 3)) != 3) {
+		if (n == (ssize_t)-1) {
+			warn("send");
 			return (1);
 		}
-		warnx("wrote %zu bytes but got %zd", (size_t)3, (SSIZE_T)nsend);
+		warnx("wrote %zu bytes but got %zd", (size_t)3, n);
 	}
 
  loop:
 	pfd.fd = s;
 	pfd.events = POLLIN;
-	switch (WSAPoll(&pfd, 1, 1000)) {
+	switch (poll(&pfd, 1, 1000)) {
 	case 1:
 		break;
 	case 0:
@@ -278,22 +189,21 @@ do_connect(int s)
 			warnx("timeout waiting for packet");
 		return (rv);
 	default:
-		ws2warn("poll");
+		warn("poll");
 		return (1);
 	}
 
-	if ((nrecv = ecnbits_read(s, buf, sizeof(buf) - 1,
-	    &ecn)) == (SSIZE_T)-1) {
-		ws2warn("recv");
+	if ((n = ecnbits_read(s, buf, sizeof(buf) - 1, &ecn)) == (ssize_t)-1) {
+		warn("recv");
 		return (1);
 	}
 	time(&tt);
 	strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt));
-	buf[nrecv] = '\0';
-	if (nrecv > 2 && buf[nrecv - 1] == '\n') {
-		buf[nrecv - 1] = '\0';
-		if (buf[nrecv - 2] == '\r')
-			buf[nrecv - 2] = '\0';
+	buf[n] = '\0';
+	if (n > 2 && buf[n - 1] == '\n') {
+		buf[n - 1] = '\0';
+		if (buf[n - 2] == '\r')
+			buf[n - 2] = '\0';
 	}
 	if (ECNBITS_VALID(ecn))
 		snprintf(tcs, sizeof(tcs), "%02X", ECNBITS_TCOCT(ecn));
@@ -303,7 +213,3 @@ do_connect(int s)
 	rv = 0;
 	goto loop;
 }
-
-#if defined(_WIN32) || defined(WIN32)
-#include "rpl_err.c"
-#endif

@@ -20,16 +20,9 @@
  */
 
 #include <sys/types.h>
-#if defined(_WIN32) || defined(WIN32)
-#pragma warning(push,1)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma warning(pop)
-#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#endif
 #include <errno.h>
 
 #include "ecn-bits.h"
@@ -78,7 +71,7 @@ ecnbits_tcfatal(int rv)
 #endif
 
 int
-ecnbits_tc(SOCKET socketfd, int af, unsigned char iptos)
+ecnbits_tc(int socketfd, int af, unsigned char iptos)
 {
 	int tos = (int)(unsigned int)iptos;
 
@@ -100,10 +93,7 @@ ecnbits_tc(SOCKET socketfd, int af, unsigned char iptos)
 		}
 		break;
 	default:
-#if defined(_WIN32) || defined(WIN32)
-		WSASetLastError(WSAEAFNOSUPPORT);
-#endif
-		errno = WSAEAFNOSUPPORT;
+		errno = EAFNOSUPPORT;
 		return (2);
 	}
 	return (0);

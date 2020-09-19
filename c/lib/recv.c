@@ -20,31 +20,16 @@
  */
 
 #include <sys/types.h>
-#if defined(_WIN32) || defined(WIN32)
-#pragma warning(push,1)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma warning(pop)
-#else
 #include <sys/socket.h>
-#endif
 #include <string.h>
 
 #include "ecn-bits.h"
 
-SSIZE_T
-ecnbits_recv(SOCKET s, void *buf, size_t buflen, int flags, unsigned short *e)
+ssize_t
+ecnbits_recv(int s, void *buf, size_t buflen, int flags, unsigned short *e)
 {
-	WSAMSG m;
-#if defined(_WIN32) || defined(WIN32)
-	WSABUF io;
-#define iov_base buf
-#define iov_len len
-#define msg_iov lpBuffers
-#define msg_iovlen dwBufferCount
-#else
+	struct msghdr m;
 	struct iovec io;
-#endif
 
 	if (!e)
 		return recv(s, buf, buflen, flags);

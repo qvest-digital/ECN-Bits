@@ -22,14 +22,6 @@
 #ifndef ECN_BITS_H
 #define ECN_BITS_H
 
-/* compat defines (see end of file) */
-#if !(defined(_WIN32) || defined(WIN32))
-#define SOCKET			int
-#define WSAMSG			struct msghdr
-#define LPWSAMSG		struct msghdr *
-#define SSIZE_T			ssize_t
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -78,28 +70,22 @@ int ecnbits_tcfatal(int);
 #endif
 
 /* socket operations */
-int ecnbits_prep(SOCKET fd, int af);
-int ecnbits_tc(SOCKET fd, int af, unsigned char iptos);
-SSIZE_T ecnbits_rdmsg(SOCKET fd, LPWSAMSG msg, int flags,
+int ecnbits_prep(int socketfd, int af);
+int ecnbits_tc(int socketfd, int af, unsigned char iptos);
+ssize_t ecnbits_rdmsg(int socketfd, struct msghdr *msg, int flags,
     unsigned short *ecnresult);
 
 /* utility functions */
 void *ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc);
-int ecnbits_stoaf(SOCKET fd);
-
-#if defined(_WIN32) || defined(WIN32)
-/* convenience functions: POSIXish sendmsg(2) and recvmsg(2) over Winsock2 */
-SSIZE_T ecnws2_sendmsg(SOCKET fd, LPWSAMSG msg, int flags);
-SSIZE_T ecnws2_recvmsg(SOCKET fd, LPWSAMSG msg, int flags);
-#endif
+int ecnbits_stoaf(int socketfd);
 
 /* wrapped calls */
-SSIZE_T ecnbits_recvmsg(SOCKET fd, LPWSAMSG msg, int flags,
+ssize_t ecnbits_recvmsg(int socketfd, struct msghdr *msg, int flags,
     unsigned short *ecnresult);
-SSIZE_T ecnbits_recvfrom(SOCKET fd, void *buf, size_t buflen,
+ssize_t ecnbits_recvfrom(int socketfd, void *buf, size_t buflen,
     int flags, struct sockaddr *src_addr, socklen_t *addrlen,
     unsigned short *ecnresult);
-SSIZE_T ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
+ssize_t ecnbits_recv(int socketfd, void *buf, size_t buflen,
     int flags,
     unsigned short *ecnresult);
 
@@ -109,21 +95,6 @@ SSIZE_T ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
 
 #ifdef __cplusplus
 }
-#endif
-
-#ifndef ECNBITS_INTERNAL
-/* clean up compat defines except if building the library itself */
-#if !(defined(_WIN32) || defined(WIN32))
-#undef SOCKET
-#undef WSAMSG
-#undef LPWSAMSG
-#undef SSIZE_T
-#endif
-#else
-/* building the library itself, additional compatibility/utilities */
-#if !(defined(_WIN32) || defined(WIN32))
-#define WSAEAFNOSUPPORT	EAFNOSUPPORT
-#endif
 #endif
 
 #endif

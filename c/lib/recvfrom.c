@@ -20,35 +20,18 @@
  */
 
 #include <sys/types.h>
-#if defined(_WIN32) || defined(WIN32)
-#pragma warning(push,1)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma warning(pop)
-#else
 #include <sys/socket.h>
-#endif
 #include <string.h>
 
 #include "ecn-bits.h"
 
-SSIZE_T
-ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
+ssize_t
+ecnbits_recvfrom(int s, void *buf, size_t buflen, int flags,
     struct sockaddr *addr, socklen_t *addrlenp, unsigned short *e)
 {
-	SSIZE_T rv;
-	WSAMSG m;
-#if defined(_WIN32) || defined(WIN32)
-	WSABUF io;
-#define iov_base buf
-#define iov_len len
-#define msg_name name
-#define msg_namelen namelen
-#define msg_iov lpBuffers
-#define msg_iovlen dwBufferCount
-#else
+	ssize_t rv;
+	struct msghdr m;
 	struct iovec io;
-#endif
 
 	if (!e)
 		return recvfrom(s, buf, buflen, flags, addr, addrlenp);
@@ -66,7 +49,7 @@ ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
 
 	rv = ecnbits_rdmsg(s, &m, flags, e);
 
-	if (rv != (SSIZE_T)-1) {
+	if (rv != (ssize_t)-1) {
 		if (addr)
 			*addrlenp = m.msg_namelen;
 	}

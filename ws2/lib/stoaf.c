@@ -39,7 +39,7 @@ ecnbits_stoaf(SOCKET socketfd)
 	struct sockaddr_storage ss;
 	socklen_t slen = sizeof(ss);
 
-	if (getsockname(socketfd, (struct sockaddr *)&ss, &slen) == 0)
+	if (getsockname(socketfd, (void *)&ss, &slen) == 0)
 		switch (ss.ss_family) {
 		case AF_INET:
 		case AF_INET6:

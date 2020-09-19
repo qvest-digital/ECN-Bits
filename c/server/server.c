@@ -20,109 +20,34 @@
  */
 
 #include <sys/types.h>
-#if defined(_WIN32) || defined(WIN32)
-#pragma warning(disable:4710 4706 5045)
-#pragma warning(push,1)
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma warning(pop)
-#else
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#endif
-#if defined(_WIN32) || defined(WIN32)
-#include "rpl_err.h"
-#else
 #include <err.h>
-#endif
 #include <errno.h>
-#if !(defined(_WIN32) || defined(WIN32))
 #include <netdb.h>
 #include <poll.h>
-#define WSAPoll poll
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#if !(defined(_WIN32) || defined(WIN32))
 #include <unistd.h>
-#endif
 
 #include "ecn-bits.h"
 
-#if defined(_WIN32) || defined(WIN32)
-#define iov_base	buf
-#define iov_len		len
-#define msg_name	name
-#define msg_namelen	namelen
-#define msg_iov		lpBuffers
-#define msg_iovlen	dwBufferCount
-#define msg_control	Control.buf
-#define msg_controllen	Control.len
-#define msg_flags	dwFlags
-#define sendmsg		ecnws2_sendmsg
-#else
-#define SSIZE_T		ssize_t
-typedef int SOCKET;
-#define INVALID_SOCKET	(-1)
-#define closesocket	close
-#define ws2warn		warn
-#define ws2err		err
-#endif
-
 #define NUMSOCK 16
 static struct pollfd pfd[NUMSOCK];
-#if defined(_WIN32) || defined(WIN32)
-static WSADATA wsaData;
-#endif
 
 static int do_resolve(const char *host, const char *service);
 static void do_packet(int sockfd);
 static const char *revlookup(const struct sockaddr *addr, socklen_t addrlen);
-
-#if defined(_WIN32) || defined(WIN32)
-static void
-ws2warn(const char *msg)
-{
-	int errcode = WSAGetLastError();
-	wchar_t *errstr = NULL;
-
-	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-	    NULL, errcode, 0, (LPWSTR)&errstr, 1, NULL) && *errstr) {
-		wchar_t wc;
-		size_t ofs = wcslen(errstr);
-		while (--ofs > 0 && ((wc = errstr[ofs]) == L'\r' || wc == L'\n'))
-			errstr[ofs] = L'\0';
-
-		warnx("%s: %S", msg, errstr);	/* would be %ls in POSIX but… */
-		LocalFree(errstr);
-	} else {
-		if (errstr)
-			LocalFree(errstr);
-		warnx("%s: Winsock error %d", msg, errcode);
-	}
-}
-
-static void
-ws2err(int errorlevel, const char *msg)
-{
-	ws2warn(msg);
-	exit(errorlevel);
-}
-#endif
 
 int
 main(int argc, char *argv[])
 {
 	int nfd, i;
 
-#if defined(_WIN32) || defined(WIN32)
-	if (WSAStartup(MAKEWORD(2,2), &wsaData))
-		errx(100, "could not initialise Winsock2");
-#endif
 	if (argc < 2 || argc > 3)
 		errx(1, "Usage: %s [servername] port", argv[0]);
 
@@ -132,8 +57,8 @@ main(int argc, char *argv[])
 	putc('\n', stderr);
 	fflush(NULL);
  loop:
-	if (WSAPoll(pfd, nfd, -1) < 0)
-		ws2err(1, "poll");
+	if (poll(pfd, nfd, -1) < 0)
+		err(1, "poll");
 	i = 0;
 	while (i < nfd) {
 		if (pfd[i].revents & POLLIN)
@@ -154,11 +79,9 @@ revlookup(const struct sockaddr *addr, socklen_t addrlen)
 	switch ((i = getnameinfo(addr, addrlen,
 	    nh, sizeof(nh), np, sizeof(np),
 	    NI_NUMERICHOST | NI_NUMERICSERV))) {
-#if !(defined(_WIN32) || defined(WIN32))
 	case EAI_SYSTEM:
 		warn("getnameinfo");
 		if (0)
-#endif
 			/* FALLTHROUGH */
 	default:
 		  warnx("%s returned %s", "getnameinfo",
@@ -175,8 +98,7 @@ revlookup(const struct sockaddr *addr, socklen_t addrlen)
 static int
 do_resolve(const char *host, const char *service)
 {
-	int i;
-	SOCKET s;
+	int i, s;
 	struct addrinfo *ai, *ap;
 	int n = 0;
 
@@ -186,10 +108,8 @@ do_resolve(const char *host, const char *service)
 	ap->ai_socktype = SOCK_DGRAM;
 	ap->ai_flags = AI_ADDRCONFIG | AI_PASSIVE; /* no AI_V4MAPPED either */
 	switch ((i = getaddrinfo(host, service, ap, &ai))) {
-#if !(defined(_WIN32) || defined(WIN32))
 	case EAI_SYSTEM:
 		err(1, "getaddrinfo");
-#endif
 	default:
 		errx(1, "%s returned %s", "getaddrinfo", gai_strerror(i));
 	case 0:
@@ -207,46 +127,31 @@ do_resolve(const char *host, const char *service)
 		}
 
 		if ((s = socket(ap->ai_family, ap->ai_socktype,
-		    ap->ai_protocol)) == INVALID_SOCKET) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("socket");
-#else
+		    ap->ai_protocol)) == -1) {
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
 			warn("socket");
-#endif
 			continue;
 		}
 
 		i = 1;
 		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
 		    (const void *)&i, sizeof(i))) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("setsockopt");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
 			warn("setsockopt");
-#endif
-			closesocket(s);
+			close(s);
 			continue;
 		}
 
 		if (ECNBITS_PREP_FATAL(ecnbits_prep(s, ap->ai_family))) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("ecnbits_setup: incoming traffic class");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
 			warn("ecnbits_setup: incoming traffic class");
-#endif
-			closesocket(s);
+			close(s);
 			continue;
 		}
 		/*
@@ -256,16 +161,11 @@ do_resolve(const char *host, const char *service)
 		 */
 
 		if (bind(s, ap->ai_addr, ap->ai_addrlen)) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("bind");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
 			warn("bind");
-#endif
-			closesocket(s);
+			close(s);
 			continue;
 		}
 
@@ -283,15 +183,10 @@ static void
 do_packet(int s)
 {
 	static char data[512];
-	SSIZE_T len;
+	ssize_t len;
 	struct sockaddr_storage ss;
-#if defined(_WIN32) || defined(WIN32)
-	WSAMSG mh;
-	WSABUF io;
-#else
 	struct msghdr mh;
 	struct iovec io;
-#endif
 	unsigned short ecn;
 	time_t tt;
 	char tm[21];
@@ -311,8 +206,8 @@ do_packet(int s)
 	mh.msg_iovlen = 1;
 
 	len = ecnbits_rdmsg(s, &mh, 0, &ecn);
-	if (len == (SSIZE_T)-1) {
-		ws2warn("recvmsg");
+	if (len == (ssize_t)-1) {
+		warn("recvmsg");
 		return;
 	}
 	data[len] = '\0';
@@ -342,7 +237,7 @@ do_packet(int s)
 	    ECNBITS_DESC(ecn), tcs, data);
 
 	if ((af = ecnbits_stoaf(s)) == -1) {
-		ws2warn("getsockname");
+		warn("getsockname");
 		return;
 	}
 	/* pre-allocate one cmsg buffer to reuse */
@@ -352,11 +247,6 @@ do_packet(int s)
 	}
 	mh.msg_control = cmsgbuf;
 	mh.msg_controllen = cmsgsz;
-#if defined(_WIN32) || defined(WIN32)
-	/* avoids sendmsg(2) errors */
-	mh.msg_control = NULL;
-	mh.msg_controllen = 0;
-#endif
 
 	len = snprintf(data, sizeof(data), "%s %s %s{%s} %s -> 0",
 	    revlookup(mh.msg_name, mh.msg_namelen),
@@ -365,11 +255,7 @@ do_packet(int s)
 	do {
 		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,
 		    data[len - 1] - '0');
-		if (sendmsg(s, &mh, 0) == (SSIZE_T)-1)
-			ws2warn("sendmsg");
+		if (sendmsg(s, &mh, 0) == (ssize_t)-1)
+			warn("sendmsg");
 	} while (++data[len - 1] < '4');
 }
-
-#if defined(_WIN32) || defined(WIN32)
-#include "rpl_err.c"
-#endif
