@@ -1,0 +1,97 @@
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ECN-Bits • C/CLI for Winsock2 ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+┌─────────────┐
+│ Compilation │
+└─────────────┘
+
+On unixoid systems, this can be compiled the same way as the C/CLI
+for Linux/FreeBSD/MidnightBSD in ../c/ (see there), and in fact,
+that version makes for a better example on those platforms, unless
+Winsock2 support is a requirement.
+
+WSL (Windows Subsystem for Linux) counts as Linux for sake of porting.
+
+On Windows, run VsDevCmd.bat or similar to ensure all environment
+variables are set up correctly for building, then issue the command…
+
+	nmake
+… or…
+	nmake DEBUG=1
+
+… to build. To clean up again, run:
+	nmake clean
+
+┌───────────┐
+│ Structure │
+└───────────┘
+
+inc/ ‣ development headers (public) for the library
+lib/ ‣ library source code, manual pages (documentation)
+
+client/ and server/
+‣ example applications, see below
+
+util/ ‣ additional support files used by the client and server examples
+
+*.mk, GNUmakefile
+‣ build system for Unix and WSL
+
+NMAKE.mak, Makefile
+‣ build system for Windows (Visual Studio)
+
+┌───────────────────────┐
+│ Example client/server │
+└───────────────────────┘
+
+These applications demonstrate how to use the ECN-Bits library
+and are deliberately simple. See SCReAM for an actual example
+of how to develop L4Sified bandwidth-adaptive applications.
+
+Run the server on one system: ./server [host] port
+(The arguments are for what IP/port this should bind to.
+Numeric and NSS values are supported.)
+
+Run the client on another (or same) system: ./client host post [tc]
+(The arguments are for what system to connect to.)
+
+tc sets the outgoing traffic class: NO, ECT0, ECT1, CE, or a
+decimal, octal (leading 0) or hexadecimal (leading 0x) integer
+between 0 and 255, inclusive (default: ECT0)
+Note: when run on Windows (including WSL) this is silently ignored.
+
+The client will send a “hello” packet to the server, which
+receives it, displays a line with the timestamp it received
+the packet, whether it was truncated, which ECN bits were set,
+and its content.
+
+The server then sends a packets back, with almost the same
+content (truncation, server timestamp, received ECN bits).
+
+The client (after sending the initial packet it waits for up
+to a second for responses) displays the packet data received
+together with their ECN bits and local timestamps. (Timestamps
+are in UTC.)
+
+Both applications support IPv6 and legacy IPv4; the client
+can be used against e.g. the BSD inetd daytime service as well,
+or netcat-openbsd, for testing. The client terminates after
+one run; the server can be terminated by pressing Ctrl-C.
+
+Example session:
+
+<<<tbd>>>
+
+See ../c/README for an example session on Unix and extra caveats.
+
+┌─────────────┐
+│ Portability │
+└─────────────┘
+
+See ../c/README for portability considerations on Unix.
+
+Using v4-mapped IPv6 addresses works on WSL but not on native Windows.
+
+The traffic class for outgoing packets cannot be set under
+Windows®, native or WSL, at all. This is a system limitation.

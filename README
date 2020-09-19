@@ -51,6 +51,7 @@ Development funded by Deutsche Telekom.
   • additionally all systems the Linux/BSD C/CLI works on are supported
     (but given the Winsock2 idioms, it’s too complex an example for them)
   ! the outgoing traffic class cannot, at all, be set on Windows
+  - so the server example doesn’t do it and just sends back one packet
 
 – Windows, C♯/.net
   • planning stages

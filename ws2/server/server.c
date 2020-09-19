@@ -297,8 +297,6 @@ do_packet(int s)
 	char tm[21];
 	const char *trc;
 	int af;
-	void *cmsgbuf;
-	size_t cmsgsz;
 	char tcs[3];
 
 	io.iov_base = data;
@@ -345,29 +343,13 @@ do_packet(int s)
 		ws2warn("getsockname");
 		return;
 	}
-	/* pre-allocate one cmsg buffer to reuse */
-	if (!(cmsgbuf = ecnbits_mkcmsg(NULL, &cmsgsz, af, 0))) {
-		warn("ecnbits_mkcmsg");
-		return;
-	}
-	mh.msg_control = cmsgbuf;
-	mh.msg_controllen = cmsgsz;
-#if defined(_WIN32) || defined(WIN32)
-	/* avoids sendmsg(2) errors */
-	mh.msg_control = NULL;
-	mh.msg_controllen = 0;
-#endif
 
-	len = snprintf(data, sizeof(data), "%s %s %s{%s} %s -> 0",
+	len = snprintf(data, sizeof(data), "%s %s %s{%s} %s -> default",
 	    revlookup(mh.msg_name, mh.msg_namelen),
 	    tm, ECNBITS_DESC(ecn), tcs, trc);
 	io.iov_len = len;
-	do {
-		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,
-		    data[len - 1] - '0');
-		if (sendmsg(s, &mh, 0) == (SSIZE_T)-1)
-			ws2warn("sendmsg");
-	} while (++data[len - 1] < '4');
+	if (sendmsg(s, &mh, 0) == (SSIZE_T)-1)
+		ws2warn("sendmsg");
 }
 
 #if defined(_WIN32) || defined(WIN32)
