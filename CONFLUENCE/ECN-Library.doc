@@ -289,7 +289,7 @@ ndows 10.</p>
 <p>These operating systems do not support receiving the IP traffic class. <=
 strong>FreeBSD=C2=AE</strong> and derivatives thereof, such as <strong>Midn=
 ightBSD</strong>, however, <em>do</em> support this. The library has been t=
-ested on MidnightBSD 1.2 so far.</p>
+ested on MidnightBSD 1.2 and 2.0-CURRENT so far.</p>
 <h4 id=3D"ECNLibrary-Darwin,Solaris">Darwin, Solaris</h4>
 <p>These operating systems reportedly support receiving the IP traffic clas=
 s at least for IPv6, perhaps also for Legacy IPv4, so a port might be welco=
