@@ -96,3 +96,7 @@ also the ECN bits) is packet sniffing — while this adds
 latency and has concerns in production (security etc.),
 it’s a viable path for testing. This is being worked on
 by another team; it will be linked to later.
+
+The directory CONFLUENCE/ contains, both in importable
+form and as PDF export, an extra documentation for this
+library including screenshots.
