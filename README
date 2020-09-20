@@ -40,7 +40,7 @@ Development funded by Deutsche Telekom.
   + also on the Linux variant Android runs on, e.g. built with musl libc
   + works on WSL, except setting the outgoing traffic class silently fails
   - cannot work on NetBSD, OpenBSD and derivatives: no API to get the TC
-  ? might work on Darwin (Mac OSX and iOS)
+  ? might work on Darwin (Mac OSX and iOS), Solaris
 
 – Windows: C/CLI (ecn-bitw.lib)
   ‣ see ws2/README
