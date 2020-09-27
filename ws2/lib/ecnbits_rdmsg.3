@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: September 25 2020 $
+.Dd $Mdocdate: September 28 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -251,6 +251,7 @@ struct msghdr msg;
 struct iovec iov;
 #endif
 
+memset(&msg, 0, sizeof(msg));
 #if defined(_WIN32) \*(Ba\*(Ba defined(WIN32)
 iov.buf = buf;
 iov.len = sizeof(buf);

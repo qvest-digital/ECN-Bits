@@ -1,0 +1,231 @@
+.\" -*- mode: nroff -*-
+.\"-
+.\" Copyright © 2008, 2009, 2010, 2016, 2018, 2020
+.\"	mirabilos <m@mirbsd.org>
+.\" Copyright © 2020
+.\"	mirabilos <t.glaser@tarent.de>
+.\" Licensor: Deutsche Telekom
+.\"
+.\" Provided that these terms and disclaimer and all copyright notices
+.\" are retained or reproduced in an accompanying document, permission
+.\" is granted to deal in this work without restriction, including un‐
+.\" limited rights to use, publicly perform, distribute, sell, modify,
+.\" merge, give away, or sublicence.
+.\"
+.\" This work is provided “AS IS” and WITHOUT WARRANTY of any kind, to
+.\" the utmost extent permitted by applicable law, neither express nor
+.\" implied; without malicious intent or gross negligence. In no event
+.\" may a licensor, author or contributor be held liable for indirect,
+.\" direct, other damage, loss, or other issues arising in any way out
+.\" of dealing in the work, even if advised of the possibility of such
+.\" damage or existence of a defect, except proven that it results out
+.\" of said person’s immediate fault when using the work as intended.
+.\"-
+.\" Try to make GNU groff and AT&T nroff more compatible
+.\" * ` generates ‘ in gnroff, so use \`
+.\" * ' generates ’ in gnroff, \' generates ´, so use \*(aq
+.\" * - generates ‐ in gnroff, \- generates −, so .tr it to -
+.\"   thus use - for hyphens and \- for minus signs and option dashes
+.\" * ~ is size-reduced and placed atop in groff, so use \*(TI
+.\" * ^ is size-reduced and placed atop in groff, so use \*(ha
+.\" * \(en does not work in nroff, so use \*(en for a solo en dash
+.\" *   and \*(EM for a correctly spaced em dash
+.\" * <>| are problematic, so redefine and use \*(Lt\*(Gt\*(Ba
+.\" Also make sure to use \& *before* a punctuation char that is to not
+.\" be interpreted as punctuation, and especially with two-letter words
+.\" but also (after) a period that does not end a sentence (“e.g.\&”).
+.\" The section after the "doc" macropackage has been loaded contains
+.\" additional code to convene between the UCB mdoc macropackage (and
+.\" its variant as BSD mdoc in groff) and the GNU mdoc macropackage.
+.\"
+.ie \n(.g \{\
+.	if \*[.T]ascii .tr \-\N'45'
+.	if \*[.T]latin1 .tr \-\N'45'
+.	if \*[.T]utf8 .tr \-\N'45'
+.	ds <= \[<=]
+.	ds >= \[>=]
+.	ds Rq \[rq]
+.	ds Lq \[lq]
+.	ds sL \(aq
+.	ds sR \(aq
+.	if \*[.T]utf8 .ds sL `
+.	if \*[.T]ps .ds sL `
+.	if \*[.T]utf8 .ds sR '
+.	if \*[.T]ps .ds sR '
+.	ds aq \(aq
+.	ds TI \(ti
+.	ds ha \(ha
+.	ds en \(en
+.\}
+.el \{\
+.	ds aq '
+.	ds TI ~
+.	ds ha ^
+.	ds en \(em
+.\}
+.ie n \{\
+.	ds EM \ \*(en\ \&
+.\}
+.el \{\
+.	ds EM \f(TR\^\(em\^\fP
+.\}
+.\"
+.\" Implement .Dd with the Mdocdate RCS keyword
+.\"
+.rn Dd xD
+.de Dd
+.ie \\$1$Mdocdate: \{\
+.	xD \\$2 \\$3, \\$4
+.\}
+.el .xD \\$1 \\$2 \\$3 \\$4 \\$5 \\$6 \\$7 \\$8
+..
+.\"
+.\" .Dd must come before the macropackage-specific setup code.
+.\"
+.Dd $Mdocdate: September 28 2020 $
+.\"
+.\" Check which macro package we use, and do other -mdoc setup.
+.\"
+.ie \n(.g \{\
+.	if \*[.T]utf8 .tr \[la]\*(Lt
+.	if \*[.T]utf8 .tr \[ra]\*(Gt
+.	ie d volume-ds-1 .ds tT gnu
+.	el .ie d doc-volume-ds-1 .ds tT gnp
+.	el .ds tT bsd
+.\}
+.el .ds tT ucb
+.\"-
+.Dt ECNWS2_RECVMSG 3
+.Os ECN-Bits
+.Sh NAME
+.Nm ecnws2_recvmsg ,
+.Nm ecnws2_sendmsg
+.Nd "Winsock2 sendmsg and recvmsg wrappers with POSIX error signalling semantics, BSD sockets drop-in compatible"
+.Sh SYNOPSIS
+.In sys/types.h
+.In winsock2.h
+.In ws2tcpip.h
+.In ecn\-bitw.h
+.Ft SSIZE_T
+.Fn ecnws2_recvmsg "SOCKET handle" "LPWSAMSG msg" "int flags"
+.Ft SSIZE_T
+.Fn ecnws2_sendmsg "SOCKET handle" "LPWSAMSG msg" "int flags"
+.Sh DESCRIPTION
+The
+.Fn ecnws2_recvmsg
+and
+.Fn ecnws2_sendmsg
+functions work equivalent to the Unix system calls
+.Xr recvmsg 2
+and
+.Xr sendmsg 2 ,
+respectively, and wrap the Winsock2 functions
+.Fn WSARecvMsg
+.Pq retrieved from Fn WSAIoctl No via function pointer
+and
+.Fn WSASendMsg
+.Pq directly available as of NT 6.00 .
+.Pp
+While the calling conventions match that of the BSD socket functions,
+the actual arguments are the corresponding Winsock2 types (which
+fully map the same functionality merely using different structure
+member names).
+Overlapping sockets (a Winsock2 extension) are not supported.
+.Pp
+.Fn ecnws2_recvmsg
+receives a message from a socket; the only valid
+.Ar flags ,
+which will overwrite
+.Ar msg\-\*(GtdwFlags ,
+is
+.Ic MSG_PEEK
+.Pq or Ic 0 No of course .
+.Pp
+.Fn ecnws2_sendmsg
+sends a message over a socket.
+The
+.Ar flags
+argument can be any of
+.Ic MSG_DONTROUTE
+and
+.Ic MSG_PARTIAL ,
+or'd together, or
+.Ic 0
+of course; the
+.Ar msg\-\*(GtdwFlags
+.Pq Ar msg\-\*(Gtmsg_flags No equivalent
+member is not used.
+.Pp
+These functions are only present in the library if compiling for Windows.
+While they are shipped as part of the ECN-Bits library,
+they have in no way anything to do with access to the IP traffic
+class octet.
+They are provided as compatibility wrappers, to allow for
+easier porting BSD socket programs to Winsock2;
+.Fn ecnws2_recvmsg
+is also used internally.
+.Sh RETURN VALUES
+The
+.Fn ecnws2_recvmsg
+function returns the number of bytes received if successful;
+otherwise, the value \-1 is returned, and subsequently calling
+.Fn WSAGetLastError
+will retrieve the error code.
+.Pp
+The
+.Fn ecnws2_sendmsg
+function returns the number of bytes sent if successful;
+otherwise, the value \-1 is returned, and subsequently calling
+.Fn WSAGetLastError
+will retrieve the error code.
+.Sh EXAMPLES
+The following code fragment illustrates the usage:
+.Bd -literal -offset indent
+char buf[32];
+WSAMSG msg;
+WSABUF iov;
+
+memset(&msg, 0, sizeof(msg));
+iov.buf = buf;
+iov.len = sizeof(buf);
+msg.lpBuffers = &iov;
+msg.dwBufferCount = 1;
+if (ecnws2_recvmsg(hSocket, &msg, MSG_PEEK) == (SSIZE_T)\-1)
+	fprintf(stderr, "in recvmsg: error %08X", WSAGetLastError());
+/* inspect buf[] as beginning of next packet */
+.Ed
+.Sh ERRORS
+These functions return the same errors as the underlying Winsock2 APIs.
+.Sh SEE ALSO
+.Pa https://docs.microsoft.com/en\-us/previous\-versions/windows/desktop/legacy/ms741687(v=vs.85)
+.Pp
+.Pa https://docs.microsoft.com/en\-us/windows/win32/api/winsock2/nf\-winsock2\-wsasendmsg
+.Pp
+.Pa https://github.com/tarent/ECN\-Bits Ns \*(EMhome of the ECN-Bits library
+.Sh AUTHORS
+.An mirabilos Aq t.glaser@tarent.de
+for Deutsche Telekom.
+.Sh CAVEATS
+The
+.Fn WSARecvMsg
+function pointer is cached; therefore,
+.Fn ecnws2_recvmsg
+may not be used with sockets created using a different
+.Pq non-default
+Winsock service provider.
+.Pp
+If the
+.Fn WSAIoctl SIO_GET_EXTENSION_FUNCTION_POINTER WSAID_WSARECVMSG
+call to obtain
+.Ic WSARecvMsg
+fails,
+.Fn ecnws2_recvmsg
+will return \-1, but the last error code will be that of
+.Ic WSAIoctl .
+A subsequent
+.Fn ecnws2_recvmsg
+call will retry the ioctl, always using the provided socket
+.Ar handle .
+.Sh LICENCE
+The MirOS Licence
+.Pq short name : Li MirBSD
