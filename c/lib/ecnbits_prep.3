@@ -122,7 +122,7 @@ This works well with datagram sockets (UDP); use with stream sockets
 change the sent traffic class value; operating on v4-mapped IPv6 sockets
 .Pq Li ::FFFF.0.0.0.0/96
 may be unsupported (although known to work under Linux/Android/WSL);
-no outgoing traffic class can be set under Windows\(rg or WSL.
+no outgoing traffic class can be set under Windows\(rg or WSL 1.
 These functions are thread-safe.
 .Pp
 The
@@ -247,7 +247,7 @@ on Windows\(rg environments, although setting it on outgoing packets isn't.
 for Deutsche Telekom.
 .Sh CAVEATS
 Using v4-mapped IPv6 sockets should be avoided; it only works on Linux
-.Pq "including Android and WSL but not native Windows" ,
+.Pq "including Android and WSL 1 but not native Windows" ,
 if even that.
 .Sh LICENCE
 The MirOS Licence

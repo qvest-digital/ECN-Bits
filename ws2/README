@@ -108,10 +108,10 @@ See ../c/README for an example session on Unix and extra caveats.
 
 See ../c/README for portability considerations on Unix.
 
-Using v4-mapped IPv6 addresses works on WSL but not on native Windows.
+Using v4-mapped IPv6 addresses works on WSL 1 but not on native Windows.
 
 The traffic class for outgoing packets cannot be set under
-Windows®, native or WSL, at all. This is a system limitation.
+Windows®, native or WSL 1, at all. This is a system limitation.
 For this reason this version (ws2/ aka libecn-bitw) does not
 ship certain functions dealing with outgoing traffic class
 setting; if needed, the c/ (libecn-bits) version contains them.

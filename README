@@ -38,7 +38,8 @@ Development funded by Deutsche Telekom.
   • CLI client and server examples (run for usage instructions)
   + known working on Linux, FreeBSD/MidnightBSD
   + also on the Linux variant Android runs on, e.g. built with musl libc
-  + works on WSL, except setting the outgoing traffic class silently fails
+  + works on WSL 1, except setting the outgoing traffic class silently fails
+  ? testing needed on WSL 2
   - cannot work on NetBSD, OpenBSD and derivatives: no API to get the TC
   ? might work on Darwin (Mac OSX and iOS), Solaris
 

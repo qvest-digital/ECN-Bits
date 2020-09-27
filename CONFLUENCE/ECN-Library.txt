@@ -64,6 +64,10 @@ Technical details
  Windows”). Retrieving the traffic class is possible in all supported
  versions of the operating system; it has been tested on Windows 10.
 
+ Note: WSL here means WSL 1 throughout the documentation. WSL 2 is
+ basically a Linux virtual machine with separate networking; this
+ needs distinct testing.
+
 ‣‣‣NetBSD®, OpenBSD and derivatives thereof
 
  These operating systems do not support receiving the IP traffic class.

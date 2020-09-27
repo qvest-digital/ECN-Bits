@@ -134,11 +134,11 @@ accept that (but since they disable v4-mapped by default,
 this is no problem in reality). This library only attempts
 somewhat supporting this on Linux, as Android uses that.
 As implication, binding to only an IPv6 address, server-side,
-may not work except perhaps on Linux (including WSL, but
+may not work except perhaps on Linux (including WSL 1, but
 excluding native Windows/Winsock2).
 
 Use in multi-threaded applications is safe if the conditions
 documented under CAVEATS in ecnbits_rdmsg(3) are met.
 
 The traffic class for outgoing packets cannot be set under
-Windows®, native or WSL, at all. This is a system limitation.
+Windows®, native or WSL 1, at all. This is a system limitation.
