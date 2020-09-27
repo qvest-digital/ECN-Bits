@@ -28,7 +28,6 @@ Development funded by Deutsche Telekom.
     ! targetting Android 8 (Oreo, API 26/27) and up
     ! only tested on Android 8; higher versions need extra workarounds
     - no equivalent for DatagramChannel (probably unfeasible)
-    – Netty integration: considered, not yet implemented
     : Status: mostly done; cleaning up and documenting; testing on 9/10
   • demo client GUI application
 

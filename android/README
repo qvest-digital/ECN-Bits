@@ -8,8 +8,6 @@ There’s no equivalent function for DatagramChannel, and
 it is not likely one will be added, as some involved classes
 are “final” and so not extensible.
 
-Netty integration is possible, as future extension.
-
 The current implementation tries to reuse as much of the
 system implementation as possible, using reflection and
 proxying to gain access to it. From Android 9 onwards, each
