@@ -31,7 +31,7 @@ Development funded by Deutsche Telekom.
     : Status: mostly done; cleaning up and documenting; testing on 9/10
   • demo client GUI application
 
-– Linux/BSD: C/CLI (libecn-bits.a/so)
+– BSD/Linux/WSL: C/CLI (libecn-bits.a/so)
   ‣ see c/README
   • library, manpages
   • CLI client and server examples (run for usage instructions)
@@ -42,18 +42,20 @@ Development funded by Deutsche Telekom.
   - cannot work on NetBSD, OpenBSD and derivatives: no API to get the TC
   ? might work on Darwin (Mac OSX and iOS), Solaris
 
-– Windows: C/CLI (ecn-bitw.lib)
+– Windows: C/CLI (ecn-bitw.lib; libecn-bitw.a)
   ‣ see ws2/README
-  • library, CLI client/server examples, copied from Linux/BSD C/CLI
-    but adapted for Winsock2
+  • library, CLI client/server examples, copied from BSD/Linux/WSL C/CLI
+    but adapted for Winsock2 (supersetting: keeping BSD sockets support
+    so all systems that the BSD/Linux/WSL runs on can be used, modulo
+    removed functionalitty (see below) and applications needing to honour
+    some Winsock2 specifics to remain portable)
   • manpages including preformatted plaintext form for GUI users
-  • tested on Windows 10
-  • additionally all systems the Linux/BSD C/CLI works on are supported
-    (but given the Winsock2 idioms, it’s too complex an example for them)
+  • tested on Windows 10, versions 1909 (WSL 1, WinSock), 2004 (WSL 2)
   ! the outgoing traffic class cannot, at all, be set on Windows
   - so the server example doesn’t do it and just sends back one packet
   - functions dealing with setting the outgoing tc were also removed
-  : Status: documentation of differences to Linux/BSD necessary
+  : Status: finalising documentation of differences to Linux/BSD
+            and installing WSL 2 to test with that
 
 – Windows, C♯/.net
   • planning stages
@@ -97,6 +99,7 @@ latency and has concerns in production (security etc.),
 it’s a viable path for testing. This is being worked on
 by another team; it will be linked to later.
 
-The directory CONFLUENCE/ contains, both in importable
-form and as PDF export, an extra documentation for this
-library including screenshots.
+The directory CONFLUENCE/ contains extra documentation,
+in both importable form (*.doc) and as PDF export, with
+a plaintext version to improve legibility and grepping,
+for this library and demo programs, with screenshots.

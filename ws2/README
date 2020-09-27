@@ -20,7 +20,7 @@ variables are set up correctly for building, then issue the command…
 … or…
 	nmake DEBUG=1
 
-… to build. To clean up again, run:
+… in the top-level “ws2\” directory to build. To clean up again, run:
 	nmake clean
 
 Link a program against ecn-bitw.lib (Unix: with -lecn-bitw) to use
