@@ -1,0 +1,508 @@
+About
+
+ The ECN library is a collection of utility functions and examples that
+ demonstrate, for various operating environments, how to get the ECN
+ bits (which are part of the IP traffic class) out of the IPv6 or Legacy
+ IPv4 header of a datagram (UDP) packet.
+
+	https://en.wikipedia.org/wiki/Explicit_Congestion_Notification
+
+ Development of the ECN library was funded by Deutsche Telekom. It is
+ published as Open Source (see below).
+
+ For TCP connections, the operating system already takes care of
+ signalling back ECN information using the ECE (ECN echo) and CWR
+ (congestion window reduced) mechanisms native to ECN with TCP.
+ Therefore, this library is not useful for, or even usable on, TCP
+ sockets.
+
+	https://en.wikipedia.org/wiki/Explicit_Congestion_Notification#Operation_of_ECN_with_TCP
+
+‣Use case
+
+ This functionality would be used by adaptive managed latency-aware
+ applications, such as video streaming, as follows: The client
+ application, running in user equipment (such as a laptop, multimedia
+ box, or smartphone), would collect the percentage of received packets
+ that have the ECN “CE” (congestion experienced) bit combination set,
+ and report that regularily (e.g. every 20–50 ms) to the server, which
+ can then use a rate-adjusting algorithm (such as SCReAM) to reduce (if
+ congestion was experienced) or increase (up to the connection maximum)
+ the data rate (e.g. video stream quality and pixel size). Similarily,
+ the server can utilise this technology to verify that the packets sent
+ from the client back to the server are not congested.
+
+	https://github.com/EricssonResearch/scream
+
+‣Alternatives
+
+ On operating systems that do not support retrieving the IP traffic
+ class, using a “raw” socket for receiving datagrams and decoding the IP
+ header manually is discussed at several places in the internet. This is
+ a rather fragile method.
+
+ For most operating systems, a packet sniffer can be used to retrieve
+ the information from the IP header of a connection as well. This method
+ has multiple concerns (security-wise, a packet sniffer is always
+ problematic; added latency from the sniffing process; a disconnect
+ between retrieval of the packet payload and other metadata vs. the
+ sniffed IP header) but is a valid alternative for testing. This is
+ persued independently in another project. (Which will be linked to from
+ here once available.)
+
+Technical details
+
+‣Caveats
+
+‣‣Operating system-specific
+
+‣‣‣Microsoft® Windows®
+
+ Windows does not support setting the traffic class on outgoing packets
+ at all. This also affects WSL (Windows Subsystem for Linux, i.e.
+ running Linux applications unmodified on Windows, a.k.a. “bash for
+ Windows”). Retrieving the traffic class is possible in all supported
+ versions of the operating system; it has been tested on Windows 10.
+
+‣‣‣NetBSD®, OpenBSD and derivatives thereof
+
+ These operating systems do not support receiving the IP traffic class.
+ FreeBSD® and derivatives thereof, such as MidnightBSD, however, do
+ support this. The library has been tested on MidnightBSD 1.2 and
+ 2.0-CURRENT so far.
+
+‣‣‣Darwin, Solaris
+
+ These operating systems reportedly support receiving the IP traffic
+ class at least for IPv6, perhaps also for Legacy IPv4, so a port might
+ be welcome.
+
+‣‣Use of “v4-mapped” IPv6 addresses
+
+ Background: with “v4-mapped” addresses, an application can use an IPv6
+ socket to listen to not only IPv6 but also Legacy IPv4 connections.
+ This can make application design easier (handling only one socket in a
+ blocking way, instead of using select or poll on multiple sockets) but
+ is inherently fragile and not recommended. The use case of retrieving
+ the IP traffic class is especially tricky, as the system has to deal
+ with Legacy IPv4 operations on presumably IPv6 sockets, which is not
+ universally implemented.
+
+ FreeBSD® and derivatives disable the use of v4-mapped addresses by
+ default, so this is not usually a concern on these operating systems.
+ If enabled, however, the traffic class cannot be read from such
+ connections.
+
+ Linux usually supports this use case on v4-mapped addresses. In fact,
+ Android uses only IPv6 sockets internally and so relies on this. It is
+ not, however, guaranteed to work on all Linux systems, so its use is
+ nevertheless discouraged.
+
+ Windows does not support reading the traffic class from v4-mapped IPv6
+ sockets under Winsock2 (the native sockets API). On the other hand,
+ applications running under WSL do support this, mirroring Linux
+ support.
+
+‣Supported operating environments
+
+ Please refer to the associated README files in each solution for
+ further information.
+
+‣‣C / Command line: Unix (Linux including WSL, FreeBSD/MidnightBSD, Winsock2 on Windows)
+
+ The solution for unixoid (BSD sockets) or Winsock2 environments is
+ comprised of a library (which can be included in applications) and two
+ example programs, a client and a server.
+
+ This solution comes in two flavours: the standard Unix solution (for
+ use with BSD sockets) and one adapted for Winsock2. The latter does
+ function on all systems supported by the former, but it includes
+ massive amounts of compatibility definitions and glue code to make
+ things work under Winsock2 as well, so it’s too complex to be a good
+ example for regular Unix systems. In addition, the Winsock2 variant
+ omits the functionality needed to support setting the outgoing IP
+ traffic class, as this is unsupported under Windows and can lead to
+ failures to send packets if attempted.
+
+ The standard solution is shipped in the c/ subdirectory of the
+ repository, the Winsock2 variant in the ws2/ subdirectory.
+
+‣‣‣The library
+
+ … consists of a C header file (in the inc/ subdirectory) and a static
+ and, for Unix, shared library, as well as associated documentation in
+ the form of manual pages, as is customary for Unix environments. The
+ library source code and manual pages are located in the lib/
+ subdirectory.
+
+ This library can be used from all programming languages and frameworks
+ that allow calling C libraries, either directly (e.g. from C++) or via
+ a foreign function interface (e.g. from Python3). It contains functions
+ for:
+
+  • setting up a socket (file descriptor on Unix, SOCKET handle on
+    Winsock2) for use with the library
+
+  • (Unix only) setting the default outgoing traffic class on a socket
+
+  • a native function to receive data from a socket and write the
+    traffic class to a supplied extra parameter, which functions like
+    recvmsg() but fills in the msg_control and msg_controllen members of
+    struct msghdr (Winsock2: the Control member of WSAMSG) itself if
+    necessary
+
+  • wrappers around the functions recv(), recvfrom() and recvmsg() as
+    well as read() as applied to sockets (with a small semantic
+    difference regarding zero-length datagrams) that also write the
+    traffic class to a supplied extra parameter
+
+  • macros to validate the received traffic class and split it into DSCP
+    and ECN bits, as well as formatting them into human-readable texts
+
+	https://en.wikipedia.org/wiki/Differentiated_services
+	https://en.wikipedia.org/wiki/Explicit_Congestion_Notification
+
+  • utility functions:
+
+      • (Unix only) prepare a control message for use with sendmsg() to
+        set the outgoing traffic class for one specific packet
+
+      • (Winsock2 only) replacements for the functions sendmsg() and
+        recvmsg() using Unix-style semantics
+
+      • (both) determine whether a socket is IPv6, Legacy IPv4, or
+        something else
+
+ To use the library within a framework, the framework must expose the
+ bare file descriptor (Winsock2: SOCKET handle) so the library call to
+ prepare it can be used, and the framework’s method of receiving packets
+ must be replaced with one of the wrapped calls. (The Android library
+ (see below) does something like this, except it’s much more complicated
+ because Google.)
+
+‣‣‣The example server
+
+ The server is called with just one option (the port number to listen on
+ on all interfaces) or two (the IP address and port number to listen
+ on). It then runs in the foreground, waiting for incoming packets until
+ it is aborted with ^C (Ctrl-C).
+
+ When a packet arrives, it displays one line of information about the
+ packet (see below) and sends four (Unix) packets or one (Winsock2)
+ packet back. The return packets contain most of the information
+ displayed (see below) except for the user data. The four packets sent
+ back by the Unix server differ only in ECN bits (00, 01, 10, 11 are
+ sent in this order); the Winsock2 version does not set the outgoing ECN
+ bits for the reasons outlined above.
+
+ The information displayed (and sent back) is:
+
+  • the timestamp of when the server received the packet, in
+    server-local time using the UTC timezone
+
+  • whether the packet was truncated (if the internal buffer was too
+    small) for either user data or control data (traffic class); this
+    should always read notrunc because the buffers should be sized large
+    enough and is useful for debugging
+
+  • the source address of the packet (the IP address in square brackets,
+    followed by a colon and the port number)
+
+  • which ECN bits were set on the received packets as follows, plus the
+    IP traffic class octet as two-digit hexadecimal number in curly
+    braces (or double question marks if it could not be determined)
+      • no ECN — 00
+      • ECT(0) — 10
+      • ECT(1) — 01
+      • ECN CE — 11
+      • ??ECN? — unknown, could not be determined from the packet
+
+  • the user data, i.e. the payload of the packet received, without a
+    trailing newline, between angle brackets (this is not sent back)
+
+‣‣‣The example client
+
+ The client is run with two arguments: the IP address (or hostname) of
+ the server to connect to, and a port number. The standard variant also
+ accepts an optional third parameter setting the outgoing traffic class.
+
+ The client then sends one packet with the payload “hi!” to the server
+ (if the server resolves to multiple addresses, all are tried in order)
+ and waits for incoming packets from it. One second after the last
+ packet was received, it tries the next address or terminates. If no
+ address could be reached, it issues an appropriate error message.
+
+ The client also displays, for each packet, a line consisting of:
+
+  • the timestamp of when the client received the answer packet, in
+    client-local time using the UTC timezone
+
+  • which ECN bits were set and the traffic class octet in hex (see
+    above)
+
+  • the payload between angle brackets
+
+ The client can also be tested against, for example, the daytime
+ (udp/13) server built into inetd.
+
+‣‣‣Screenshot
+
+ ⇒ ss-Unix.png [Screenshot of the Unix/Winsock2 example client and server]
+
+ The screenshot shows four terminal windows:
+
+    upper left: Unix C/CLI server compiled as Linux application, running in WSL on Windows 10
+    upper right: Winsock2 C/CLI client compiled with Visual Studio, running on Windows 10
+    lower left: Unix C/CLI client running on Debian GNU/Linux
+    lower right: Unix C/CLI server running on MidnightBSD
+
+ The red arrows show which client invocation led to which server display line.
+
+‣‣‣Legal
+
+ The entire C/CLI solution, in either variant, is published under The
+ MirOS Licence and thus Open Source using the permissive model (use only
+ requires attribution).
+
+	http://www.mirbsd.org/MirOS-Licence.htm
+
+‣‣Java & JNI — DatagramSocket: Android
+
+ This first solution for Android is comprised of two modules (the AAR
+ library and an APK demo äpp) in a standard IntelliJ (Android Studio)
+ project and is shipped in the android/ subdirectory. It is designed for
+ Android 8 “Oreo” (the oldest currently supported release) and newer,
+ but currently has been tested on Android 8 only (later versions are
+ likely to require some extra intervention, see below).
+
+ The AAR library is not published to a central Maven repository but
+ designed as a component that can be embedded into other projects (with
+ a few clicks in Android Studio). It comes in the ecn-lib/ subdirectory,
+ whereas the app/ subdirectory holds the example GUI application.
+
+‣‣‣Technical difficulties
+
+ We could identify three ways Android developers would communicate using
+ UDP (feel free to suggest more):
+  • DatagramSocket
+  • DatagramChannel
+  • Netty
+
+ We also expect use of libraries, such as WebRTC libraries utilising RTP
+ over UDP. To what amount such libraries can be patched to call the
+ ECN-Bits library functions remains to be seen.
+
+ Unfortunately, anything using DatagramChannel (NIO) is out for now: the
+ class is declared as final and thus cannot be extended. This also
+ includes the NIO channels of Netty (although its OIO channels might
+ work).
+
+ DatagramSocket is not declaread as final, and one can even set a
+ factory for the underlying DatagramSocketImpl which implements socket
+ creation and I/O. From this, we have created an ECNBitsDatagramSocket
+ that uses an ECNBitsDatagramSocketImpl to do the heavy lifting and
+ proxys calls to retrieve the IP traffic class for the last received
+ packet. (We wanted to extend DatagramPacket, adding one field, but
+ since that class is also declared as final, that turned out to not be
+ possible.)
+
+ Unfortunately, Google are attempting to cut down on access to internal
+ APIs (such as retrieving the underlying file descriptor for a socket,
+ see above). This has several bad implications:
+
+  • Google are hiding entire classes, such as
+    java.net.PlainDatagramSocketImpl (the system DatagramSocketImpl
+    normally used), from the SDK. Not even shadowing it at compile time
+    works any more as of Android 8. We worked around this by using
+    reflection to instantiate an object of the system implementation and
+    proxying most calls to it.
+
+  • Google are hiding functions, such as the one to get the actual file
+    descriptor integer handle from the FileDescriptor associated with a
+    socket. As of Android 8, reflection can be used to work around this.
+
+  • Android 9 and 10 will require extra measures to re-enable these
+    reflection calls
+
+  • Android 11 and up will refuse these reflection calls
+
+ The best fix would be a Google-provided API to access the IP traffic
+ class. No such API exists as of the time of this writing.
+
+ It would be possible to basically copy and redo the entire system
+ implementation into one of our own with more JNI (which means we can
+ manage the socket filedescriptor fully ourselves). This would be more
+ future-safe but involve major programming effort. (This is why this
+ solution was called the first Android solution above: a second solution
+ replicating the system implementation more fully would be the second,
+ improved, solution.)
+
+‣‣‣Network difficulties
+
+ Note that networks may not pass along the ECN bits (or the IP traffic
+ class byte really). In particular, the Android emulator does not
+ support passing that information along. For testing, you can run the
+ client äpp against a CLI server running under adb shell; it would be
+ best to test this on bare metal (real physical smartphones); note that
+ most phones will refuse the installation of an unsigned äpp, so either
+ install the debug APK or apksign the äpp before installing.
+
+‣‣‣The example application
+
+ The example Android äpp is only a client. It draws a UI which has input
+ fields for IP address or hostname, port, and outgoing traffic class,
+ like the C/CLI example client. It also has three buttons:
+
+  • Send Packet: uses ECNBitsDatagramSocket to send out a packet and
+    wait 1 s for answers, like the CLI client does
+
+  • Start Channel: uses NIO DatagramChannel to continously send and
+    receive packets in multiple threads; this was written before it
+    became clear that it is probably impossible to extend the NIO
+    channel
+
+  • Licences: displays what Google’s standard library thinks are the
+    licences of the dependencies of the äpp
+
+ So, only the “Send Packet” button is really useful at the moment.
+
+ Below the buttons, textual output (output lines separated with thin
+ lines) will be shown; the content is similar to what the C/CLI example
+ client shows, except the payload is displayed after a linebreak
+ (portrait format) or ‘│’ separator (landscape format).
+
+‣‣‣Screenshot
+
+ ⇒ ss-Android.png [Screenshot of the Android example client app]
+
+ This screenshot shows an AVD emulator on the right-hand side, which
+ runs the example client äpp. On the left-hand side, it shows two adb
+ shell windows, the upper executing the C/CLI server, the lower
+ executing the client. The first server line was caused by the CLI
+ client, the second by the Android äpp client.
+
+ The C/CLI client and server used in this example were compiled to match
+ the target CPU (x86 for the emulator, ARM for real hardware) and
+ statically linked using musl libc, so they run directly on the Linux
+ kernel that underlies Android, without going through the Android
+ frameworks.
+
+	https://musl.libc.org/
+
+‣‣‣Legal
+
+ Most of the Android solution, as much as copyright law applies to it
+ (some parts are from the Android Studio template or SDK documentation),
+ is, like the C/CLI solution, published under The MirOS Licence and thus
+ Open Source using the permissive model (use only requires attribution).
+
+	http://www.mirbsd.org/MirOS-Licence.htm
+
+ Some parts of the Android library are copied from the system
+ implementation. These parts are published under the GNU GPL, version 2
+ only, with the GNU Classpath Exception, as outlined in its LICENCE
+ file. As long as you only use the library in an otherwise independent
+ project, the conditions of the GPL do not apply to the whole, but you
+ will have to give the source code of the ECN-Bits Android library to
+ recipients of your program. (If you don’t modify the library, pointing
+ them to the ECN-Bits project or bundling it alongside your software
+ will usually be sufficient.)
+
+	https://github.com/tarent/ECN-Bits/blob/019a9770018f17502bdb7f10e23161634818a2e4/android/ecn-lib/src/main/resources/COPYING
+	https://github.com/tarent/ECN-Bits/blob/019a9770018f17502bdb7f10e23161634818a2e4/android/ecn-lib/src/main/resources/LICENCE.ecn-lib
+
+ Note that both of these licences apply to the ECN-Bits Android library,
+ and in distributing it, both must be adhered to.
+
+‣‣C♯/VB.net: Windows/Mono .net Common Language Runtime
+
+ While support for this platform might be worthwhile, there currently is
+ none yet.
+
+‣‣Apple iOS
+
+ While support for this platform is worthwhile, there currently is none
+ yet.
+
+‣Utilising the library
+
+ See the individual solutions’ README files for compilation
+ instructions.
+
+‣‣C solution
+
+ For environments that support inclusion of C libraries directly, such
+ as C++, include the appropriate header <ecn-bits.h> (Unix) or
+ <ecn-bitw.h> (Winsock2) after any necessary network headers such as
+ <sys/socket.h> and network headers (Unix) or <winsock2.h> and
+ <ws2tcpip.h> (Windows). Then link the application against -lecn-bits
+ (Unix), -lecn-bitw (Winsock2 on Unix) or ecn-bitw.lib (Windows). Mind
+ that the Unix library is available as static and shared library; use
+ the static library (possibly build the library with NOPIC=Yes) if it is
+ to not become a run-time dependency. The Winsock2 version deliberately
+ does not build a shared library on Unix, and there has not been any
+ request for building a DLL on Windows, so the build system has not yet
+ been extended to do so.
+
+ For environments with a foreign function interface, convert the
+ information found in the appropriate header (see above) to FFI bindings
+ and link against the appropriate library (see above) or dynamically
+ load it.
+
+ At a minimum, call ecnbits_prep() to set up the socket and use
+ ecnbits_rdmsg() or one of the wrapper functions to receive packets.
+
+ Please read the example client and/or server program source code to see
+ how this works.
+
+‣‣‣Linux 2.6.14+, FreeBSD 5.2+ (and derivatives like MidnightBSD), Windows 10
+
+ should work out of the box
+
+‣‣‣Windows Server 2016 and newer
+
+ should work, untested
+
+‣‣‣Darwin (Mac OSX, iOS), Solaris
+
+ can probably be ported to these systems if there is interest
+
+‣‣Android solution
+
+ Import the ecn-lib/ subdirectory into your project. According to the
+ documentation it will become part of your project’s source code.
+
+	https://developer.android.com/studio/projects/android-library#AddDependency
+
+ Create an ECNBitsDatagramSocket instead of a simple DatagramSocket and
+ use the return value of its retrieveLastTrafficClass() method with the
+ de.telekom.llcto.ecn_bits.android.lib.Bits enum’s static methods.
+
+ A means to automatically collect statistics over received packets for
+ retrieving in intervals is being worked on.
+
+‣‣‣Android 8
+
+ should work out of the box
+
+‣‣‣Android 9
+
+ tbd (needs testing)
+	https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces#how_can_i_enable_access_to_non-sdk_interfaces
+
+‣‣‣Android 10
+
+ tbd (needs testing)
+	https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces#how_can_i_enable_access_to_non-sdk_interfaces
+
+Download
+
+ The ECN-Library source code repository, which contains all of the
+ solutions outlined above, including extra documentation, can be
+ downloaded from the public GitHub project:
+
+  • https://github.com/tarent/ECN-Bits
+
+ Due to the fact that the libraries themselves are rather small, and the
+ extra usage examples are the primary value of the repository, no
+ pre-compiled binaries are distributed.
