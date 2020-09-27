@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: September 18 2020 $
+.Dd $Mdocdate: September 25 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -246,7 +246,8 @@ on Windows\(rg environments, although setting it on outgoing packets isn't.
 .An mirabilos Aq t.glaser@tarent.de
 for Deutsche Telekom.
 .Sh CAVEATS
-Using v4-mapped IPv6 sockets should be avoided; it only works on Linux,
+Using v4-mapped IPv6 sockets should be avoided; it only works on Linux
+.Pq "including Android and WSL but not native Windows" ,
 if even that.
 .Sh LICENCE
 The MirOS Licence

@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: July 31 2020 $
+.Dd $Mdocdate: September 25 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -104,14 +104,37 @@
 .Nd "receive a message (read a packet) from a socket and determine the traffic class including ECN bits"
 .Sh SYNOPSIS
 .In sys/types.h
+.br
+#if defined(_WIN32) \*(Ba\*(Ba defined(WIN32)
+.br
+.In winsock2.h
+.In ws2tcpip.h
+.br
+#else
+.br
 .In sys/socket.h
+.br
+#endif
+.br
 .In ecn\-bitw.h
-.Ft ssize_t
-.Fn ecnbits_read "int socketfd" "void *buf" "size_t buflen" "unsigned short *ecnresult"
-.Ft ssize_t
-.Fn ecnbits_recv "int socketfd" "void *buf" "size_t buflen" "int flags" "unsigned short *ecnresult"
-.Ft ssize_t
-.Fn ecnbits_recvfrom "int socketfd" "void *buf" "size_t buflen" "int flags" "struct sockaddr *src_addr" "socklen_t *addrlen" "unsigned short *ecnresult"
+.Ft SSIZE_T
+.Fn ecnbits_read "SOCKET fd" "void *buf" "size_t buflen" "unsigned short *ecnresult"
+.Ft SSIZE_T
+.Fn ecnbits_recv "SOCKET fd" "void *buf" "size_t buflen" "int flags" "unsigned short *ecnresult"
+.Ft SSIZE_T
+.Fn ecnbits_recvfrom "SOCKET fd" "void *buf" "size_t buflen" "int flags" "struct sockaddr *src_addr" "socklen_t *addrlen" "unsigned short *ecnresult"
+.Pp
+.ie "\*(tT"gnu" .nr in-synopsis-section 0
+.el .if "\*(tT"gnp" .nr doc-in-synopsis-section 0
+.el .nr nS 0
+.\" that above restored normal formatting for this Pp until next Sh
+Outside of Winsock2, the
+.Vt SOCKET
+type is
+.Vt int ;
+.Vt SSIZE_T
+is spelt
+.Vt ssize_t .
 .Sh DESCRIPTION
 The
 .Fn ecnbits_read
@@ -141,7 +164,9 @@ is
 these functions just pass control to the equivalent system function.
 Otherwise, an equivalent
 .Xr recvmsg 2
-system call is executed in order to be able to determine the
+system call
+.Pq on Winsock2: Fn ecnws2_recvmsg No library call
+is executed in order to be able to determine the
 traffic class octet of the received packet.
 .Pp
 If
@@ -149,7 +174,7 @@ If
 is not
 .Dv NULL
 and the call was successful
-.Pq did not return Li (ssize_t)\-1 ,
+.Pq did not return Li (SSIZE_T)\-1 ,
 the location pointed to by
 .Ar ecnresult
 will, upon return, contain the traffic class of the received packet, in
@@ -181,13 +206,17 @@ functions return the number of bytes received if successful;
 otherwise the value \-1 is returned and the global variable
 .Va errno
 is set to indicate the error.
+.Pp
+On Winsock2,
+.Fn WSAGetLastError
+must be used to retrieve the error code.
 .Sh EXAMPLES
 The following code fragment illustrates the usage:
 .Bd -literal -offset indent
 char buf[512];
 unsigned short ecnresult;
 
-if (ecnbits_read(fd, buf, sizeof(buf), &ecnresult) == (size_t)\-1)
+if (ecnbits_read(fd, buf, sizeof(buf), &ecnresult) == (SSIZE_T)\-1)
 	err(1, "read");
 if (ECNBITS_VALID(ecnresult))
 	printf("%s\en", ecnbits_meanings[ECNBITS_BITS(ecnresult)]);
@@ -213,7 +242,8 @@ otherwise.
 .Xr recvmsg 2 ,
 .Xr ECNBITS_BITS 3 ,
 .Xr ecnbits_prep 3 ,
-.Xr ecnbits_rdmsg 3
+.Xr ecnbits_rdmsg 3 ,
+.Xr ecnws2_recvmsg 3
 .Pp
 .Bl -tag -width 2n
 .It Pa https://github.com/tarent/ECN\-Bits

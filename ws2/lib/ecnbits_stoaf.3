@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: September 18 2020 $
+.Dd $Mdocdate: September 25 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -101,9 +101,37 @@
 .Nm ecnbits_stoaf
 .Nd ECN-Bits utility function
 .Sh SYNOPSIS
+.In sys/types.h
+.br
+#if defined(_WIN32) \*(Ba\*(Ba defined(WIN32)
+.br
+.In winsock2.h
+.In ws2tcpip.h
+.br
+#else
+.br
+.In sys/socket.h
+.br
+#endif
+.br
 .In ecn\-bitw.h
 .Ft int
-.Fn ecnbits_stoaf "int socketfd"
+.Fn ecnbits_stoaf "SOCKET handle"
+.Pp
+.ie "\*(tT"gnu" .nr in-synopsis-section 0
+.el .if "\*(tT"gnp" .nr doc-in-synopsis-section 0
+.el .nr nS 0
+.\" that above restored normal formatting for this Pp until next Sh
+Outside of Winsock2, the
+.Vt SOCKET
+type is just an
+.Vt int .
+.Pp
+There is no equivalent for the
+.Ux
+variant
+.Fn ecnbits_mkcmsg
+function.
 .Sh DESCRIPTION
 The
 .Fn ecnbits_stoaf
@@ -125,12 +153,16 @@ or
 if successful; otherwise the value \-1 is returned and the global variable
 .Va errno
 is set to indicate the error.
+.Pp
+On Winsock2,
+.Fn WSAGetLastError
+must be used to retrieve the error code.
 .Sh ERRORS
 .Fn ecnbits_stoaf
 returns any errors returned by
 .Xr getsockname 2
 as well as
-.Dv EAFNOSUPPORT
+.Dv WSAEAFNOSUPPORT
 if the socket is not of a supported address family.
 .Sh SEE ALSO
 .Xr getsockname 2 ,

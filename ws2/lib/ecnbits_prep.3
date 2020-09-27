@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: September 18 2020 $
+.Dd $Mdocdate: September 25 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -102,10 +102,36 @@
 .Nd set up a socket to retrieve packets' ECN bits
 .Sh SYNOPSIS
 .In sys/types.h
+.br
+#if defined(_WIN32) \*(Ba\*(Ba defined(WIN32)
+.br
+.In winsock2.h
+.In ws2tcpip.h
+.br
+#else
+.br
 .In sys/socket.h
+.br
+#endif
+.br
 .In ecn\-bitw.h
 .Ft int
-.Fn ecnbits_prep "int socketfd" "int af"
+.Fn ecnbits_prep "SOCKET handle" "int af"
+.Pp
+.ie "\*(tT"gnu" .nr in-synopsis-section 0
+.el .if "\*(tT"gnp" .nr doc-in-synopsis-section 0
+.el .nr nS 0
+.\" that above restored normal formatting for this Pp until next Sh
+Outside of Winsock2, the
+.Vt SOCKET
+type is just an
+.Vt int .
+.Pp
+There is no equivalent for the
+.Ux
+variant
+.Fn ecnbits_tc
+function.
 .Sh DESCRIPTION
 The
 .Fn ecnbits_prep
@@ -119,7 +145,7 @@ may be unsupported (although known to work under Linux/Android/WSL).
 This function is thread-safe.
 .Pp
 The
-.Ar socketfd
+.Ar handle
 itself is not changed, but a few socket options are enabled.
 For this to work, the
 .Ar af
@@ -139,15 +165,19 @@ support could not be set up (compare against
 .Dv ECNBITS_PREP_FATAL
 .Pq see Sx EXAMPLES No below
 to determine if this should be ignored), and 0 on success.
+.Pp
+On Winsock2,
+.Fn WSAGetLastError
+must be used to retrieve the error code.
 .Sh EXAMPLES
 The following code fragment illustrates the usage:
 .Bd -literal -offset indent
-int fd;
+SOCKET handle;
 
-if ((fd = socket(AF_INET6, SOCK_DGRAM, 0)) == \-1)
+if ((handle = socket(AF_INET6, SOCK_DGRAM, 0)) == INVALID_SOCKET)
 	err(1, "socket");
 /* do other setsockopt, if needed */
-if (ECNBITS_PREP_FATAL(ecnbits_prep(fd, AF_INET6)))
+if (ECNBITS_PREP_FATAL(ecnbits_prep(handle, AF_INET6)))
 	err(1, "ecnbits_setup: incoming traffic class");
 /* connect, bind, etc. */
 .Ed
@@ -155,7 +185,7 @@ if (ECNBITS_PREP_FATAL(ecnbits_prep(fd, AF_INET6)))
 Besides the errors returned by the system calls used internally (currently, only
 .Xr setsockopt 2 ,
 but this is implementation detail subject to change without notice),
-.Dv EAFNOSUPPORT
+.Dv WSAEAFNOSUPPORT
 is returned if
 .Ar af
 is unknown.
@@ -196,7 +226,8 @@ on Windows\(rg environments, although setting it on outgoing packets isn't.
 .An mirabilos Aq t.glaser@tarent.de
 for Deutsche Telekom.
 .Sh CAVEATS
-Using v4-mapped IPv6 sockets should be avoided; it only works on Linux,
+Using v4-mapped IPv6 sockets should be avoided; it only works on Linux
+.Pq "including Android and WSL but not native Windows" ,
 if even that.
 .Sh LICENCE
 The MirOS Licence
