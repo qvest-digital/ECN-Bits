@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: July 31 2020 $
+.Dd $Mdocdate: September 25 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -187,7 +187,7 @@ The following code fragment illustrates the usage:
 char buf[512];
 unsigned short ecnresult;
 
-if (ecnbits_read(fd, buf, sizeof(buf), &ecnresult) == (size_t)\-1)
+if (ecnbits_read(fd, buf, sizeof(buf), &ecnresult) == (ssize_t)\-1)
 	err(1, "read");
 if (ECNBITS_VALID(ecnresult))
 	printf("%s\en", ecnbits_meanings[ECNBITS_BITS(ecnresult)]);

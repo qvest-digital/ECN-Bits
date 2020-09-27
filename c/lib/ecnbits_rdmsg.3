@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: September 7 2020 $
+.Dd $Mdocdate: September 25 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -204,14 +204,14 @@ The following code fragment illustrates the usage:
 .Bd -literal -offset indent
 char buf[512];
 unsigned short ecnresult;
-struct msg *msg = xcalloc(1, sizeof(struct msg));
+struct msghdr *msg = xcalloc(1, sizeof(struct msghdr));
 struct iovec iov;
 
 iov.iov_base = buf;
 iov.iov_len = sizeof(buf);
 msg\-\*(Gtmsg_iov = &iov;
 msg\-\*(Gtmsg_iovlen = 1;
-if (ecnbits_rdmsg(socketfd, msg, 0, &ecnresult) == (size_t)\-1)
+if (ecnbits_rdmsg(socketfd, msg, 0, &ecnresult) == (ssize_t)\-1)
 	err(1, "recvmsg");
 if (ECNBITS_VALID(ecnresult))
 	printf("%s\en", ecnbits_meanings[ECNBITS_BITS(ecnresult)]);
