@@ -1,0 +1,95 @@
+ECNBITS_VALID(3)         BSD Library Functions Manual         ECNBITS_VALID(3)
+
+NAME
+     ECNBITS_BITS, ECNBITS_DESC, ECNBITS_DSCP, ECNBITS_TCOCT, ECNBITS_VALID,
+     ecnbits_meanings, ecnbits_shortnames -- handling ECN-Bits return values
+
+SYNOPSIS
+     #include <sys/types.h>
+     #if defined(_WIN32) || defined(WIN32)
+     #include <winsock2.h>
+     #include <ws2tcpip.h>
+     #else
+     #include <sys/socket.h>
+     #endif
+     #include <ecn-bitw.h>
+
+     unsigned char
+     ECNBITS_BITS(unsigned short result);
+
+     const char *
+     ECNBITS_DESC(unsigned short result);
+
+     unsigned char
+     ECNBITS_DSCP(unsigned short result);
+
+     unsigned char
+     ECNBITS_TCOCT(unsigned short result);
+
+     int
+     ECNBITS_VALID(unsigned short result);
+
+     extern const char *ecnbits_meanings[4];
+     extern const char *ecnbits_shortnames[4];
+
+DESCRIPTION
+     The ECNBITS_VALID(), ECNBITS_BITS() and (if needed) ECNBITS_DSCP() and
+     ECNBITS_TCOCT() macros aid in obtaining the result value of an ECN-Bits
+     library function.  The DiffServ bits are exposed for user convenience.
+
+     The ECNBITS_DESC() macro can be used to format, as fixed-width string,
+     the result value of an ECN-Bits library function.  The ecnbits_shortnames
+     array contains the corresponding fixed-width string for all valid ECN bit
+     representations.  The ecnbits_meanings array contains longer, human-read-
+     able, variable-width explanations for all valid ECN bit representations.
+
+     The following are valid ECN bit representations:
+
+     #define ECNBITS_NON     0 /* non-ECN-capable transport */
+     #define ECNBITS_ECT0    2 /* ECN-capable; L4S: legacy transport */
+     #define ECNBITS_ECT1    1 /* ECN-capable; L4S: L4S-aware transport */
+     #define ECNBITS_CE      3 /* congestion experienced */
+
+     These macros and constant memory locations are thread-safe.
+
+RETURN VALUES
+     The ECNBITS_VALID() macro expands to 1 if the result is valid, else 0.
+     The ECNBITS_BITS() macro evaluates to the ECN bits of a valid result,
+     that is, one of the four constants shown above.  The ECNBITS_DSCP() macro
+     evaluates to the DSCP bits of a valid result, that is, the traffic class
+     minus the ECN bits.  The ECNBITS_TCOCT() macro evaluates to the full
+     traffic class octet of a valid result.  The ECNBITS_DESC() macro evalu-
+     ates to a pointer to a constant string six ASCII characters wide explain-
+     ing the result; invalid results are represented as "??ECN?".
+
+EXAMPLES
+     The following code fragment illustrates the usage:
+
+           unsigned short ecnresult;
+
+           if (ecnbits_recv(/* ... */, &ecnresult) == (SSIZE_T)-1)
+                   return;
+
+           printf("%s\n", ECNBITS_DESC(ecnresult));
+           if (ECNBITS_VALID(ecnresult))
+                   printf("%s\n", ecnbits_meanings[ECNBITS_BITS(ecnresult)]);
+
+     ECNBITS_BITS(ecnresult) is also what needs to be reported back to the
+     sender.
+
+SEE ALSO
+     ecnbits_prep(3), ecnbits_rdmsg(3), ecnbits_recvfrom(3)
+
+     https://github.com/tarent/ECN-Bits
+         home of the ECN-Bits library
+
+     https://github.com/EricssonResearch/scream
+         SCReAM, an example design for a managed latency-adaptive application
+
+AUTHORS
+     mirabilos <t.glaser@tarent.de> for Deutsche Telekom.
+
+LICENCE
+     The MirOS Licence (short name: MirBSD)
+
+ECN-Bits                       September 7, 2020                      ECN-Bits

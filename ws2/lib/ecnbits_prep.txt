@@ -1,0 +1,94 @@
+ECNBITS_PREP(3)          BSD Library Functions Manual          ECNBITS_PREP(3)
+
+NAME
+     ecnbits_prep -- set up a socket to retrieve packets' ECN bits
+
+SYNOPSIS
+     #include <sys/types.h>
+     #if defined(_WIN32) || defined(WIN32)
+     #include <winsock2.h>
+     #include <ws2tcpip.h>
+     #else
+     #include <sys/socket.h>
+     #endif
+     #include <ecn-bitw.h>
+
+     int
+     ecnbits_prep(SOCKET handle, int af);
+
+     Outside of Winsock2, the SOCKET type is just an int.
+
+     There is no equivalent for the UNIX variant ecnbits_tc() function.
+
+DESCRIPTION
+     The ecnbits_prep() function sets up a network socket (IPv6 or legacy
+     IPv4) to retrieve ECN bits, or rather, the traffic class octet, from in-
+     coming packets.  This works well with datagram sockets (UDP); use with
+     stream sockets (TCP) may not work completely, for example the operating
+     system may change the sent traffic class value; operating on v4-mapped
+     IPv6 sockets (::FFFF.0.0.0.0/96) may be unsupported (although known to
+     work under Linux/Android/WSL).  This function is thread-safe.
+
+     The handle itself is not changed, but a few socket options are enabled.
+     For this to work, the af argument is expected to carry the address family
+     used with the socket (AF_INET6 or AF_INET); this is the same as the first
+     argument to socket(2) (domain).  Only these address families are known.
+
+RETURN VALUES
+     The ecnbits_prep() function sets the global variable errno to indicate
+     any problem and returns the value 2 on error, 1 if v4-mapped support
+     could not be set up (compare against ECNBITS_PREP_FATAL (see EXAMPLES
+     below) to determine if this should be ignored), and 0 on success.
+
+     On Winsock2, WSAGetLastError() must be used to retrieve the error code.
+
+EXAMPLES
+     The following code fragment illustrates the usage:
+
+           SOCKET handle;
+
+           if ((handle = socket(AF_INET6, SOCK_DGRAM, 0)) == INVALID_SOCKET)
+                   err(1, "socket");
+           /* do other setsockopt, if needed */
+           if (ECNBITS_PREP_FATAL(ecnbits_prep(handle, AF_INET6)))
+                   err(1, "ecnbits_setup: incoming traffic class");
+           /* connect, bind, etc. */
+
+ERRORS
+     Besides the errors returned by the system calls used internally (cur-
+     rently, only setsockopt(2), but this is implementation detail subject to
+     change without notice), WSAEAFNOSUPPORT is returned if af is unknown.
+
+SEE ALSO
+     sendmsg(2), setsockopt(2), cmsg(3), ECNBITS_BITS(3), ecnbits_rdmsg(3),
+     ecnbits_recvfrom(3), ecnbits_stoaf(3), ip(4), ip6(4), ip(7), ipv6(7)
+
+     https://tools.ietf.org/html/rfc3542.html
+         Advanced Sockets API for IPv6
+
+     https://github.com/tarent/ECN-Bits
+         home of the ECN-Bits library
+
+     https://github.com/EricssonResearch/scream
+         SCReAM, an example design for a managed latency-adaptive application
+
+STANDARDS
+     The implementation uses socket calls documented in the MidnightBSD manual
+     page ip6(4) (standardised by RFC 3542) for IPv6, those documented by the
+     MidnightBSD ip(4) or GNU/Linux ip(7) manual pages for legacy IPv4.
+
+     The socket options for receiving the IP traffic class are also supported
+     on Windows(R) environments, although setting it on outgoing packets
+     isn't.
+
+AUTHORS
+     mirabilos <t.glaser@tarent.de> for Deutsche Telekom.
+
+CAVEATS
+     Using v4-mapped IPv6 sockets should be avoided; it only works on Linux
+     (including Android and WSL 1 but not native Windows), if even that.
+
+LICENCE
+     The MirOS Licence (short name: MirBSD)
+
+ECN-Bits                      September 25, 2020                      ECN-Bits

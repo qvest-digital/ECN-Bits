@@ -1,0 +1,106 @@
+ECNBITS_RECVFROM(3)      BSD Library Functions Manual      ECNBITS_RECVFROM(3)
+
+NAME
+     ecnbits_read, ecnbits_recv, ecnbits_recvfrom -- receive a message (read a
+     packet) from a socket and determine the traffic class including ECN bits
+
+SYNOPSIS
+     #include <sys/types.h>
+     #if defined(_WIN32) || defined(WIN32)
+     #include <winsock2.h>
+     #include <ws2tcpip.h>
+     #else
+     #include <sys/socket.h>
+     #endif
+     #include <ecn-bitw.h>
+
+     SSIZE_T
+     ecnbits_read(SOCKET fd, void *buf, size_t buflen,
+         unsigned short *ecnresult);
+
+     SSIZE_T
+     ecnbits_recv(SOCKET fd, void *buf, size_t buflen, int flags,
+         unsigned short *ecnresult);
+
+     SSIZE_T
+     ecnbits_recvfrom(SOCKET fd, void *buf, size_t buflen, int flags,
+         struct sockaddr *src_addr, socklen_t *addrlen,
+         unsigned short *ecnresult);
+
+     Outside of Winsock2, the SOCKET type is int; SSIZE_T is spelt ssize_t.
+
+DESCRIPTION
+     The ecnbits_read() macro is equivalent to calling the ecnbits_recv()
+     function with a flags argument of 0.  See CAVEATS below.
+
+     The ecnbits_recv() and ecnbits_recvfrom() functions work equivalent to
+     the system functions recv(2) and recvfrom(2) respectively, but take an
+     extra argument ecnresult.  If ecnresult is NULL, these functions just
+     pass control to the equivalent system function.  Otherwise, an equivalent
+     recvmsg(2) system call (on Winsock2: ecnws2_recvmsg() library call) is
+     executed in order to be able to determine the traffic class octet of the
+     received packet.
+
+     If ecnresult is not NULL and the call was successful (did not return
+     (SSIZE_T)-1), the location pointed to by ecnresult will, upon return,
+     contain the traffic class of the received packet, in ECNBITS_VALID(3)
+     format, if determining it was possible (otherwise, it will read as not
+     valid).  If the socket was not set up with ecnbits_prep(3) beforehand,
+     determining the traffic class octet is usually not possible.
+
+     As with the equivalent system function, ecnbits_recvfrom() stores the ad-
+     dress of the packet sender in the user-allocated src_addr argument; for
+     connected sockets or if the user is not interested in it, NULL should be
+     passed for src_addr.  See recvfrom(2) for the description of flags.
+
+RETURN VALUES
+     The ecnbits_read(), ecnbits_recv() and ecnbits_recvfrom() functions re-
+     turn the number of bytes received if successful; otherwise the value -1
+     is returned and the global variable errno is set to indicate the error.
+
+     On Winsock2, WSAGetLastError() must be used to retrieve the error code.
+
+EXAMPLES
+     The following code fragment illustrates the usage:
+
+           char buf[512];
+           unsigned short ecnresult;
+
+           if (ecnbits_read(fd, buf, sizeof(buf), &ecnresult) == (SSIZE_T)-1)
+                   err(1, "read");
+           if (ECNBITS_VALID(ecnresult))
+                   printf("%s\n", ecnbits_meanings[ECNBITS_BITS(ecnresult)]);
+
+     Note that the socket, after creation, must have been set up with a call
+     to ecnbits_prep(3) (once) prior to use with these functions.
+
+ERRORS
+     These functions return the same errors as the underlying system calls:
+     recv(2) or recvfrom(2) if ecnresult is NULL, recvmsg(2) otherwise.
+
+SEE ALSO
+     recv(2), recvfrom(2), recvmsg(2), ECNBITS_BITS(3), ecnbits_prep(3),
+     ecnbits_rdmsg(3), ecnws2_recvmsg(3)
+
+     https://github.com/tarent/ECN-Bits
+         home of the ECN-Bits library
+
+     https://github.com/EricssonResearch/scream
+         SCReAM, an example design for a managed latency-adaptive application
+
+AUTHORS
+     mirabilos <t.glaser@tarent.de> for Deutsche Telekom.
+
+CAVEATS
+     ecnbits_read, ecnbits_recv and ecnbits_recvfrom are not thread-safe.
+
+     The semantics of read(2) and recv(2) upon reading a zero-length datagram
+     differ: the latter consumes the pending datagram, while the former has no
+     effect.  ecnbits_read() uses recv(2) semantics, not those of read(2).
+
+     Please also read the STANDARDS section of ecnbits_prep(3).
+
+LICENCE
+     The MirOS Licence (short name: MirBSD)
+
+ECN-Bits                      September 25, 2020                      ECN-Bits

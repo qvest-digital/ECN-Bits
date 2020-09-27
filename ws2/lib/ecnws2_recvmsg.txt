@@ -1,0 +1,94 @@
+ECNWS2_RECVMSG(3)        BSD Library Functions Manual        ECNWS2_RECVMSG(3)
+
+NAME
+     ecnws2_recvmsg, ecnws2_sendmsg -- Winsock2 sendmsg and recvmsg wrappers
+     with POSIX error signalling semantics, BSD sockets drop-in compatible
+
+SYNOPSIS
+     #include <sys/types.h>
+     #include <winsock2.h>
+     #include <ws2tcpip.h>
+     #include <ecn-bitw.h>
+
+     SSIZE_T
+     ecnws2_recvmsg(SOCKET handle, LPWSAMSG msg, int flags);
+
+     SSIZE_T
+     ecnws2_sendmsg(SOCKET handle, LPWSAMSG msg, int flags);
+
+DESCRIPTION
+     The ecnws2_recvmsg() and ecnws2_sendmsg() functions work equivalent to
+     the Unix system calls recvmsg(2) and sendmsg(2), respectively, and wrap
+     the Winsock2 functions WSARecvMsg() (retrieved from WSAIoctl() via
+     function pointer) and WSASendMsg() (directly available as of NT 6.00).
+
+     While the calling conventions match that of the BSD socket functions, the
+     actual arguments are the corresponding Winsock2 types (which fully map
+     the same functionality merely using different structure member names).
+     Overlapping sockets (a Winsock2 extension) are not supported.
+
+     ecnws2_recvmsg() receives a message from a socket; the only valid flags,
+     which will overwrite msg->dwFlags, is MSG_PEEK (or 0 of course).
+
+     ecnws2_sendmsg() sends a message over a socket.  The flags argument can
+     be any of MSG_DONTROUTE and MSG_PARTIAL, or'd together, or 0 of course;
+     the msg->dwFlags (msg->msg_flags equivalent) member is not used.
+
+     These functions are only present in the library if compiling for Windows.
+     While they are shipped as part of the ECN-Bits library, they have in no
+     way anything to do with access to the IP traffic class octet.  They are
+     provided as compatibility wrappers, to allow for easier porting BSD
+     socket programs to Winsock2; ecnws2_recvmsg() is also used internally.
+
+RETURN VALUES
+     The ecnws2_recvmsg() function returns the number of bytes received if
+     successful; otherwise, the value -1 is returned, and subsequently calling
+     WSAGetLastError() will retrieve the error code.
+
+     The ecnws2_sendmsg() function returns the number of bytes sent if suc-
+     cessful; otherwise, the value -1 is returned, and subsequently calling
+     WSAGetLastError() will retrieve the error code.
+
+EXAMPLES
+     The following code fragment illustrates the usage:
+
+           char buf[32];
+           WSAMSG msg;
+           WSABUF iov;
+
+           memset(&msg, 0, sizeof(msg));
+           iov.buf = buf;
+           iov.len = sizeof(buf);
+           msg.lpBuffers = &iov;
+           msg.dwBufferCount = 1;
+           if (ecnws2_recvmsg(hSocket, &msg, MSG_PEEK) == (SSIZE_T)-1)
+                   fprintf(stderr, "in recvmsg: error %08X", WSAGetLastError());
+           /* inspect buf[] as beginning of next packet */
+
+ERRORS
+     These functions return the same errors as the underlying Winsock2 APIs.
+
+SEE ALSO
+     https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms741687(v=vs.85)
+
+     https://docs.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-wsasendmsg
+
+     https://github.com/tarent/ECN-Bits - home of the ECN-Bits library
+
+AUTHORS
+     mirabilos <t.glaser@tarent.de> for Deutsche Telekom.
+
+CAVEATS
+     The WSARecvMsg() function pointer is cached; therefore, ecnws2_recvmsg()
+     may not be used with sockets created using a different (non-default)
+     Winsock service provider.
+
+     If the WSAIoctl(SIO_GET_EXTENSION_FUNCTION_POINTER, WSAID_WSARECVMSG)
+     call to obtain WSARecvMsg fails, ecnws2_recvmsg() will return -1, but the
+     last error code will be that of WSAIoctl.  A subsequent ecnws2_recvmsg()
+     call will retry the ioctl, always using the provided socket handle.
+
+LICENCE
+     The MirOS Licence (short name: MirBSD)
+
+ECN-Bits                      September 28, 2020                      ECN-Bits

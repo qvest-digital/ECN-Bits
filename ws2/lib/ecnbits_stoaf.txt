@@ -1,0 +1,50 @@
+ECNBITS_STOAF(3)         BSD Library Functions Manual         ECNBITS_STOAF(3)
+
+NAME
+     ecnbits_stoaf -- ECN-Bits utility function
+
+SYNOPSIS
+     #include <sys/types.h>
+     #if defined(_WIN32) || defined(WIN32)
+     #include <winsock2.h>
+     #include <ws2tcpip.h>
+     #else
+     #include <sys/socket.h>
+     #endif
+     #include <ecn-bitw.h>
+
+     int
+     ecnbits_stoaf(SOCKET handle);
+
+     Outside of Winsock2, the SOCKET type is just an int.
+
+     There is no equivalent for the UNIX variant ecnbits_mkcmsg() function.
+
+DESCRIPTION
+     The ecnbits_stoaf() function determins the address family for a given
+     socket used with the ECN-Bits library.  Note that v4-mapped IPv6 sockets
+     will (correctly) report as AF_INET6, not AF_INET.
+
+     This function is thread-safe.
+
+RETURN VALUES
+     The ecnbits_stoaf() function returns the socket address family (either
+     AF_INET or AF_INET6) if successful; otherwise the value -1 is returned
+     and the global variable errno is set to indicate the error.
+
+     On Winsock2, WSAGetLastError() must be used to retrieve the error code.
+
+ERRORS
+     ecnbits_stoaf() returns any errors returned by getsockname(2) as well as
+     WSAEAFNOSUPPORT if the socket is not of a supported address family.
+
+SEE ALSO
+     getsockname(2), ecnbits_prep(3)
+
+AUTHORS
+     mirabilos <t.glaser@tarent.de> for Deutsche Telekom.
+
+LICENCE
+     The MirOS Licence (short name: MirBSD)
+
+ECN-Bits                      September 25, 2020                      ECN-Bits
