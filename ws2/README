@@ -41,6 +41,7 @@ client/ and server/
 
 util/
 ‣ additional support files used by the client and server examples
+  (standard BSD error handling routines, adapted accordingly)
 
 *.mk, GNUmakefile
 ‣ build system for Unix and WSL
