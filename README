@@ -56,6 +56,10 @@ Development funded by Deutsche Telekom.
   - functions dealing with setting the outgoing tc were also removed
   : Status: finalising documentation of differences to Linux/BSD
             and installing WSL 2 to test with that
+  ! WSL 2 in theory would work better than WSL 1 (as it uses the native
+    Linux network stack) but the hypervisor side breaks networking in
+    too many cases so users who want networking are strongly encouraged
+    to use WSL 1 instead.
 
 – Windows, C♯/.net
   • planning stages
