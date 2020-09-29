@@ -8,7 +8,8 @@ About
 	https://en.wikipedia.org/wiki/Explicit_Congestion_Notification
 
  Development of the ECN library was funded by Deutsche Telekom. It is
- published as Open Source (see below).
+ published as Open Source (see below) under Free licences, so it can
+ easily be embedded into applications of any kind.
 
  For TCP connections, the operating system already takes care of
  signalling back ECN information using the ECE (ECN echo) and CWR
@@ -296,6 +297,8 @@ Technical details
  over UDP. To what amount such libraries can be patched to call the
  ECN-Bits library functions remains to be seen.
 
+	https://webrtc.googlesource.com/src/
+
  Unfortunately, anything using DatagramChannel (NIO) is out for now: the
  class is declared as final and thus cannot be extended. This also
  includes the NIO channels of Netty (although its OIO channels might
@@ -417,6 +420,10 @@ Technical details
 
  Note that both of these licences apply to the ECN-Bits Android library,
  and in distributing it, both must be adhered to.
+
+‣‣C++ (and C): UWP (Universal Windows Platform)
+
+ Support is being prepared.
 
 ‣‣C♯/VB.net: Windows/Mono .net Common Language Runtime
 
