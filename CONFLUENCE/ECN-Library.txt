@@ -491,13 +491,15 @@ Technical details
 
 ‣‣‣Android 9
 
- tbd (needs testing)
-	https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces#how_can_i_enable_access_to_non-sdk_interfaces
+ should work out of the box; if not, change the ADB shell settings as
+ outlined in:
+ https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces#how_can_i_enable_access_to_non-sdk_interfaces
 
 ‣‣‣Android 10
 
  tbd (needs testing)
 	https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces#how_can_i_enable_access_to_non-sdk_interfaces
+ blocker: https://issuetracker.google.com/issues/169650210
 
 Download
 
