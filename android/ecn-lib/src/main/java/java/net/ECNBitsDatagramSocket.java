@@ -22,6 +22,7 @@ package java.net;
  */
 
 import android.util.Log;
+import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
 import lombok.val;
 
 import java.io.IOException;
@@ -52,8 +53,8 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
     /**
      * Constructs an ECN-capable datagram socket, wildcard bound to a free port
      *
-     * @throws SocketException               on open or bind failures
-     * @throws UnsupportedOperationException if the ECN impl is not available
+     * @throws SocketException         on open or bind failures
+     * @throws ECNBitsLibraryException if the ECN impl is not available
      * @see DatagramSocket#DatagramSocket()
      */
     public ECNBitsDatagramSocket() throws SocketException {
@@ -64,8 +65,8 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
      * Constructs an ECN-capable datagram socket, bound to bindaddr
      *
      * @param bindaddr the local socket address to bind to, null to not bind
-     * @throws SocketException               on open or bind failures
-     * @throws UnsupportedOperationException if the ECN impl is not available
+     * @throws SocketException         on open or bind failures
+     * @throws ECNBitsLibraryException if the ECN impl is not available
      * @see DatagramSocket#DatagramSocket(SocketAddress)
      */
     public ECNBitsDatagramSocket(final SocketAddress bindaddr) throws SocketException {
@@ -78,7 +79,7 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
             impl = (DatagramSocketImpl) getImpl.invoke(this);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             close();
-            throw new UnsupportedOperationException("cannot get DatagramSocketImpl", e);
+            throw new ECNBitsLibraryException("cannot get DatagramSocketImpl", e);
         }
         if (impl instanceof ECNBitsDatagramSocketImpl) {
             eimpl = (ECNBitsDatagramSocketImpl) impl;
@@ -86,15 +87,15 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
             return;
         }
         close();
-        throw new UnsupportedOperationException("not an ECNBitsDatagramSocketImpl");
+        throw new ECNBitsLibraryException("not an ECNBitsDatagramSocketImpl");
     }
 
     /**
      * Constructs an ECN-capable datagram socket, wildcard bound to port
      *
      * @param port local port to bind to
-     * @throws SocketException               on open or bind failures
-     * @throws UnsupportedOperationException if the ECN impl is not available
+     * @throws SocketException         on open or bind failures
+     * @throws ECNBitsLibraryException if the ECN impl is not available
      * @see DatagramSocket#DatagramSocket(int)
      */
     @SuppressWarnings({ "unused", /* UnIntelliJ bug */ "RedundantSuppression" })
@@ -107,8 +108,8 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
      *
      * @param laddr local address to bind to
      * @param port  local port to bind to
-     * @throws SocketException               on open or bind failures
-     * @throws UnsupportedOperationException if the ECN impl is not available
+     * @throws SocketException         on open or bind failures
+     * @throws ECNBitsLibraryException if the ECN impl is not available
      * @see DatagramSocket#DatagramSocket(int, InetAddress)
      */
     public ECNBitsDatagramSocket(final int port, final InetAddress laddr) throws SocketException {

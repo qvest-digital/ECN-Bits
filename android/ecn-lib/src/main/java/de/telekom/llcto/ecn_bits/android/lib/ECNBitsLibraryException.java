@@ -1,4 +1,4 @@
-package java.net;
+package de.telekom.llcto.ecn_bits.android.lib;
 
 /*-
  * Copyright © 2020
@@ -21,27 +21,32 @@ package java.net;
  * of said person’s immediate fault when using the work as intended.
  */
 
-import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
-
 /**
- * {@link DatagramSocketImplFactory} for use with the ECN-Bits library
+ * Error class for problems caused to the ECN-Bits library by Android.
  *
  * @author mirabilos (t.glaser@tarent.de)
- * @see ECNBitsDatagramSocketImpl
- * @see ECNBitsDatagramSocket
+ * @see
+ * <a href="https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces#how_can_i_enable_access_to_non-sdk_interfaces">SDK documentation</a>
  */
-public class ECNBitsDatagramSocketImplFactory implements DatagramSocketImplFactory {
+public class ECNBitsLibraryException extends RuntimeException {
+    private static final long serialVersionUID = 8044140298655196981L;
+
     /**
-     * Creates a new {@link ECNBitsDatagramSocketImpl} instance.
+     * Constructor, message only (no cause)
      *
-     * @return a new instance of {@link ECNBitsDatagramSocketImpl}.
-     * @throws ECNBitsLibraryException if the library cannot be initialised
-     * @see DatagramSocketImpl
-     * @see ECNBitsDatagramSocketImpl
-     * @see ECNBitsDatagramSocket
+     * @param message error classification message
      */
-    @Override
-    public DatagramSocketImpl createDatagramSocketImpl() {
-        return new ECNBitsDatagramSocketImpl();
+    public ECNBitsLibraryException(final String message) {
+        this(message, null);
+    }
+
+    /**
+     * Constructor, message and cause
+     *
+     * @param message error classification message
+     * @param cause   exception providing more detail
+     */
+    public ECNBitsLibraryException(final String message, final Throwable cause) {
+        super(message, cause);
     }
 }

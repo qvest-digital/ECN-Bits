@@ -40,6 +40,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import de.telekom.llcto.ecn_bits.android.lib.Bits;
+import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -340,7 +341,7 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             sock = new ECNBitsDatagramSocket();
-        } catch (SocketException | UnsupportedOperationException e) {
+        } catch (SocketException | ECNBitsLibraryException e) {
             addOutputLine("could not create socket: " + e);
             return;
         }

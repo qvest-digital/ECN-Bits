@@ -34,6 +34,7 @@ package java.net;
 
 import android.annotation.SuppressLint;
 import android.util.Log;
+import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 
@@ -79,7 +80,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
 
     void setUpRecvTclass() {
         if (nativeSetup(sockfd) != 0) {
-            throw new UnsupportedOperationException("unable to set up socket to receive traffic class");
+            throw new ECNBitsLibraryException("unable to set up socket to receive traffic class");
         }
     }
 
@@ -120,7 +121,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
             setReceivedLength.setAccessible(true);
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException e) {
             Log.e("ECN-Bits", "instantiating", e);
-            throw new RuntimeException(e);
+            throw new ECNBitsLibraryException("could not access nōn-SDK interfaces via reflection", e);
         }
     }
 
@@ -129,7 +130,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
             return (int) getFD.invoke(p.fd);
         } catch (IllegalAccessException | InvocationTargetException e) {
             Log.e("ECN-Bits", "getFD reflection", e);
-            throw new RuntimeException(e);
+            throw new ECNBitsLibraryException("could not execute nōn-SDK reflection target", e);
         }
     }
 
@@ -251,7 +252,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
             return (int) dataAvailable.invoke(p);
         } catch (IllegalAccessException | InvocationTargetException e) {
             Log.e("ECN-Bits", "dataAvailable reflection", e);
-            throw new RuntimeException(e);
+            throw new ECNBitsLibraryException("could not execute nōn-SDK reflection target", e);
         }
     }
 
@@ -260,7 +261,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
             setDatagramSocket.invoke(p, socket);
         } catch (IllegalAccessException | InvocationTargetException e) {
             Log.e("ECN-Bits", "setDatagramSocket reflection", e);
-            throw new RuntimeException(e);
+            throw new ECNBitsLibraryException("could not execute nōn-SDK reflection target", e);
         }
     }
 
@@ -269,7 +270,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
             return (DatagramSocket) getDatagramSocket.invoke(p);
         } catch (IllegalAccessException | InvocationTargetException e) {
             Log.e("ECN-Bits", "getDatagramSocket reflection", e);
-            throw new RuntimeException(e);
+            throw new ECNBitsLibraryException("could not execute nōn-SDK reflection target", e);
         }
     }
 
@@ -279,7 +280,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
             setOption.invoke(p, name, value);
         } catch (IllegalAccessException | InvocationTargetException e) {
             Log.e("ECN-Bits", "setOption reflection", e);
-            throw new RuntimeException(e);
+            throw new ECNBitsLibraryException("could not execute nōn-SDK reflection target", e);
         }
     }
 
@@ -289,7 +290,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
             return (T) getOption.invoke(p, name);
         } catch (IllegalAccessException | InvocationTargetException e) {
             Log.e("ECN-Bits", "getOption reflection", e);
-            throw new RuntimeException(e);
+            throw new ECNBitsLibraryException("could not execute nōn-SDK reflection target", e);
         }
     }
 
@@ -334,7 +335,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
               bufLength.getInt(packet), peekOnly);
         } catch (IllegalAccessException e) {
             Log.e("ECN-Bits", "bufLength reflection", e);
-            throw new RuntimeException(e);
+            throw new ECNBitsLibraryException("could not execute nōn-SDK reflection target", e);
         }
         switch (nativeRecv(args)) {
         case 0:
@@ -353,7 +354,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
             setReceivedLength.invoke(packet, args.read);
         } catch (IllegalAccessException | InvocationTargetException e) {
             Log.e("ECN-Bits", "setReceivedLength reflection", e);
-            throw new RuntimeException(e);
+            throw new ECNBitsLibraryException("could not execute nōn-SDK reflection target", e);
         }
         packet.setPort(src.getPort());
         // packet.address should only be changed when it is different from src
