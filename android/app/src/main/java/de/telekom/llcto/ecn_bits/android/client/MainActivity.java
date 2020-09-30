@@ -341,7 +341,10 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             sock = new ECNBitsDatagramSocket();
-        } catch (SocketException | ECNBitsLibraryException e) {
+        } catch (ECNBitsLibraryException e) {
+            addOutputLine("could not initialise ECN-Bits library: " + e.getMessage());
+            return;
+        } catch (SocketException e) {
             addOutputLine("could not create socket: " + e);
             return;
         }

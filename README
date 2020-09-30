@@ -17,7 +17,7 @@ Development funded by Deutsche Telekom.
 │ Covered operating environments │
 └────────────────────────────────┘
 
-– Android/Linux: Java/JNI
+– Android/Linux: Java/JNI (first solution)
   ‣ see android/README
   • library (AAR), with JNI component written in C,
     easily added into your own projects
@@ -25,10 +25,11 @@ Development funded by Deutsche Telekom.
       to communicate and get the IP traffic class
     + de.telekom.llcto.ecn_bits.android.lib.Bits
       to access the ECN bits contained in the traffic class byte
-    ! targetting Android 8 (Oreo, API 26/27) and up
-    ! only tested on Android 8; higher versions need extra workarounds
+    ! targetting Android 8 (Oreo, API 26/27) and up, 11+ will not work
+    ! tested on Android 8 and 9 (no change needed) and 10 (see docs)
+    : Status: done for DatagramSocket and the first solution approach
+      testing Android 11
     - no equivalent for DatagramChannel (probably unfeasible)
-    : Status: mostly done; cleaning up and documenting; testing on 9/10
   • demo client GUI application
 
 – BSD/Linux/WSL: C/CLI (libecn-bits.a/so)

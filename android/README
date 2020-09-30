@@ -13,11 +13,14 @@ system implementation as possible, using reflection and
 proxying to gain access to it. From Android 9 onwards, each
 version reduces this kind of access. This library was written
 targetting Android 8, as oldest currently-supported version,
-and will work on Android 9 and most likely 10 but no later (see
+and will work on Android 9 and 10 but no later (see Wiki or
 https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces#how_can_i_enable_access_to_non-sdk_interfaces
 if it does not work out of the box). A workaround would mean
 implementing a good part of the network stack. The best option
 would be making Google add an API to retrieve the traffic class.
+
+The example äpp shows “could not initialise ECN-Bits library”
+on Android 9 and 10 if the settings need changing.
 
 The library is wholly contained in the ecn-lib/ directory.
 It can be added to other projects by importing into your project:
