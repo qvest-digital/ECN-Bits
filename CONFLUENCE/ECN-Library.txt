@@ -331,7 +331,7 @@ Technical details
   • Android 9 and 10 may require extra measures to re-enable these
     reflection calls, see below
 
-  • Android 11 and up will refuse these reflection calls
+  • Android 11 and up will probably refuse these reflection calls
 
  The best fix would be a Google-provided API to access the IP traffic
  class. No such API exists as of the time of this writing.
@@ -494,40 +494,53 @@ Technical details
 
 ‣‣‣Android 8
 
- should work out of the box
+ … should work out of the box
 
 ‣‣‣Android 9
 
- should work out of the box; if not, run the following commands to fix
+ … should work out of the box; if not, run the following commands to fix
  the settings via ADB (skip the “adb shell” at the beginning if running
  this in a local terminal or shell session running on the device):
 
     adb shell settings put global hidden_api_policy_pre_p_apps 1
     adb shell settings put global hidden_api_policy_p_apps 1
 
- Documentation. To undo this change:
+ Documentation.
 	https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces#how_can_i_enable_access_to_non-sdk_interfaces
+ To undo this change (revert to system defaults) after testing:
 
     adb shell settings delete global hidden_api_policy_pre_p_apps
     adb shell settings delete global hidden_api_policy_p_apps
 
 ‣‣‣Android 10
 
- does not work out of the box, so run the following command to change
+ … does not work out of the box, so run the following command to change
  the settings via ADB (skip the “adb shell” at the beginning if running
  this in a local terminal or shell session running on the device):
 
     adb shell settings put global hidden_api_policy 1
 
- Documentation. To undo this change:
+ Documentation.
 	https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces#how_can_i_enable_access_to_non-sdk_interfaces
+ To undo this change (revert to system defaults) after testing:
 
     adb shell settings delete global hidden_api_policy
 
 ‣‣‣Android 11
 
- will probably not work; testing blocked by
+ … will probably not work; testing blocked by
  https://issuetracker.google.com/issues/169650210
+ but try the following command:
+
+    adb shell am compat enable HIDE_MAXTARGETSDK_Q_HIDDEN_APIS $PACKAGE_NAME
+
+ To undo this change (revert to system defaults) after testing:
+
+    adb shell am compat disable HIDE_MAXTARGETSDK_Q_HIDDEN_APIS $PACKAGE_NAME
+
+ In both cases, replace $PACKAGE_NAME with the package attribute on the
+ manifest tag in the AndroidManifest.xml file of your application(? or
+ the library?).
 
 Download
 
