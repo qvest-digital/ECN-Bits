@@ -11,14 +11,17 @@ android {
     compileSdkVersion 26
 
     defaultConfig {
-        applicationId "de.telekom.llcto.ecn_bits.android.client"
         minSdkVersion 26
         //noinspection OldTargetApi
         targetSdkVersion 26
+        ndkVersion "21.3.6528147"
+
+        applicationId "de.telekom.llcto.ecn_bits.android.client"
         versionCode 1
         versionName "0.1"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        return void // WTF‽
     }
 
     buildTypes {
