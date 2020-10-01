@@ -13,6 +13,8 @@ android {
         minSdkVersion 26
         //noinspection OldTargetApi
         targetSdkVersion 26
+        ndkVersion "21.3.6528147"
+
         versionCode 1
         versionName "0.1"
 
