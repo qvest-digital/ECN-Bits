@@ -470,11 +470,15 @@ public class MainActivity extends AppCompatActivity {
             try {
                 cSendThread.join(200);
             } catch (InterruptedException e) {
+                // restore interrupted flag
+                Thread.currentThread().interrupt();
                 addOutputLine("could not join send thread");
             }
             try {
                 cRecvThread.join(200);
             } catch (InterruptedException e) {
+                // restore interrupted flag
+                Thread.currentThread().interrupt();
                 addOutputLine("could not join recv thread");
             }
             chan = null;
@@ -537,6 +541,8 @@ public class MainActivity extends AppCompatActivity {
                 Thread.sleep(50);
                 // waited until recv thread is probably online
             } catch (InterruptedException e) {
+                // restore interrupted flag
+                Thread.currentThread().interrupt();
                 return;
             }
             // send thread main
@@ -568,6 +574,8 @@ public class MainActivity extends AppCompatActivity {
                     //noinspection BusyWait
                     Thread.sleep(666);
                 } catch (InterruptedException e) {
+                    // restore interrupted flag
+                    Thread.currentThread().interrupt();
                     return;
                 }
             }
@@ -606,6 +614,8 @@ public class MainActivity extends AppCompatActivity {
                     //noinspection BusyWait
                     Thread.sleep(250);
                 } catch (InterruptedException e) {
+                    // restore interrupted flag
+                    Thread.currentThread().interrupt();
                     return;
                 }
             }
