@@ -131,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
         exiting = false;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //  deepcode ignore ApiMigration~getSystemService: false positive (IME not inflater)
         imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
 
         final Point appSize = new Point();
