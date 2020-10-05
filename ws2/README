@@ -13,7 +13,7 @@ Winsock2 support is a requirement.
 
 WSL (Windows Subsystem for Linux) counts as Linux for sake of porting.
 
-On Windows, run VsDevCmd.bat or similar to ensure all environment
+On Windows, run VsDevCmd.bat or similar¹ to ensure all environment
 variables are set up correctly for building, then issue the command…
 
 	nmake
@@ -25,6 +25,9 @@ variables are set up correctly for building, then issue the command…
 
 Link a program against ecn-bitw.lib (Unix: with -lecn-bitw) to use
 the library; headers and functions are documented in the manual pages.
+
+① Start → Visual Studio 2019 (folder) → Developer Command Prompt for VS 2019
+  or one of the other options if cross-compiling for another platform
 
 ┌───────────┐
 │ Structure │
