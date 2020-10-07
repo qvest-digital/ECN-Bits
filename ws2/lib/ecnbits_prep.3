@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: September 25 2020 $
+.Dd $Mdocdate: October 7 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -141,7 +141,8 @@ This works well with datagram sockets (UDP); use with stream sockets
 (TCP) may not work completely, for example the operating system may
 change the sent traffic class value; operating on v4-mapped IPv6 sockets
 .Pq Li ::FFFF.0.0.0.0/96
-may be unsupported (although known to work under Linux/Android/WSL).
+may be unsupported
+.Pq although known to work under Linux/Android/WSL\ 2 and WSL\ 1 .
 This function is thread-safe.
 .Pp
 The
@@ -227,8 +228,9 @@ on Windows\(rg environments, although setting it on outgoing packets isn't.
 for Deutsche Telekom.
 .Sh CAVEATS
 Using v4-mapped IPv6 sockets should be avoided; it only works on Linux
-.Pq "including Android and WSL 1 but not native Windows" ,
-if even that.
+(including WSL\ 1
+.Pq but not native Windows ,
+WSL\ 2, Android), if even that.
 .Sh LICENCE
 The MirOS Licence
 .Pq short name : Li MirBSD

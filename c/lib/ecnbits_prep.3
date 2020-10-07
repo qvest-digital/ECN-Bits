@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: September 25 2020 $
+.Dd $Mdocdate: October 7 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -113,17 +113,14 @@
 The
 .Fn ecnbits_prep
 function sets up a network socket (IPv6 or legacy IPv4) to retrieve
-ECN bits, or rather, the traffic class octet, from incoming packets,
-whereas the
-.Fn ecnbits_tc
-function sets the default traffic class outgoing packets are sent with.
+ECN bits, or rather, the traffic class octet, from incoming packets.
 This works well with datagram sockets (UDP); use with stream sockets
 (TCP) may not work completely, for example the operating system may
 change the sent traffic class value; operating on v4-mapped IPv6 sockets
 .Pq Li ::FFFF.0.0.0.0/96
-may be unsupported (although known to work under Linux/Android/WSL);
-no outgoing traffic class can be set under Windows\(rg or WSL 1.
-These functions are thread-safe.
+may be unsupported
+.Pq although known to work under Linux/Android/WSL\ 2 and WSL\ 1 .
+This function is thread-safe.
 .Pp
 The
 .Ar socketfd
@@ -136,6 +133,11 @@ this is the same as the first argument to
 .Xr socket 2
 .Pq Li domain .
 Only these address families are known.
+.Pp
+The convenience function
+.Fn ecnbits_tc
+function sets the default traffic class outgoing packets are sent with.
+This function is thread-safe.
 .Pp
 The
 .Ar iptos
@@ -201,6 +203,10 @@ if (ECNBITS_TC_FATAL(ecnbits_tc(fd, AF_INET6, ECNBITS_ECT0)))
 	err(1, "ecnbits_setup: outgoing traffic class");
 /* connect, bind, etc. */
 .Ed
+.Pp
+Note
+.Fn ECNBITS_TC_FATAL
+silently ignores Windows and WSL\ 1 failures.
 .Sh ERRORS
 Besides the errors returned by the system calls used internally (currently, only
 .Xr setsockopt 2 ,
@@ -247,8 +253,9 @@ on Windows\(rg environments, although setting it on outgoing packets isn't.
 for Deutsche Telekom.
 .Sh CAVEATS
 Using v4-mapped IPv6 sockets should be avoided; it only works on Linux
-.Pq "including Android and WSL 1 but not native Windows" ,
-if even that.
+(including WSL\ 1
+.Pq but not native Windows ,
+WSL\ 2, Android), if even that.
 .Sh LICENCE
 The MirOS Licence
 .Pq short name : Li MirBSD

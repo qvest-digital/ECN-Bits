@@ -11,7 +11,10 @@ for Linux/FreeBSD/MidnightBSD in ../c/ (see there), and in fact,
 that version makes for a better example on those platforms, unless
 Winsock2 support is a requirement.
 
-WSL (Windows Subsystem for Linux) counts as Linux for sake of porting.
+WSL 1 (Windows Subsystem for Linux) counts as Linux for sake of porting.
+WSL 2 is actually a Linux virtual machine and, if one can get networking
+to run inside it good enough for the task, thus can be treated as plain
+unmodified Linux.
 
 On Windows, run VsDevCmd.bat or similar¹ to ensure all environment
 variables are set up correctly for building, then issue the command…
@@ -118,3 +121,5 @@ Windows®, native or WSL 1, at all. This is a system limitation.
 For this reason this version (ws2/ aka libecn-bitw) does not
 ship certain functions dealing with outgoing traffic class
 setting; if needed, the c/ (libecn-bits) version contains them.
+
+WSL 2, being a Linux virtual machine, suffers from neither restriction.

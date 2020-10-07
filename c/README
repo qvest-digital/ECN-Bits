@@ -134,7 +134,7 @@ accept that (but since they disable v4-mapped by default,
 this is no problem in reality). This library only attempts
 somewhat supporting this on Linux, as Android uses that.
 As implication, binding to only an IPv6 address, server-side,
-may not work except perhaps on Linux (including WSL 1, but
+may not work except perhaps on Linux (including WSL 1 and 2,
 excluding native Windows/Winsock2).
 
 Use in multi-threaded applications is safe if the conditions

@@ -36,12 +36,12 @@ Development funded by Deutsche Telekom.
   ‣ see c/README
   • library, manpages
   • CLI client and server examples (run for usage instructions)
-  + known working on Linux, FreeBSD/MidnightBSD
+  + known working on FreeBSD/MidnightBSD, Linux (including WSL 2)
   + also on the Linux variant Android runs on, e.g. built with musl libc
   + works on WSL 1, except setting the outgoing traffic class silently fails
-  ? testing needed on WSL 2
   - cannot work on NetBSD, OpenBSD and derivatives: no API to get the TC
   ? might work on Darwin (Mac OSX and iOS), Solaris
+  : Status: completed for those operating systems mentioned
 
 – Windows: C/CLI (ecn-bitw.lib; libecn-bitw.a)
   ‣ see ws2/README
@@ -52,15 +52,15 @@ Development funded by Deutsche Telekom.
     some Winsock2 specifics to remain portable)
   • manpages including preformatted plaintext form for GUI users
   • tested on Windows 10, versions 1909 (WSL 1, WinSock), 2004 (WSL 2)
-  ! the outgoing traffic class cannot, at all, be set on Windows
+  ! the outgoing traffic class cannot, at all, be set on Windows and WSL 1
   - so the server example doesn’t do it and just sends back one packet
   - functions dealing with setting the outgoing tc were also removed
-  : Status: finalising documentation of differences to Linux/BSD
-            and installing WSL 2 to test with that
+  : Status: complete
   ! WSL 2 in theory would work better than WSL 1 (as it uses the native
     Linux network stack) but the hypervisor side breaks networking in
-    too many cases so users who want networking are strongly encouraged
-    to use WSL 1 instead.
+    too many cases (no IPv6 support (up to that syscalls fail), lack of
+    port forwarding for UDP, DNS resolver bugs), so users of networking
+    are strongly encouraged to use WSL 1 instead.
 
 – Windows, C++/UWP
   • planning stages
