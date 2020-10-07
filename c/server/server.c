@@ -222,7 +222,7 @@ do_packet(int s)
 	else
 		memcpy(tcs, "??", 3);
 	printf("%s %s{%s} %s %s <%s>\n", tm, ECNBITS_DESC(ecn), tcs,
-	    revlookup(mh.msg_name, mh.msg_namelen), trc, data);
+	    trc, revlookup(mh.msg_name, mh.msg_namelen), data);
 
 	if ((af = ecnbits_stoaf(s)) == -1) {
 		warn("getsockname");
