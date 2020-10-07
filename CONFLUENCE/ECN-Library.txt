@@ -60,14 +60,15 @@ Technical details
 ‣‣‣Microsoft® Windows®
 
  Windows does not support setting the traffic class on outgoing packets
- at all. This also affects WSL (Windows Subsystem for Linux, i.e.
+ at all. This also affects WSL 1 (Windows Subsystem for Linux, i.e.
  running Linux applications unmodified on Windows, a.k.a. “bash for
  Windows”). Retrieving the traffic class is possible in all supported
  versions of the operating system; it has been tested on Windows 10.
 
- Note: WSL here means WSL 1 throughout the documentation. WSL 2 is
- basically a Linux virtual machine with separate networking; this
- needs distinct testing.
+ WSL 2 is a Linux virtual machine with separate networking; if one
+ can get it to network at all (lack of IPv6 support, lack of support
+ for UDP portforwarding, broken default DNS resolver), it works like
+ “proper” Linux, i.e. can set the outgoing traffic class on packets.
 
 ‣‣‣NetBSD®, OpenBSD and derivatives thereof
 
@@ -105,8 +106,8 @@ Technical details
 
  Windows does not support reading the traffic class from v4-mapped IPv6
  sockets under Winsock2 (the native sockets API). On the other hand,
- applications running under WSL do support this, mirroring Linux
- support.
+ applications running under WSL 1 do support this, mirroring Linux
+ support. (WSL 2 is unmodified Linux, i.e. supports this as well.)
 
 ‣Supported operating environments
 
@@ -256,7 +257,7 @@ Technical details
 
  The screenshot shows four terminal windows:
 
-    upper left: Unix C/CLI server compiled as Linux application, running in WSL on Windows 10
+    upper left: Unix C/CLI server compiled as Linux application, running in WSL 1 on Windows 10
     upper right: Winsock2 C/CLI client compiled with Visual Studio, running on Windows 10
     lower left: Unix C/CLI client running on Debian GNU/Linux
     lower right: Unix C/CLI server running on MidnightBSD
