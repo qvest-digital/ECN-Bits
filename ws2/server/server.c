@@ -314,9 +314,8 @@ do_packet(int s)
 		snprintf(tcs, sizeof(tcs), "%02X", ECNBITS_TCOCT(ecn));
 	else
 		memcpy(tcs, "??", 3);
-	printf("%s %s %s %s{%s} <%s>\n", tm, trc,
-	    revlookup(mh.msg_name, mh.msg_namelen),
-	    ECNBITS_DESC(ecn), tcs, data);
+	printf("%s %s{%s} %s %s <%s>\n", tm, ECNBITS_DESC(ecn), tcs,
+	    revlookup(mh.msg_name, mh.msg_namelen), trc, data);
 
 	if ((af = ecnbits_stoaf(s)) == -1) {
 		ws2warn("getsockname");
