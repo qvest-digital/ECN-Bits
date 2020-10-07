@@ -65,6 +65,8 @@ extern const char *ecnbits_shortnames[4];
 #endif
 int ecnbits_tcfatal(int);
 #define ECNBITS_TC_FATAL(rv) ecnbits_tcfatal(rv)
+#elif defined(__ANDROID__)
+#define ECNBITS_TC_FATAL(rv) ((rv) >= 1)
 #else
 #define ECNBITS_TC_FATAL(rv) ((rv) >= 2)
 #endif
