@@ -28,45 +28,82 @@
 #include "ecn-bits.h"
 
 #ifdef ECNBITS_WSLCHECK
-#include <stdio.h>
+#include <sys/utsname.h>
+#include <stdlib.h>
 #include <string.h>
 
 static int
-iswinorwsl(void)
+isWSL(void)
 {
-	int iswin = 0;
 	int e = errno;
-	FILE *fp;
-	char buf[256];
+	struct utsname u;
+	int uerr;
 
-	if ((fp = fopen("/proc/sys/kernel/osrelease", "r"))) {
-		if (fgets(buf, sizeof(buf), fp) &&
-		    strstr(buf, "Microsoft"))
-			iswin = 1;
-		fclose(fp);
+	/* check uname first (this is improbable to fail) */
+	if ((uerr = uname(&u)) == 0) {
+		if (strstr(u.release, "Microsoft") != NULL) {
+			/* pretty certainly WSL 1 */
+			errno = e;
+			return (1);
+		}
+		if (strstr(u.release, "microsoft") != NULL) {
+			/* probably WSL 2 */
+			errno = e;
+			return (2);
+		}
 	}
+
+	/* check presence of environment variables next */
+	/* hoping the user did not change them */
+
+	if (getenv("WSL_INTEROP") != NULL) {
+		/* relatively certainly WSL 2 */
+		errno = e;
+		return (2);
+	}
+	if (getenv("WSL_DISTRO_NAME") != NULL) {
+		/* relatively certainly WSL under a WSL-1/2-capable NT */
+		/* since we detect WSL 1 above, this is probably 2 */
+		/* assume WSL 1 when uname(2) failed, though */
+		errno = e;
+		return (uerr ? 1 : 2);
+	}
+
+	/* other checks are even more fragile, so let’s go with not WSL */
 	errno = e;
-	return (iswin);
+	return (0);
 }
 
+#ifdef WSLCHECK_MAIN
+int
+main(void)
+{
+	return (isWSL());
+}
+#endif
+
+/*
+ * Note this is only compiled for “Linux and not Android” as
+ * other OSes have the check in ../inc/ecn-bits.h instead:
+ * BSD does not require v4-mapped support; Win32 ignores error;
+ * Android checks like Linux but can skip WSL check if known compile-time
+ */
 int
 ecnbits_tcfatal(int rv)
 {
-	static enum {
-		ECN_OS_MAYBEWSL,
-		ECN_OS_NOTWIN32,
-		ECN_OS_WINORWSL
-	} os = ECN_OS_MAYBEWSL;
+	static signed char iswsl = -1;
 
-	if (os == ECN_OS_MAYBEWSL) {
-		os = iswinorwsl() ? ECN_OS_WINORWSL : ECN_OS_NOTWIN32;
+	if (iswsl == -1)
+		iswsl = (signed char)isWSL();
+
+	if (iswsl == 1) {
+		/* WSL 1 ⇒ ignore error */
+		return (0);
 	}
+	/* Linux or WSL 2 */
 
-	if (os != ECN_OS_WINORWSL)
-		return (rv >= /* Linux */ 1);
-
-	/* Windows®/WSL, ignore error */
-	return (0);
+	/* ensure both regular and v4-mapped calls work */
+	return (rv >= 1);
 }
 #endif
 
