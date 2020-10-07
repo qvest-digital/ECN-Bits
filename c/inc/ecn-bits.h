@@ -51,24 +51,30 @@ extern const char *ecnbits_meanings[4];
 extern const char *ecnbits_shortnames[4];
 
 /* setup return values */
-#if defined(__linux__)
-#define ECNBITS_PREP_FATAL(rv) ((rv) >= 1)
-#else
+#if !defined(__linux__)
+/* ignore v4-mapped setup failure */
 #define ECNBITS_PREP_FATAL(rv) ((rv) >= 2)
+#else
+/* require v4-mapped setup */
+#define ECNBITS_PREP_FATAL(rv) ((rv) >= 1)
 #endif
 
 #if defined(_WIN32) || defined(WIN32)
+/* ignore failure to set outgoing tc */
 #define ECNBITS_TC_FATAL(rv) ((rv), 0)
 #elif defined(__linux__) && !defined(__ANDROID__)
+/* ignore failure to set outgoing tc on WSL 1 only (see tc.c) */
 #ifdef ECNBITS_INTERNAL
 #define ECNBITS_WSLCHECK
 #endif
 int ecnbits_tcfatal(int);
 #define ECNBITS_TC_FATAL(rv) ecnbits_tcfatal(rv)
-#elif defined(__ANDROID__)
-#define ECNBITS_TC_FATAL(rv) ((rv) >= 1)
-#else
+#elif !defined(__linux__)
+/* ignore v4-mapped setup failure */
 #define ECNBITS_TC_FATAL(rv) ((rv) >= 2)
+#else
+/* require v4-mapped setup */
+#define ECNBITS_TC_FATAL(rv) ((rv) >= 1)
 #endif
 
 /* socket operations */
