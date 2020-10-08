@@ -27,7 +27,7 @@ DESCRIPTION
      stream sockets (TCP) may not work completely, for example the operating
      system may change the sent traffic class value; operating on v4-mapped
      IPv6 sockets (::FFFF.0.0.0.0/96) may be unsupported (although known to
-     work under Linux/Android/WSL).  This function is thread-safe.
+     work under Linux/Android/WSL 2 and WSL 1).  This function is thread-safe.
 
      The handle itself is not changed, but a few socket options are enabled.
      For this to work, the af argument is expected to carry the address family
@@ -86,9 +86,9 @@ AUTHORS
 
 CAVEATS
      Using v4-mapped IPv6 sockets should be avoided; it only works on Linux
-     (including Android and WSL 1 but not native Windows), if even that.
+     (including WSL 1 (but not native Windows), WSL 2, Android), if even that.
 
 LICENCE
      The MirOS Licence (short name: MirBSD)
 
-ECN-Bits                      September 25, 2020                      ECN-Bits
+ECN-Bits                        October 7, 2020                       ECN-Bits
