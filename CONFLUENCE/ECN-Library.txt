@@ -424,7 +424,10 @@ Technical details
 
 ‣‣C++ (and C): UWP (Universal Windows Platform)
 
- Support is being prepared.
+ Support is tentatively being implemented using the C library functions
+ inside the WebRTC library.
+
+	https://github.com/webrtc-uwp/webrtc-uwp-sdk/tree/releases/m71
 
 ‣‣C♯/VB.net: Windows/Mono .net Common Language Runtime
 
