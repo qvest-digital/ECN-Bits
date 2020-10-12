@@ -359,20 +359,15 @@ Technical details
 
  The example Android äpp is only a client. It draws a UI which has input
  fields for IP address or hostname, port, and outgoing traffic class,
- like the C/CLI example client. It also has three buttons:
+ like the C/CLI example client. It also has two buttons:
 
   • Send Packet: uses ECNBitsDatagramSocket to send out a packet and
     wait 1 s for answers, like the CLI client does
 
-  • Start Channel: uses NIO DatagramChannel to continously send and
-    receive packets in multiple threads; this was written before it
-    became clear that it is probably impossible to extend the NIO
-    channel
-
   • Licences: displays what Google’s standard library thinks are the
     licences of the dependencies of the äpp
 
- So, only the “Send Packet” button is really useful at the moment.
+ (The “Start Channel” button an earlier version had no longer exists.)
 
  Below the buttons, textual output (output lines separated with thin
  lines) will be shown; the content is similar to what the C/CLI example
