@@ -63,7 +63,7 @@ Development funded by Deutsche Telekom.
     are strongly encouraged to use WSL 1 instead.
 
 – Windows, C++/UWP
-  • planning stages
+  • realised by linking the C/CLI library into the application
 
 – Windows, C♯/.net
   • planning stages
