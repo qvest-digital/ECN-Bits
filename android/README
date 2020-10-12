@@ -28,9 +28,7 @@ https://developer.android.com/studio/projects/android-library#AddDependency
 
 The app/ subdirectory contains an example application. The
 example client talks to a server (for example the one from
-the C/CLI library) using DatagramSocket (“send packet”) or
-DatagramChannel (“start channel”); the latter does not handle
-ECN bits (see above). We could switch it to use Netty instead.
+the C/CLI library) using DatagramSocket (“send packet”).
 
 Normal Android build mechanisms (./gradlew build) or building
 in IntelliJ / Android Studio should be used.
