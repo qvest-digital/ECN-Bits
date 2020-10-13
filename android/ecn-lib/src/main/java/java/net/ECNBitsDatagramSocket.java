@@ -23,10 +23,8 @@ package java.net;
 
 import android.util.Log;
 import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
-import lombok.val;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * {@link DatagramSocket} equivalent capable of returning and
@@ -48,7 +46,7 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
         }
     }
 
-    private final ECNBitsDatagramSocketImpl eimpl;
+    private ECNBitsDatagramSocketImpl eimpl;
 
     /**
      * Constructs an ECN-capable datagram socket, wildcard bound to a free port
@@ -72,17 +70,8 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
     public ECNBitsDatagramSocket(final SocketAddress bindaddr) throws SocketException {
         super(bindaddr);
 
-        final DatagramSocketImpl impl;
-        try {
-            val getImpl = this.getClass().getSuperclass().getDeclaredMethod("getImpl");
-            getImpl.setAccessible(true);
-            impl = (DatagramSocketImpl) getImpl.invoke(this);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            close();
-            throw new ECNBitsLibraryException("cannot get DatagramSocketImpl", e);
-        }
-        if (impl instanceof ECNBitsDatagramSocketImpl) {
-            eimpl = (ECNBitsDatagramSocketImpl) impl;
+        eimpl = ECNBitsDatagramSocketImpl.LRU.findOnce(this);
+        if (eimpl != null) {
             eimpl.setUpRecvTclass();
             return;
         }
@@ -114,6 +103,19 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
      */
     public ECNBitsDatagramSocket(final int port, final InetAddress laddr) throws SocketException {
         this(new InetSocketAddress(laddr, port));
+    }
+
+    /**
+     * Closes this datagram socket.
+     *
+     * Any thread currently blocked in {@link #receive} upon this socket
+     * will throw a {@link SocketException}.
+     */
+    @Override
+    public void close() {
+        // remove strong reference
+        eimpl = null;
+        super.close();
     }
 
     /**
