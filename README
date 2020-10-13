@@ -22,7 +22,7 @@ Development funded by Deutsche Telekom.
   • library (AAR), with JNI component written in C,
     easily added into your own projects
     + java.net.ECNBitsDatagramSocket (extends DatagramSocket)
-      to communicate and get the IP traffic class
+      to communicate and get the IP traffic class or the congestion factor
     + de.telekom.llcto.ecn_bits.android.lib.Bits
       to access the ECN bits contained in the traffic class byte
     ! targetting Android 8 (Oreo, API 26/27) and up, 11+ will not work

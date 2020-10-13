@@ -23,6 +23,7 @@ package java.net;
 
 import android.util.Log;
 import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
+import de.telekom.llcto.ecn_bits.android.lib.ECNStatistics;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -35,7 +36,8 @@ import java.lang.reflect.Method;
  * This class offers the method {@link #retrieveLastTrafficClass()} to retrieve
  * the traffic class octet, if any, from the last packet received or peekData’d
  * or null if it could not be determined or no packet was processed yet, and
- * TODO listing the last bits in a list.
+ * {@link #startMeasurement()} and {@link #getMeasurement(boolean)} to analyse
+ * the percentage of packets that were congested over a period.
  *
  * @author mirabilos (t.glaser@tarent.de)
  */
@@ -136,5 +138,37 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
      */
     public Byte retrieveLastTrafficClass() {
         return eimpl.retrieveLastTrafficClass();
+    }
+
+    /**
+     * Starts (or restarts, resetting) measurement of the percentage of received
+     * packets that had the ECN CE mark set, i.e. that were congested.
+     *
+     * @see #getMeasurement(boolean)
+     */
+    public void startMeasurement() {
+        try {
+            eimpl.doMeasuring(true);
+        } catch (ArithmeticException e) {
+            /* ignore, this is about the past period */
+        }
+    }
+
+    /**
+     * Retrieves the measurement data regarding the percentage of received
+     * packets that had the ECN CE mark set, i.e. that were congested, for
+     * the period between the previous call to {@link #startMeasurement()}
+     * or this function with {@code doContinue} set to true, and this call.
+     *
+     * If {@code doContinue} is true, also starts a new measurement cycle;
+     * otherwise, stops measuring for the current socket;to save CPU, doing
+     * measurements is not enabled unless explicitly requested.
+     *
+     * @param doContinue whether to continue measuring
+     * @return {@link ECNStatistics}, or null if not measuring before
+     * @throws ArithmeticException if too many packets were received in the last period
+     */
+    public ECNStatistics getMeasurement(final boolean doContinue) {
+        return eimpl.doMeasuring(doContinue);
     }
 }

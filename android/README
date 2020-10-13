@@ -4,6 +4,12 @@ This library mostly offers the following entry points:
 • java.net.ECNBitsDatagramSocket (extends DatagramSocket)
 • de.telekom.llcto.ecn_bits.android.lib.Bits
 
+The user can either retrieve, for each received datagram,
+the IP traffic class byte (using the retrieveLastTrafficClass
+method on the socket), or by using the startMeasurement method
+and then calling the getMeasurement method periodically, e.g.
+every 20 ms, retrieving the congestion factor from its result.
+
 There’s no equivalent function for DatagramChannel, and
 it is not likely one will be added, as some involved classes
 are “final” and so not extensible.

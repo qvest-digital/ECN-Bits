@@ -34,7 +34,9 @@ package java.net;
 
 import android.annotation.SuppressLint;
 import android.util.Log;
+import de.telekom.llcto.ecn_bits.android.lib.Bits;
 import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
+import de.telekom.llcto.ecn_bits.android.lib.ECNStatistics;
 import lombok.RequiredArgsConstructor;
 
 import java.io.FileDescriptor;
@@ -52,11 +54,13 @@ import java.lang.reflect.Method;
  *
  * @author mirabilos (t.glaser@tarent.de)
  */
-@SuppressWarnings({ "deprecation", "unused", /*UnIntelliJ bug*/ "RedundantSuppression" })
 class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     private final DatagramSocketImpl p;
     private int sockfd = -1;
     private Byte lastTc = null;
+    private byte measuring = 0;
+    final private int[] measurement = new int[2];
+    private long measuredFrom;
     private final Method getFDRM;
     private final Field bufLengthRF;
     private final Method setReceivedLengthRM;
@@ -151,11 +155,13 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
         doRecv(packet, false);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected void setTTL(final byte ttl) throws IOException {
         p.setTTL(ttl);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected byte getTTL() throws IOException {
         return p.getTTL();
@@ -248,6 +254,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
         }
     }
 
+    // note: this is always called synchronised
     private void doRecv(final DatagramPacket packet, final boolean peekOnly) throws IOException {
         lastTc = null;
 
@@ -301,5 +308,38 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
         if (args.tcValid) {
             lastTc = args.tc;
         }
+
+        if (measuring == 1) {
+            final int offset = args.tcValid && Bits.CE.equals(Bits.valueOf(args.tc)) ? 1 : 0;
+            if (measurement[offset] == Integer.MAX_VALUE / 2) {
+                measuring = 2;
+            } else {
+                ++measurement[offset];
+            }
+        }
+    }
+
+    ECNStatistics doMeasuring(final boolean start) {
+        ECNStatistics rv = null;
+        final int measured;
+        synchronized (this) {
+            // timestamp quickly
+            if (measuring > 0) {
+                rv = new ECNStatistics(measuredFrom, measurement);
+            }
+            // save old state
+            measured = measuring;
+            // start new cycle
+            measuring = start ? (byte) 1 : (byte) 0;
+            measurement[0] = 0;
+            measurement[1] = 0;
+            // timestamp just as we’re leaving the synchronised section
+            measuredFrom = System.nanoTime();
+        }
+        // new period is started, let’s return information about past period
+        if (measured > 1) {
+            throw new ArithmeticException("too many packets during measurement period");
+        }
+        return rv;
     }
 }

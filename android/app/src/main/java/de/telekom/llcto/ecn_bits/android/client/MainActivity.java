@@ -40,6 +40,7 @@ import android.widget.TextView;
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import de.telekom.llcto.ecn_bits.android.lib.Bits;
 import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
+import de.telekom.llcto.ecn_bits.android.lib.ECNStatistics;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -330,6 +331,7 @@ public class MainActivity extends AppCompatActivity {
           hostname.a[0].getHostAddress() : hostname.s, port, outBits.getShortname()));
         val hdr = String.format("sent(%s)/received packets:", outBits.getShortname());
         netThread = new Thread(() -> {
+            sock.startMeasurement();
             try {
                 boolean oneSuccess = false;
                 sock.setSoTimeout(1000);
@@ -393,6 +395,16 @@ public class MainActivity extends AppCompatActivity {
             } catch (SocketException e) {
                 runOnUiThread(() -> addOutputLine("!! setsockopt: " + e));
             } finally {
+                try {
+                    final ECNStatistics stats = sock.getMeasurement(false);
+                    runOnUiThread(() -> addOutputLine(stats == null ?
+                      "!! no congestion measurement" :
+                      String.format("ℹ %.2f%% of %d packets received over %d ms were congested",
+                        stats.getCongestionFactor() * 100.0, stats.getReceivedPackets(),
+                        stats.getLengthOfMeasuringPeriod() / 1000000L)));
+                } catch (ArithmeticException e) {
+                    runOnUiThread(() -> addOutputLine("!! ECNStatistics: " + e));
+                }
                 if (!sock.isClosed()) {
                     sock.close();
                 }
