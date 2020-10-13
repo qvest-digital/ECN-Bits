@@ -71,6 +71,7 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
         super(bindaddr);
 
         eimpl = ECNBitsDatagramSocketImpl.LRU.findOnce(this);
+        Log.w("ECN-Bits", String.format("socket constructor for %s: impl %s", this, eimpl));
         if (eimpl != null) {
             eimpl.setUpRecvTclass();
             return;
