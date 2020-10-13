@@ -312,7 +312,6 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
         }
     }
 
-    @Override
     void setDatagramSocket(final DatagramSocket socket) {
         Log.w("ECN-Bits", String.format("setDS: socket %s on impl %s", socket, this));
         try {
