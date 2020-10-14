@@ -40,11 +40,9 @@ import lombok.val;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 
 /**
  * Plain{@link DatagramSocketImpl} with extras to receive ECN bits,
@@ -67,53 +65,6 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     private final Method getFDRM;
     private final Field bufLengthRF;
     private final Method setReceivedLengthRM;
-
-    static final class LRU {
-        private static final ArrayList<LRU> list = new ArrayList<>(4);
-
-        private static void add(final ECNBitsDatagramSocketImpl impl, final ECNBitsDatagramSocket socket) {
-            synchronized (list) {
-                list.removeIf(LRU::isSwappedOut);
-                list.add(new LRU(impl, socket));
-            }
-        }
-
-        static ECNBitsDatagramSocketImpl findOnce(final ECNBitsDatagramSocket socket) {
-            synchronized (list) {
-                for (final LRU e : list) {
-                    if (e.s.get() == socket) {
-                        final ECNBitsDatagramSocketImpl rv = e.i.get();
-                        // only one call is needed anyway
-                        e.i.clear();
-                        return rv;
-                    }
-                }
-            }
-            return null;
-        }
-
-        private static void close(final ECNBitsDatagramSocketImpl impl) {
-            synchronized (list) {
-                list.removeIf(e -> e.NilOrImpl(impl));
-            }
-        }
-
-        private final WeakReference<ECNBitsDatagramSocketImpl> i;
-        private final WeakReference<ECNBitsDatagramSocket> s;
-
-        private LRU(final ECNBitsDatagramSocketImpl impl, final ECNBitsDatagramSocket socket) {
-            i = new WeakReference<>(impl);
-            s = new WeakReference<>(socket);
-        }
-
-        private boolean isSwappedOut() {
-            return s.get() == null || i.get() == null;
-        }
-
-        private boolean NilOrImpl(final ECNBitsDatagramSocketImpl impl) {
-            return i.get() == impl || s.get() == null || i.get() == null;
-        }
-    }
 
     native private static void nativeInit();
 
@@ -259,7 +210,6 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
 
     @Override
     protected void close() {
-        LRU.close(this);
         try {
             p.close();
         } finally {
@@ -312,9 +262,6 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
         } catch (IllegalAccessException | InvocationTargetException e) {
             Log.e("ECN-Bits", "setDatagramSocket reflection", e);
             throw new ECNBitsLibraryException("could not execute nōn-SDK reflection target", e);
-        }
-        if (socket instanceof ECNBitsDatagramSocket) {
-            LRU.add(this, (ECNBitsDatagramSocket) socket);
         }
     }
 
