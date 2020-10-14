@@ -42,7 +42,7 @@ import de.telekom.llcto.ecn_bits.jdk.lib.ECNStatistics;
  *
  * @author mirabilos (t.glaser@tarent.de)
  */
-class ECNBitsDatagramSocketImpl /*extends PlainDatagramSocketImpl*/ {
+class ECNBitsDatagramSocketImpl extends PlainDatagramSocketImpl {
     private Byte lastTc = null;
     private byte measuring = 0;
     final private int[] measurement = new int[2];

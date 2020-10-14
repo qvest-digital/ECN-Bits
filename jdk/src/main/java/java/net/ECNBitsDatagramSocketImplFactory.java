@@ -42,6 +42,6 @@ public class ECNBitsDatagramSocketImplFactory implements DatagramSocketImplFacto
      */
     @Override
     public DatagramSocketImpl createDatagramSocketImpl() {
-        return null;// new ECNBitsDatagramSocketImpl();
+        return new ECNBitsDatagramSocketImpl();
     }
 }

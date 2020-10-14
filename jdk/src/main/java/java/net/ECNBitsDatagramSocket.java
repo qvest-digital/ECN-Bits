@@ -68,13 +68,13 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
      */
     public ECNBitsDatagramSocket(final SocketAddress bindaddr) throws SocketException {
         super(bindaddr);
-/*        final DatagramSocketImpl impl = getImpl();
+        final DatagramSocketImpl impl = getImpl();
         if (impl instanceof ECNBitsDatagramSocketImpl) {
             eimpl = (ECNBitsDatagramSocketImpl) impl;
             eimpl.setUpRecvTclass();
             return;
         }
-*/        //close();
+        //close();
         //throw new ECNBitsLibraryException("not an ECNBitsDatagramSocketImpl");
         eimpl = null;
     }
