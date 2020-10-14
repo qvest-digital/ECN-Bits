@@ -71,6 +71,9 @@ Development funded by Deutsche Telekom.
 – iOS (Apple)
   • pre-planning
 
+– Linux JDK: Java/JNI/CLI
+  • pre-WIP (PoC, maybe extended to BSD/Winsock later)
+
 ┌────────────────┐
 │ About ECN bits │
 └────────────────┘
