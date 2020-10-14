@@ -72,7 +72,6 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
         private static final ArrayList<LRU> list = new ArrayList<>(4);
 
         private static void add(final ECNBitsDatagramSocketImpl impl, final ECNBitsDatagramSocket socket) {
-            Log.w("ECN-Bits", String.format("LRU: adding socket %s impl %s", socket, impl));
             synchronized (list) {
                 list.removeIf(LRU::isSwappedOut);
                 list.add(new LRU(impl, socket));
@@ -84,16 +83,12 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
                 for (final LRU e : list) {
                     if (e.s.get() == socket) {
                         final ECNBitsDatagramSocketImpl rv = e.i.get();
-                        Log.w("ECN-Bits", String.format("LRU: found impl %s for socket %s", rv, socket));
                         // only one call is needed anyway
                         e.i.clear();
                         return rv;
-                    } else {
-                        Log.w("ECN-Bits", String.format("LRU: socket %s did not match %s", e.s.get(), socket));
                     }
                 }
             }
-            Log.w("ECN-Bits", String.format("LRU: did not find socket %s", socket));
             return null;
         }
 
@@ -192,7 +187,6 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     protected synchronized void create() throws SocketException {
         p.create();
         sockfd = getSocketFD();
-        Log.w("ECN-Bits", String.format("creating impl %s", this));
     }
 
     @Override
@@ -313,7 +307,6 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     }
 
     void setDatagramSocket(final DatagramSocket socket) {
-        Log.w("ECN-Bits", String.format("setDS: socket %s on impl %s", socket, this));
         try {
             setDatagramSocketRM.invoke(p, socket);
         } catch (IllegalAccessException | InvocationTargetException e) {
