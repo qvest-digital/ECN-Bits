@@ -325,6 +325,14 @@ Technical details
     reflection to instantiate an object of the system implementation and
     proxying most calls to it.
 
+  • Android does not call some overridden methods, instead calling the
+    superclass’ ones. This leads to some functionality that will break
+    system-wide, for any newly created DatagramSocket instances (!),
+    once the first ECNBitsDatagramSocket was initialised. This mostly
+    affects multicast, an obscure extended socket option and “filtering”
+    (AIUI filtering out packets received before the connect() call);
+    see android/README for details.
+
   • Google are hiding functions, such as the one to get the actual file
     descriptor integer handle from the FileDescriptor associated with a
     socket. As of Android 8, reflection can be used to work around this.
@@ -343,7 +351,8 @@ Technical details
  future-safe but involve major programming effort. (This is why this
  solution was called the first Android solution above: a second solution
  replicating the system implementation more fully would be the second,
- improved, solution.)
+ improved, solution.) UPDATE: judging from the “does not call overridden
+ methods” issue mentioned above, doing so might after all be impossible…
 
 ‣‣‣Network difficulties
 

@@ -57,11 +57,6 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     private final DatagramSocketImpl p;
     private int sockfd = -1;
     private Byte lastTc = null;
-    private final Method dataAvailableRM;
-    private final Method setDatagramSocketRM;
-    private final Method getDatagramSocketRM;
-    private final Method setOptionRM;
-    private final Method getOptionRM;
     private final Method getFDRM;
     private final Field bufLengthRF;
     private final Method setReceivedLengthRM;
@@ -95,18 +90,6 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
             val plainDatagramSocketImplRI = plainDatagramSocketImplRC.getDeclaredConstructor();
             plainDatagramSocketImplRI.setAccessible(true);
             p = (DatagramSocketImpl) plainDatagramSocketImplRI.newInstance();
-            final Class<?> datagramSocketImplRC = plainDatagramSocketImplRC.getSuperclass().getSuperclass();
-
-            dataAvailableRM = datagramSocketImplRC.getDeclaredMethod("dataAvailable");
-            dataAvailableRM.setAccessible(true);
-            setDatagramSocketRM = datagramSocketImplRC.getDeclaredMethod("setDatagramSocket", DatagramSocket.class);
-            setDatagramSocketRM.setAccessible(true);
-            getDatagramSocketRM = datagramSocketImplRC.getDeclaredMethod("getDatagramSocket");
-            getDatagramSocketRM.setAccessible(true);
-            setOptionRM = plainDatagramSocketImplRC.getDeclaredMethod("setOption", SocketOption.class, Object.class);
-            setOptionRM.setAccessible(true);
-            getOptionRM = plainDatagramSocketImplRC.getDeclaredMethod("getOption", SocketOption.class);
-            getOptionRM.setAccessible(true);
 
             final Class<?> fileDescriptorRC = FileDescriptor.class;
             //noinspection JavaReflectionMemberAccess
@@ -245,53 +228,6 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     @Override
     protected FileDescriptor getFileDescriptor() {
         return p.getFileDescriptor();
-    }
-
-    int dataAvailable() {
-        try {
-            return (int) dataAvailableRM.invoke(p);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            Log.e("ECN-Bits", "dataAvailable reflection", e);
-            throw new ECNBitsLibraryException("could not execute nōn-SDK reflection target", e);
-        }
-    }
-
-    void setDatagramSocket(final DatagramSocket socket) {
-        try {
-            setDatagramSocketRM.invoke(p, socket);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            Log.e("ECN-Bits", "setDatagramSocket reflection", e);
-            throw new ECNBitsLibraryException("could not execute nōn-SDK reflection target", e);
-        }
-    }
-
-    DatagramSocket getDatagramSocket() {
-        try {
-            return (DatagramSocket) getDatagramSocketRM.invoke(p);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            Log.e("ECN-Bits", "getDatagramSocket reflection", e);
-            throw new ECNBitsLibraryException("could not execute nōn-SDK reflection target", e);
-        }
-    }
-
-    @SuppressWarnings("RedundantThrows")
-    <T> void setOption(final SocketOption<T> name, final T value) throws IOException {
-        try {
-            setOptionRM.invoke(p, name, value);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            Log.e("ECN-Bits", "setOption reflection", e);
-            throw new ECNBitsLibraryException("could not execute nōn-SDK reflection target", e);
-        }
-    }
-
-    @SuppressWarnings({ "RedundantThrows", "unchecked" })
-    <T> T getOption(SocketOption<T> name) throws IOException {
-        try {
-            return (T) getOptionRM.invoke(p, name);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            Log.e("ECN-Bits", "getOption reflection", e);
-            throw new ECNBitsLibraryException("could not execute nōn-SDK reflection target", e);
-        }
     }
 
     @RequiredArgsConstructor

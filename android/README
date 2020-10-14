@@ -40,3 +40,20 @@ with musl libc, statically and running the server on localhost)
 or test on “bare metal” (real hardware), or connect to a VPN
 from inside the emulator. We could add the server as example
 GUI application, later.
+
+** WARNING **
+
+Use of ECNBitsDatagramSocket changes the implementation used
+to create any and all DatagramSocket"s. The overriding imple‐
+mentation, ECNBitsDatagramSocketImpl, *cannot* support, at all,
+due to Android limitations, the following calls:
+• <T> T getOption(SocketOption<T> name)
+  <T> void setOption(final SocketOption<T> name, final T value)
+• DatagramSocket getDatagramSocket()
+  void setDatagramSocket(final DatagramSocket socket)
+• int dataAvailable()
+
+This breaks the following functionality for *ALL* DatagramSocket"s:
+• setting and getting ExtendedSocketOptions.SO_FLOW_SLA
+• setting and getting Multicast socket options
+• filtering, although dataAvailable() just returns 0 by default
