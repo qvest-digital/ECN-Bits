@@ -220,6 +220,22 @@ do_resolve(const char *host, const char *service)
 			continue;
 		}
 
+		i = 1;
+		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
+		    (const void *)&i, sizeof(i))) {
+#if defined(_WIN32) || defined(WIN32)
+			putc('\n', stderr);
+			ws2warn("setsockopt");
+#else
+			i = errno;
+			putc('\n', stderr);
+			errno = i;
+			warn("setsockopt");
+#endif
+			closesocket(s);
+			continue;
+		}
+
 		if (ECNBITS_PREP_FATAL(ecnbits_prep(s, ap->ai_family))) {
 #if defined(_WIN32) || defined(WIN32)
 			putc('\n', stderr);

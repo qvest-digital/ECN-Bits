@@ -135,6 +135,17 @@ do_resolve(const char *host, const char *service)
 			continue;
 		}
 
+		i = 1;
+		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
+		    (const void *)&i, sizeof(i))) {
+			i = errno;
+			putc('\n', stderr);
+			errno = i;
+			warn("setsockopt");
+			close(s);
+			continue;
+		}
+
 		if (ECNBITS_PREP_FATAL(ecnbits_prep(s, ap->ai_family))) {
 			i = errno;
 			putc('\n', stderr);
