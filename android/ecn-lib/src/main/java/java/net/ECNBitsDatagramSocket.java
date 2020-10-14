@@ -74,7 +74,7 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
 
         final DatagramSocketImpl impl;
         try {
-            Method getImplRM = this.getClass().getSuperclass().getDeclaredMethod("getImpl");
+            final Method getImplRM = this.getClass().getSuperclass().getDeclaredMethod("getImpl");
             getImplRM.setAccessible(true);
             impl = (DatagramSocketImpl) getImplRM.invoke(this);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {

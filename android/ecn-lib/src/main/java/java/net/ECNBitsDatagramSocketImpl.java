@@ -36,10 +36,10 @@ import android.annotation.SuppressLint;
 import android.util.Log;
 import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -87,7 +87,7 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
     ECNBitsDatagramSocketImpl() {
         try {
             final Class<?> plainDatagramSocketImplRC = Class.forName("java.net.PlainDatagramSocketImpl");
-            val plainDatagramSocketImplRI = plainDatagramSocketImplRC.getDeclaredConstructor();
+            final Constructor<?> plainDatagramSocketImplRI = plainDatagramSocketImplRC.getDeclaredConstructor();
             plainDatagramSocketImplRI.setAccessible(true);
             p = (DatagramSocketImpl) plainDatagramSocketImplRI.newInstance();
 
@@ -283,8 +283,8 @@ class ECNBitsDatagramSocketImpl extends DatagramSocketImpl {
         default:
             throw new SocketException("recvmsg failed");
         }
-        val srcaddr = InetAddress.getByAddress(args.addr);
-        val src = new InetSocketAddress(srcaddr, args.port);
+        final InetAddress srcaddr = InetAddress.getByAddress(args.addr);
+        final InetSocketAddress src = new InetSocketAddress(srcaddr, args.port);
 
         try {
             setReceivedLengthRM.invoke(packet, args.read);
