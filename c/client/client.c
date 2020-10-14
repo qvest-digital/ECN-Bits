@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 		else
 			errx(1, "Unknown traffic class: %s", argv[3]);
 	} else if (argc != 3)
-		errx(1, "Usage: %s servername port", argv[0]);
+		errx(1, "Usage: %s servername port [tc]", argv[0]);
 
 	if (do_resolve(argv[1], argv[2]))
 		errx(1, "Could not connect to server or received no response");
