@@ -49,14 +49,14 @@ dependencies {
     //noinspection GradleDependency
     implementation 'com.google.android.gms:play-services-oss-licenses:16.0.2'
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'org.projectlombok:lombok:1.18.14'
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
-    compileOnly 'org.projectlombok:lombok:1.18.12'
+    compileOnly 'org.projectlombok:lombok:1.18.14'
 
     implementation 'org.evolvis.tartools:rfc822:0.3'
     implementation project(":ecn-lib")
 
-    testImplementation 'junit:junit:4.13'
+    testImplementation 'junit:junit:4.13.1'
 
     //noinspection GradleDependency
     androidTestImplementation 'com.android.support.test:runner:1.0.1'

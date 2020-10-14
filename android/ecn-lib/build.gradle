@@ -54,11 +54,11 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'org.projectlombok:lombok:1.18.14'
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
-    compileOnly 'org.projectlombok:lombok:1.18.12'
+    compileOnly 'org.projectlombok:lombok:1.18.14'
 
-    testImplementation 'junit:junit:4.13'
+    testImplementation 'junit:junit:4.13.1'
     //noinspection GradleDependency
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     //noinspection GradleDependency
