@@ -43,12 +43,6 @@ android {
     }
     //noinspection GradleDependency
     buildToolsVersion = '28.0.3'
-
-    // due to private API use
-    lintOptions {
-        abortOnError false
-        return void // WTF‽
-    }
 }
 
 dependencies {
