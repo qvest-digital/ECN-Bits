@@ -72,7 +72,7 @@ Development funded by Deutsche Telekom.
   • pre-planning
 
 – Linux JDK: Java/JNI/CLI
-  • pre-WIP (PoC, maybe extended to BSD/Winsock later)
+  • cannot be supported as the JDK prevents access to “internal” classes
 
 ┌────────────────┐
 │ About ECN bits │
