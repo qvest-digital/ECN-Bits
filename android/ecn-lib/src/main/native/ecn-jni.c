@@ -20,16 +20,24 @@
  */
 
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <sys/uio.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+/*#include <netinet6/in6.h>*/
 #include <errno.h>
 #include <poll.h>
+#include <stddef.h>
+#include <string.h>
 
 #include <jni.h>
 #include <android/log.h>
 
-#include "ecn-ndk.h"
-
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
+
+#define ECNBITS_INVALID_BIT	((unsigned short)0x0100U)
+#define ECNBITS_ISVALID_BIT	((unsigned short)0x0200U)
+#define ECNBITS_VALID(result)	(((unsigned short)(result) >> 8) == 0x02U)
 
 static void JNICALL nativeInit(JNIEnv *env);
 static jint JNICALL nativePoll(JNIEnv *env, jobject self, jint fd, jint tmo);
@@ -37,6 +45,10 @@ static jint JNICALL nativeRecv(JNIEnv *env, jobject self, jobject args);
 static jint JNICALL nativeSetup(JNIEnv *env, jobject self, jint fd);
 
 static void o_init(JNIEnv *env);
+
+static size_t cmsg_actual_data_len(const struct cmsghdr *cmsg);
+static void recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e);
+static ssize_t ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e);
 
 /* cached offsets */
 static struct {
@@ -95,9 +107,48 @@ JNI_OnLoad(JavaVM *vm, void *reserved)
 static jint JNICALL
 nativeSetup(JNIEnv *env, jobject self, jint fd)
 {
+	int on = 1;
+	struct sockaddr sa;
+	socklen_t sa_len = sizeof(sa);
+
 	if (fd == -1)
 		return (1);
-	return (ecnbits_setup(fd));
+
+	if (getsockname(fd, &sa, &sa_len)) {
+		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
+		    "could not get socket address family");
+		return (1);
+	}
+
+	switch (sa.sa_family) {
+	case AF_INET:
+		if (setsockopt(fd, IPPROTO_IP, IP_RECVTOS,
+		    (const void *)&on, sizeof(on))) {
+			__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
+			    "could not set up IPv4 socket");
+			return (1);
+		}
+		break;
+	case AF_INET6:
+		if (setsockopt(fd, IPPROTO_IPV6, IPV6_RECVTCLASS,
+		    (const void *)&on, sizeof(on))) {
+			__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
+			    "could not set up IPv6 socket");
+			return (1);
+		}
+		if (setsockopt(fd, IPPROTO_IP, IP_RECVTOS,
+		    (const void *)&on, sizeof(on))) {
+			__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
+			    "could not set up IPv6 socket for IPv4");
+			return (1);
+		}
+		break;
+	default:
+		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
+		    "could not set up socket: unknown address family");
+		return (1);
+	}
+	return (0);
 }
 
 /* 0=ok  1=timeout  2+=fail */
@@ -159,21 +210,6 @@ o_init(JNIEnv *env)
 	o.o_valid = 1;
 }
 
-/* jrecv callback */
-static void
-setProtoDependentFields(void *ep, void *ap, const void *buf, size_t len,
-    unsigned short port)
-{
-	JNIEnv *env = (JNIEnv *)ep;
-	jobject args = (jobject)ap;
-	jbyteArray dst;
-
-	dst = (*env)->NewByteArray(env, (int)len);
-	(*env)->SetByteArrayRegion(env, dst, 0, (int)len, buf);
-	(*env)->SetObjectField(env, args, o.addr, dst);
-	(*env)->SetIntField(env, args, o.port, port);
-}
-
 /*-
  * args:
  *
@@ -193,12 +229,19 @@ setProtoDependentFields(void *ep, void *ap, const void *buf, size_t len,
 static jint JNICALL
 nativeRecv(JNIEnv *env, jobject self, jobject args)
 {
-	int fd, dopeek;
+	int p, fd;
 	ssize_t nbytes;
 	unsigned short tc;
 	struct iovec io;
 	jbyteArray buf_var;
 	jbyte *buf_elts;
+	jbyteArray addr;
+	struct msghdr m;
+	union {
+		struct sockaddr_storage s;
+		struct sockaddr_in in;
+		struct sockaddr_in6 in6;
+	} ss;
 
 	if (!o.o_valid) {
 		o_init(env);
@@ -207,31 +250,182 @@ nativeRecv(JNIEnv *env, jobject self, jobject args)
 	}
 
 	fd = (*env)->GetIntField(env, args, o.fd);
-	dopeek = (*env)->GetBooleanField(env, args, o.peekOnly);
+	p = (*env)->GetBooleanField(env, args, o.peekOnly);
 	buf_var = (*env)->GetObjectField(env, args, o.buf);
+	/* releasing needed: goto cleanup */
 	buf_elts = (*env)->GetByteArrayElements(env, buf_var, NULL);
 
 	io.iov_base = (char *)buf_elts +
 	    (size_t)((*env)->GetIntField(env, args, o.ofs));
 	io.iov_len = (size_t)((*env)->GetIntField(env, args, o.len));
 
-	if ((nbytes = ecnbits_jrecv(fd, dopeek, &tc, &io,
-	    &setProtoDependentFields, env, (void *)args)) == (ssize_t)-1)
+	memset(&m, 0, sizeof(m));
+	memset(&ss, 0, sizeof(ss));
+	m.msg_name = &ss;
+	m.msg_namelen = sizeof(ss);
+	m.msg_iov = &io;
+	m.msg_iovlen = 1;
+
+	if ((nbytes = ecnbits_rdmsg(fd, &m, p ? MSG_PEEK : 0, &tc)) == (ssize_t)-1)
 		switch (errno) {
 		case EAGAIN:
-			return (1);
+			p = 1;
+			goto cleanup;
 		case ECONNREFUSED:
-			return (2);
+			p = 2;
+			goto cleanup;
 		default:
-			return (3);
+			p = 3;
+			goto cleanup;
 		}
 
-	(*env)->ReleaseByteArrayElements(env, buf_var, buf_elts, 0);
+	switch (ss.s.ss_family) {
+	case AF_INET:
+		addr = (*env)->NewByteArray(env, 4);
+		(*env)->SetByteArrayRegion(env, addr, 0, 4,
+		    (const void *)&ss.in.sin_addr.s_addr);
+		p = ntohs(ss.in.sin_port);
+		break;
+	case AF_INET6:
+		addr = (*env)->NewByteArray(env, 16);
+		(*env)->SetByteArrayRegion(env, addr, 0, 16,
+		    (const void *)&ss.in6.sin6_addr.s6_addr);
+		p = ntohs(ss.in6.sin6_port);
+		break;
+	default:
+		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
+		    "bogus address family");
+		p = 3;
+		goto cleanup;
+	}
 
+	(*env)->SetObjectField(env, args, o.addr, addr);
+	(*env)->SetIntField(env, args, o.port, p);
 	(*env)->SetIntField(env, args, o.read, (int)nbytes);
 	(*env)->SetByteField(env, args, o.tc, tc & 0xFF);
 	(*env)->SetBooleanField(env, args, o.tcValid,
 	    ECNBITS_VALID(tc) ? JNI_TRUE : JNI_FALSE);
 
-	return (0);
+	p = 0;
+ cleanup:
+	(*env)->ReleaseByteArrayElements(env, buf_var, buf_elts, 0);
+	return (p);
+}
+
+#define MSGBUFSZ 48
+
+static size_t
+cmsg_actual_data_len(const struct cmsghdr *cmsg)
+{
+	union {
+		const struct cmsghdr *cmsg;
+		const unsigned char *uc;
+	} ptr[(
+		/* compile-time assertions */
+		sizeof(socklen_t) <= sizeof(size_t)
+	    ) ? 1 : -1];
+	ptrdiff_t pd;
+
+	ptr[0].cmsg = cmsg;
+	pd = CMSG_DATA(cmsg) - ptr[0].uc;
+	return ((size_t)cmsg->cmsg_len - (size_t)pd);
+}
+
+static void
+recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
+{
+	unsigned char b1, b2;
+	unsigned char *d = CMSG_DATA(cmsg);
+	size_t len;
+
+	/* https://bugs.debian.org/966459 */
+	len = cmsg_actual_data_len(cmsg);
+	switch (len) {
+	case 0:
+		/* huh? */
+		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
+		    "empty traffic class cmsg");
+		return;
+	case 3:
+	case 2:
+		/* shouldn’t happen, but… */
+		__android_log_print(ANDROID_LOG_WARN, "ECN-JNI",
+		    "odd-sized traffic class cmsg (%zu)", len);
+		/* FALLTHROUGH */
+	case 1:
+		b1 = d[0];
+		break;
+	default:
+		/* most likely an int, but… */
+		__android_log_print(ANDROID_LOG_WARN, "ECN-JNI",
+		    "oversized traffic class cmsg (%zu)", len);
+		/* FALLTHROUGH */
+	case 4:
+		b1 = d[0];
+		b2 = d[3];
+		if (b1 == b2)
+			break;
+		if (b1 != 0 && b2 == 0)
+			break;
+		if (b1 == 0 && b2 != 0) {
+			b1 = b2;
+			break;
+		}
+		/* inconsistent, no luck */
+		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
+		    "inconsistent traffic class cmsg %02X %02X %02X %02X (%zu)",
+		    (unsigned int)d[0], (unsigned int)d[1],
+		    (unsigned int)d[2], (unsigned int)d[3], len);
+		return;
+	}
+	*e = (unsigned short)(b1 & 0xFFU) | ECNBITS_ISVALID_BIT;
+}
+
+static ssize_t
+ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e)
+{
+	struct cmsghdr *cmsg;
+	ssize_t rv;
+	char msgbuf[MSGBUFSZ];
+
+	*e = ECNBITS_INVALID_BIT;
+
+	if (!msgh->msg_control) {
+		msgh->msg_control = msgbuf;
+		msgh->msg_controllen = sizeof(msgbuf);
+	}
+
+	rv = recvmsg(s, msgh, flags);
+	if (rv == (ssize_t)-1)
+		return (rv);
+
+	if (msgh->msg_flags & MSG_CTRUNC) {
+		/* 48 is enough normally but… */
+		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
+		    "cmsg truncated, increase MSGBUFSZ and recompile!");
+	}
+
+	cmsg = CMSG_FIRSTHDR(msgh);
+	while (cmsg) {
+		switch (cmsg->cmsg_level) {
+		case IPPROTO_IP:
+			switch (cmsg->cmsg_type) {
+			case IP_TOS:
+			case IP_RECVTOS:
+				recvtos_cmsg(cmsg, e);
+				break;
+			}
+			break;
+		case IPPROTO_IPV6:
+			switch (cmsg->cmsg_type) {
+			case IPV6_TCLASS:
+				recvtos_cmsg(cmsg, e);
+				break;
+			}
+			break;
+		}
+		cmsg = CMSG_NXTHDR(msgh, cmsg);
+	}
+
+	return (rv);
 }
