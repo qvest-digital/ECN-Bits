@@ -12,7 +12,8 @@ every 20 ms, retrieving the congestion factor from its result.
 
 There’s no equivalent function for DatagramChannel, and
 it is not likely one will be added, as some involved classes
-are “final” and so not extensible.
+are “final” and so not extensible. If at all, using jnr-enxio
+as base, patching support for ECN-Bits into it, might work.
 
 The current implementation tries to reuse as much of the
 system implementation as possible, using reflection and
@@ -21,9 +22,9 @@ version reduces this kind of access. This library was written
 targetting Android 8, as oldest currently-supported version,
 and will work on Android 9 and 10 but no later (see Wiki or
 https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces#how_can_i_enable_access_to_non-sdk_interfaces
-if it does not work out of the box). A workaround would mean
-implementing a good part of the network stack. The best option
-would be making Google add an API to retrieve the traffic class.
+if it does not work out of the box). The best option would be
+making Google add API to retrieve the traffic class (or, even
+better, adding that to OpenJDK).
 
 The example äpp shows “could not initialise ECN-Bits library”
 on Android 9 and 10 if the settings need changing.

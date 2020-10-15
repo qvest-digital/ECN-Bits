@@ -274,12 +274,12 @@ Technical details
 
 ‣‣Java & JNI — DatagramSocket: Android
 
- This first solution for Android is comprised of two modules (the AAR
+ This solution for Android is comprised of two modules (the AAR
  library and an APK demo äpp) in a standard IntelliJ (Android Studio)
  project and is shipped in the android/ subdirectory. It is designed for
  Android 8 “Oreo” (the oldest currently supported release) and newer,
- but currently has been tested on Android 8 only (later versions are
- likely to require some extra intervention, see below).
+ and is known working on Android 9 and 10 as well, requiring adb but
+ no root; necessary extra steps are documented below.
 
  The AAR library is not published to a central Maven repository but
  designed as a component that can be embedded into other projects (with
@@ -303,7 +303,9 @@ Technical details
  Unfortunately, anything using DatagramChannel (NIO) is out for now: the
  class is declared as final and thus cannot be extended. This also
  includes the NIO channels of Netty (although its OIO channels might
- work).
+ work). jnr-enxio, however, might be a workable channel base.
+
+	https://github.com/jnr/jnr-enxio
 
  DatagramSocket is not declaread as final, and one can even set a
  factory for the underlying DatagramSocketImpl which implements socket
@@ -343,16 +345,13 @@ Technical details
   • Android 11 and up will probably refuse these reflection calls
 
  The best fix would be a Google-provided API to access the IP traffic
- class. No such API exists as of the time of this writing.
+ class, ideally even in stock OpenJDK. No such API exists as of the time
+ of this writing.
 
- It would be possible to basically copy and redo the entire system
- implementation into one of our own with more JNI (which means we can
- manage the socket filedescriptor fully ourselves). This would be more
- future-safe but involve major programming effort. (This is why this
- solution was called the first Android solution above: a second solution
- replicating the system implementation more fully would be the second,
- improved, solution.) UPDATE: judging from the “does not call overridden
- methods” issue mentioned above, doing so might after all be impossible…
+ Unfortunately, the runtime ignores some of the overridden methods
+ (see above), making a replacement copying the internal parts just
+ as impossible. For extra fun, OpenJDK even prevents user classes
+ from being placed in a package under java.* ☹
 
 ‣‣‣Network difficulties
 

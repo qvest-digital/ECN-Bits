@@ -17,19 +17,20 @@ Development funded by Deutsche Telekom.
 │ Covered operating environments │
 └────────────────────────────────┘
 
-– Android/Linux: Java/JNI (first solution)
+– Android/Linux: Java/JNI
   ‣ see android/README
   • library (AAR), with JNI component written in C,
-    easily added into your own projects
+    easily added into your own projects (but side effects exist)
     + java.net.ECNBitsDatagramSocket (extends DatagramSocket)
       to communicate and get the IP traffic class or the congestion factor
     + de.telekom.llcto.ecn_bits.android.lib.Bits
       to access the ECN bits contained in the traffic class byte
     ! targetting Android 8 (Oreo, API 26/27) and up, 11+ will not work
     ! tested on Android 8 and 9 (no change needed) and 10 (see docs)
-    : Status: done for DatagramSocket and the first solution approach
+    : Status: done for DatagramSocket
       testing Android 11
     - no equivalent for DatagramChannel (probably unfeasible)
+      (if at all, https://github.com/jnr/jnr-enxio might be useful a base)
   • demo client GUI application
 
 – BSD/Linux/WSL: C/CLI (libecn-bits.a/so)
