@@ -37,6 +37,11 @@ android {
     }
     //noinspection GradleDependency
     buildToolsVersion = '28.0.3'
+
+    lintOptions {
+        disable 'DefaultLocale'
+        return void // WTF‽
+    }
 }
 
 dependencies {
