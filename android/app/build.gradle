@@ -54,9 +54,9 @@ dependencies {
     //noinspection GradleDependency
     implementation 'com.google.android.gms:play-services-oss-licenses:16.0.2'
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.14'
+    annotationProcessor 'org.projectlombok:lombok:1.18.16'
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
-    compileOnly 'org.projectlombok:lombok:1.18.14'
+    compileOnly 'org.projectlombok:lombok:1.18.16'
 
     implementation 'org.evolvis.tartools:rfc822:0.3'
     implementation project(":ecn-lib")
