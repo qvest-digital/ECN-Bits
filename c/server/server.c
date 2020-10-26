@@ -136,7 +136,7 @@ do_resolve(const char *host, const char *service)
 		}
 
 		i = 1;
-		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
+		if (setsockopt(s, SOL_SOCKET, SO_REUSEPORT,
 		    (const void *)&i, sizeof(i))) {
 			i = errno;
 			putc('\n', stderr);
