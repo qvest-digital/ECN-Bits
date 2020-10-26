@@ -40,10 +40,6 @@ CLEANFILES:=	*.i *.o
 shellescape='$(subst ','\'',$(1))'
 shellexport=$(1)=$(call shellescape,${$(1)})
 
-ifneq (,$(findstring $(origin CC),default undefined))
-undefine CC
-endif
-
 # or /usr/ucb/install
 INSTALL?=	install
 INSTALL_STRIP?=	-s
