@@ -59,20 +59,52 @@ lib${LIB}_pic.a: ${SOBJS} ${DPADD}
 	${RANLIB} $@
 
 ifdef SHLIB_VERSION
-LIBINSTFILES+=	lib${LIB}.so.${SHLIB_VERSION}.0
-LIBGNULINK=	lib${LIB}.so.$(basename ${SHLIB_VERSION})
-all: lib${LIB}.so.${SHLIB_VERSION}.0
-lib${LIB}.so.${SHLIB_VERSION}.0: ${SOBJS} ${DPADD}
-	@$(call _rm,lib${LIB}.so ${LIBGNULINK})
-	@$(call _ln,$@,${LIBGNULINK})
-	@$(call _ln,$@,lib${LIB}.so)
-	${LINK.c} -o $@ -fPIC -Wl,--no-undefined -shared ${SOBJS} \
-	    -Wl,--start-group ${LIBS} -Wl,--end-group \
-	    -Wl,-soname,${LIBGNULINK}
+ifeq (${RTLD_TYPE},dyld)
+SHLIB_SONAME=	lib${LIB}.${SHLIB_VERSION}.0.dylib
+SHLIB_LINK_1=	lib${LIB}.$(basename ${SHLIB_VERSION}).dylib
+SHLIB_LINK_0=	lib${LIB}.dylib
+else ifeq (${RTLD_TYPE},GNU)
+SHLIB_SONAME=	lib${LIB}.so.${SHLIB_VERSION}.0
+SHLIB_LINK_1=	lib${LIB}.so.$(basename ${SHLIB_VERSION})
+SHLIB_LINK_0=	lib${LIB}.so
+else
+SHLIB_SONAME=	lib${LIB}.so.${SHLIB_VERSION}
+endif
+SHLIB_FLAGS=	${CFLAGS} -fPIC
+ifeq (,$(filter ${RTLD_TYPE},dyld))
+SHLIB_FLAGS+=	-Wl,--no-undefined
+endif
+SHLIB_FLAGS+=	${LDFLAGS}
+ifeq (${RTLD_TYPE},dyld)
+LINK.shlib=	${CC} ${SHLIB_FLAGS} -dynamiclib -undefined error \
+		    ${SOBJS} ${LIBS} \
+		    -install_name @rpath/${SHLIB_LINK_1} \
+		    -compatibility_version $(basename ${SHLIB_VERSION}).0 \
+		    -current_version ${SHLIB_VERSION}
+else ifeq (${RTLD_TYPE},GNU)
+LINK.shlib=	${CC} ${SHLIB_FLAGS} -shared \
+		    ${SOBJS} -Wl,--start-group ${LIBS} -Wl,--end-group \
+		    -Wl,-soname,${SHLIB_LINK_1}
+else
+LINK.shlib=	${CC} ${SHLIB_FLAGS} -shared \
+		    ${SOBJS} -Wl,--start-group ${LIBS} -Wl,--end-group
+endif
+LIBINSTFILES+=	${SHLIB_SONAME}
 
+all: ${SHLIB_SONAME}
+${SHLIB_SONAME}: ${SOBJS} ${DPADD}
+ifneq (,${SHLIB_LINK_1})
+	@$(call _rm,${SHLIB_LINK_1} ${SHLIB_LINK_0})
+	@$(call _ln,$@,${SHLIB_LINK_1})
+	@$(call _ln,$@,${SHLIB_LINK_0})
+endif
+	${LINK.shlib} -o $@
+
+ifneq (,${SHLIB_LINK_1})
 clean: clean-liblinks
 clean-liblinks:
-	-rm -f lib${LIB}.so ${LIBGNULINK}
+	-rm -f ${SHLIB_LINK_1} ${SHLIB_LINK_0}
+endif
 endif
 endif
 
@@ -100,15 +132,18 @@ uninstall: uninstall-lib
 install-lib:
 	${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NONBINMODE} \
 	    ${LIBINSTFILES} $(call shellescape,${LIBDIR}/)
-ifneq (,$(findstring .so.,${LIBINSTFILES}))
-	@$(call _rm,$(addprefix ${LIBDIR}/,lib${LIB}.so ${LIBGNULINK}))
-	$(call _ln,lib${LIB}.so.${SHLIB_VERSION}.0,${LIBDIR}/${LIBGNULINK})
-	$(call _ln,lib${LIB}.so.${SHLIB_VERSION}.0,${LIBDIR}/lib${LIB}.so)
+ifneq (,${SHLIB_LINK_1})
+	@$(call _rm,$(addprefix ${LIBDIR}/,${SHLIB_LINK_1} ${SHLIB_LINK_0}))
+	$(call _ln,${SHLIB_SONAME},${LIBDIR}/${SHLIB_LINK_1})
+	$(call _ln,${SHLIB_SONAME},${LIBDIR}/${SHLIB_LINK_0})
 endif
 endif
 
 uninstall-lib:
-	$(call _rm,$(addprefix ${LIBDIR}/,${LIBINSTFILES} $(if $(findstring .so.,${LIBINSTFILES}),${LIBGNULINK} lib${LIB}.so)))
+	$(call _rm,$(addprefix ${LIBDIR}/,${LIBINSTFILES}))
+ifneq (,${SHLIB_LINK_1})
+	$(call _rm,$(addprefix ${LIBDIR}/,${SHLIB_LINK_1} ${SHLIB_LINK_0}))
+endif
 
 CLEANFILES+=	${LIBINSTFILES}
 endif

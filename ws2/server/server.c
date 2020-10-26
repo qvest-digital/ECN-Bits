@@ -73,6 +73,18 @@ typedef int SOCKET;
 #define ws2err		err
 #endif
 
+#ifdef __APPLE__
+#define ECNBITS_REUSEPORT SO_REUSEPORT
+#else
+#define ECNBITS_REUSEPORT SO_REUSEADDR
+#endif
+/* #undef ECNBITS_REUSEPORT */
+/*
+ * undefine it if you do not wish for a port reuse
+ * socket option to be set; for details, refer to:
+ * https://stackoverflow.com/q/64345193/2171120
+ */
+
 #define NUMSOCK 16
 static struct pollfd pfd[NUMSOCK];
 #if defined(_WIN32) || defined(WIN32)
@@ -220,8 +232,9 @@ do_resolve(const char *host, const char *service)
 			continue;
 		}
 
+#ifdef ECNBITS_REUSEPORT
 		i = 1;
-		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
+		if (setsockopt(s, SOL_SOCKET, ECNBITS_REUSEPORT,
 		    (const void *)&i, sizeof(i))) {
 #if defined(_WIN32) || defined(WIN32)
 			putc('\n', stderr);
@@ -235,6 +248,7 @@ do_resolve(const char *host, const char *service)
 			closesocket(s);
 			continue;
 		}
+#endif
 
 		if (ECNBITS_PREP_FATAL(ecnbits_prep(s, ap->ai_family))) {
 #if defined(_WIN32) || defined(WIN32)
