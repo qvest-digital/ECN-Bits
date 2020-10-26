@@ -78,6 +78,7 @@ SHLIB_FLAGS+=	${LDFLAGS}
 ifeq (${RTLD_TYPE},dyld)
 LINK.shlib=	${CC} ${SHLIB_FLAGS} -dynamiclib -undefined error \
 		    ${SOBJS} ${LIBS} \
+		    -install_name @rpath/${SHLIB_LINK_1} \
 		    -compatibility_version $(basename ${SHLIB_VERSION}).0 \
 		    -current_version ${SHLIB_VERSION}
 else ifeq (${RTLD_TYPE},GNU)

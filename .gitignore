@@ -1,4 +1,5 @@
 *.a
+*.dylib
 *.exe
 *.ilk
 *.lib
