@@ -40,6 +40,24 @@ CLEANFILES:=	*.i *.o
 shellescape='$(subst ','\'',$(1))'
 shellexport=$(1)=$(call shellescape,${$(1)})
 
+_os:=$(shell uname)
+ifneq (,$(filter ${_os},GNU kFreeBSD Linux))
+RTLD_TYPE:=GNU
+else ifneq (,$(filter ${_os},MirBSD NetBSD OpenBSD))
+# guessing for NetBSD, needs porting
+RTLD_TYPE:=BSD
+else ifneq (,$(findstring BSD,${_os}))
+# FreeBSD confirmed for MidnightBSD, hoping for the others
+RTLD_TYPE:=GNU
+else ifneq (,$(filter ${_os},Darwin))
+# Mac OSX
+RTLD_TYPE:=dyld
+else
+# unknown OS
+RTLD_TYPE:=unknown
+NOPIC?=		Yes
+endif
+
 # or /usr/ucb/install
 INSTALL?=	install
 INSTALL_STRIP?=	-s
@@ -73,8 +91,10 @@ $(eval $(call cc_opt,CFLAGS,-Wdate-time))
 CFLAGS+=	-Wextra
 $(eval $(call cc_opt,CFLAGS,-fstack-protector-strong,-fstack-protector))
 CFLAGS+=	-Werror=format-security
+ifeq (,$(filter ${RTLD_TYPE},dyld))
 LDFLAGS+=	-Wl,-z,relro -Wl,-z,now
 LDFLAGS+=	-Wl,--as-needed
+endif
 
 ifeq (,$(filter no nO No NO,${DEBUG}))
 $(eval $(call cc_opt,CFLAGS,-Og,-O))
