@@ -43,6 +43,7 @@ Development funded by Deutsche Telekom.
   - cannot work on NetBSD, OpenBSD and derivatives: no API to get the TC
   ? might work on Darwin (Mac OSX and iOS), Solaris
   : Status: completed for those operating systems mentioned
+  : being ported to Darwin at the moment
 
 – Windows: C/CLI (ecn-bitw.lib; libecn-bitw.a)
   ‣ see ws2/README
