@@ -203,13 +203,12 @@ do_connect(int s, int af)
 		errno = e;
 	} else
 		n = write(s, buf, 3);
-	if (n != 3) {
-		if (n == (ssize_t)-1) {
-			warn("send");
-			return (1);
-		}
-		warnx("wrote %zu bytes but got %zd", (size_t)3, n);
+	if (n == (ssize_t)-1) {
+		warn("send");
+		return (1);
 	}
+	if (n != 3)
+		warnx("wrote %zu bytes but got %zd", (size_t)3, n);
 
  loop:
 	pfd.fd = s;
