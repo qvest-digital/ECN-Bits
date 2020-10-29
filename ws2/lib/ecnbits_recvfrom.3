@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: September 25 2020 $
+.Dd $Mdocdate: October 29 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -259,7 +259,10 @@ for Deutsche Telekom.
 .Nm ecnbits_recv
 and
 .Nm ecnbits_recvfrom
-are not thread-safe.
+are now thread-safe.
+Should determining the traffic class fail due to control message buffer
+truncation, recompile the library with a larger
+.Dv ECNBITS_CMSGBUFLEN .
 .Pp
 The semantics of
 .Xr read 2

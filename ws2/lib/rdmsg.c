@@ -112,7 +112,7 @@ recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
 	*e = (unsigned short)(b1 & 0xFFU) | ECNBITS_ISVALID_BIT;
 }
 
-static char msgbuf[2048];
+static char msgbuf[2 * ECNBITS_CMSGBUFLEN];
 
 SSIZE_T
 ecnbits_rdmsg(SOCKET s, LPWSAMSG msgh, int flags, unsigned short *e)

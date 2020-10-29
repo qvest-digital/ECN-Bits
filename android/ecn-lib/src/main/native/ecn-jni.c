@@ -312,7 +312,7 @@ nativeRecv(JNIEnv *env, jobject self, jobject args)
 	return (p);
 }
 
-#define MSGBUFSZ 48
+#define ECNBITS_CMSGBUFLEN 64
 
 static size_t
 cmsg_actual_data_len(const struct cmsghdr *cmsg)
@@ -386,7 +386,7 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e)
 {
 	struct cmsghdr *cmsg;
 	ssize_t rv;
-	char msgbuf[MSGBUFSZ];
+	char msgbuf[ECNBITS_CMSGBUFLEN];
 
 	*e = ECNBITS_INVALID_BIT;
 
@@ -400,9 +400,9 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e)
 		return (rv);
 
 	if (msgh->msg_flags & MSG_CTRUNC) {
-		/* 48 is enough normally but… */
+		/* 64 is enough normally though */
 		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-		    "cmsg truncated, increase MSGBUFSZ and recompile!");
+		    "cmsg truncated, increase ECNBITS_CMSGBUFLEN and recompile!");
 	}
 
 	cmsg = CMSG_FIRSTHDR(msgh);

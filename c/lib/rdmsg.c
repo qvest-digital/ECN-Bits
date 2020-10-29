@@ -93,7 +93,7 @@ recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
 	*e = (unsigned short)(b1 & 0xFFU) | ECNBITS_ISVALID_BIT;
 }
 
-static char msgbuf[2048];
+static char msgbuf[2 * ECNBITS_CMSGBUFLEN];
 
 ssize_t
 ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e)

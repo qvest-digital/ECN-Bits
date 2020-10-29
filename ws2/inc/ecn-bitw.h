@@ -34,6 +34,16 @@
 extern "C" {
 #endif
 
+/* control message buffer size */
+#ifdef ECNBITS_INTERNAL
+/*
+ * 16 or 20 bytes on (most) OSes for an int, less than twice that
+ * for an IPv6 packet info struct, so use this for recv/recvfrom,
+ * twice that for recvmsg where chances for more cmsgs are higher
+ */
+#define ECNBITS_CMSGBUFLEN 64
+#endif
+
 /* operations on the result value */
 #ifdef ECNBITS_INTERNAL
 #define ECNBITS_INVALID_BIT	((unsigned short)0x0100U)

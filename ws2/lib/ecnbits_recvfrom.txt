@@ -92,7 +92,9 @@ AUTHORS
      mirabilos <t.glaser@tarent.de> for Deutsche Telekom.
 
 CAVEATS
-     ecnbits_read, ecnbits_recv and ecnbits_recvfrom are not thread-safe.
+     ecnbits_read, ecnbits_recv and ecnbits_recvfrom are now thread-safe.
+     Should determining the traffic class fail due to control message buffer
+     truncation, recompile the library with a larger ECNBITS_CMSGBUFLEN.
 
      The semantics of read(2) and recv(2) upon reading a zero-length datagram
      differ: the latter consumes the pending datagram, while the former has no
@@ -103,4 +105,4 @@ CAVEATS
 LICENCE
      The MirOS Licence (short name: MirBSD)
 
-ECN-Bits                      September 25, 2020                      ECN-Bits
+ECN-Bits                       October 29, 2020                       ECN-Bits

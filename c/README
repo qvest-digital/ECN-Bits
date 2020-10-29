@@ -150,8 +150,8 @@ As implication, binding to only an IPv6 address, server-side,
 may not work except perhaps on Linux (including WSL 1 and 2,
 excluding native Windows/Winsock2) and Darwin.
 
-Use in multi-threaded applications is safe if the conditions
-documented under CAVEATS in ecnbits_rdmsg(3) are met.
+As of version 2.1, the library is thread-safe except when
+ecnbits_rdmsg() must inject a local control message buffer.
 
 The traffic class for outgoing packets cannot be set under
 Windows®, native or WSL 1, at all. This is a system limitation.

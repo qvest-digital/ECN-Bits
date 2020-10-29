@@ -46,9 +46,12 @@ ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
 #define msg_namelen namelen
 #define msg_iov lpBuffers
 #define msg_iovlen dwBufferCount
+#define msg_control Control.buf
+#define msg_controllen Control.len
 #else
 	struct iovec io;
 #endif
+	char cmsgbuf[ECNBITS_CMSGBUFLEN];
 
 	if (!e)
 		return recvfrom(s, buf, buflen, flags, addr, addrlenp);
@@ -63,6 +66,8 @@ ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
 		m.msg_name = addr;
 		m.msg_namelen = *addrlenp;
 	}
+	m.msg_control = cmsgbuf;
+	m.msg_controllen = sizeof(cmsgbuf);
 
 	rv = ecnbits_rdmsg(s, &m, flags, e);
 

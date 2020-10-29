@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: September 25 2020 $
+.Dd $Mdocdate: October 29 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -133,7 +133,7 @@ Otherwise, if
 .Ar msg\-\*(Gtmsg_control
 is
 .Dv NULL ,
-a suitably large (see below) buffer is temporarily injected into a local
+a stack-allocated buffer is temporarily injected into a local
 .Vt struct msghdr ,
 otherwise, the passed structure is used.
 Then, the system call
@@ -163,17 +163,9 @@ assumes that
 .Ar ecnresult
 is not
 .Dv NULL ,
-directly injects the suitably large control buffer into the passed
+injects (unless already set) a static (not thread-isolated) control buffer into the passed
 .Ar msg
-structure and leaves it there for the caller to inspect afterwards.
-This buffer is shared between
-.Fn ecnbits_rdmsg ,
-.Fn ecnbits_read ,
-.Fn ecnbits_recv ,
-.Fn ecnbits_recvfrom
-and
-.Fn ecnbits_recvmsg ;
-it is not thread-isolated.
+and leaves it there for the caller to inspect afterwards.
 .Pp
 Callers that know to set
 .Ar ecnresult
@@ -246,33 +238,17 @@ SCReAM, an example design for a managed latency-adaptive application
 .An mirabilos Aq t.glaser@tarent.de
 for Deutsche Telekom.
 .Sh CAVEATS
-In a multi-threaded environment, use of the ECN-Bits library is only safe if
-one of these conditions is met:
-.Bl -bullet
-.It
-The functions
-.Fn ecnbits_rdmsg ,
-.Fn ecnbits_recvmsg ,
-.Fn ecnbits_recvfrom ,
-.Fn ecnbits_recv
-and
-.Fn ecnbits_read
-are called from only one thread.
-.It
-Out of these functions, only
+Calls to
 .Fn ecnbits_rdmsg
-or
-.Fn ecnbits_recvmsg
-are called, and in all calls to these functions, the
+where the
 .Ar msg\-\*(Gtmsg_control
-argument is not
+argument is
 .Dv NULL
-and neither it nor
-.Ar msg
-nor
-.Ar ecnresult
-are shared between threads.
-.El
+are not thread-safe.
+.Pp
+Should determining the traffic class fail due to control message buffer
+truncation, recompile the library with a larger
+.Dv ECNBITS_CMSGBUFLEN .
 .Sh LICENCE
 The MirOS Licence
 .Pq short name : Li MirBSD

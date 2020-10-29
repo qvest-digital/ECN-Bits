@@ -32,6 +32,7 @@ ecnbits_recvfrom(int s, void *buf, size_t buflen, int flags,
 	ssize_t rv;
 	struct msghdr m;
 	struct iovec io;
+	char cmsgbuf[ECNBITS_CMSGBUFLEN];
 
 	if (!e)
 		return recvfrom(s, buf, buflen, flags, addr, addrlenp);
@@ -46,6 +47,8 @@ ecnbits_recvfrom(int s, void *buf, size_t buflen, int flags,
 		m.msg_name = addr;
 		m.msg_namelen = *addrlenp;
 	}
+	m.msg_control = cmsgbuf;
+	m.msg_controllen = sizeof(cmsgbuf);
 
 	rv = ecnbits_rdmsg(s, &m, flags, e);
 

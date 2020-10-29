@@ -30,6 +30,7 @@ ecnbits_recv(int s, void *buf, size_t buflen, int flags, unsigned short *e)
 {
 	struct msghdr m;
 	struct iovec io;
+	char cmsgbuf[ECNBITS_CMSGBUFLEN];
 
 	if (!e)
 		return recv(s, buf, buflen, flags);
@@ -40,6 +41,8 @@ ecnbits_recv(int s, void *buf, size_t buflen, int flags, unsigned short *e)
 	memset(&m, 0, sizeof(m));
 	m.msg_iov = &io;
 	m.msg_iovlen = 1;
+	m.msg_control = cmsgbuf;
+	m.msg_controllen = sizeof(cmsgbuf);
 
 	return (ecnbits_rdmsg(s, &m, flags, e));
 }

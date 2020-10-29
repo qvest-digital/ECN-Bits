@@ -45,8 +45,13 @@ SSIZE_T
 ecnbits_recvmsg(SOCKET s, LPWSAMSG mh, int flags, unsigned short *e)
 {
 	SSIZE_T rv;
-	int eno;
-	WSAMSG mrpl;
+#if defined(_WIN32) || defined(WIN32)
+	WSABUF obuf;
+#define oldclen obuf.len
+#else
+	size_t oldclen;
+#endif
+	char cmsgbuf[2 * ECNBITS_CMSGBUFLEN];
 
 	if (!e)
 		return (recvmsg(s, mh, flags));
@@ -54,12 +59,11 @@ ecnbits_recvmsg(SOCKET s, LPWSAMSG mh, int flags, unsigned short *e)
 	if (mh->msg_control)
 		return (ecnbits_rdmsg(s, mh, flags, e));
 
-	memcpy(&mrpl, mh, sizeof(mrpl));
-	rv = ecnbits_rdmsg(s, &mrpl, flags, e);
-	eno = errno;
-	mrpl.msg_control = mh->msg_control;
-	mrpl.msg_controllen = mh->msg_controllen;
-	memcpy(mh, &mrpl, sizeof(mrpl));
-	errno = eno;
+	oldclen = mh->msg_controllen;
+	mh->msg_control = cmsgbuf;
+	mh->msg_controllen = sizeof(cmsgbuf);
+	rv = ecnbits_rdmsg(s, mh, flags, e);
+	mh->msg_control = NULL;
+	mh->msg_controllen = oldclen;
 	return (rv);
 }

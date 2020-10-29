@@ -32,8 +32,8 @@ ssize_t
 ecnbits_recvmsg(int s, struct msghdr *mh, int flags, unsigned short *e)
 {
 	ssize_t rv;
-	int eno;
-	struct msghdr mrpl;
+	size_t oldclen;
+	char cmsgbuf[2 * ECNBITS_CMSGBUFLEN];
 
 	if (!e)
 		return (recvmsg(s, mh, flags));
@@ -41,12 +41,11 @@ ecnbits_recvmsg(int s, struct msghdr *mh, int flags, unsigned short *e)
 	if (mh->msg_control)
 		return (ecnbits_rdmsg(s, mh, flags, e));
 
-	memcpy(&mrpl, mh, sizeof(mrpl));
-	rv = ecnbits_rdmsg(s, &mrpl, flags, e);
-	eno = errno;
-	mrpl.msg_control = mh->msg_control;
-	mrpl.msg_controllen = mh->msg_controllen;
-	memcpy(mh, &mrpl, sizeof(mrpl));
-	errno = eno;
+	oldclen = mh->msg_controllen;
+	mh->msg_control = cmsgbuf;
+	mh->msg_controllen = sizeof(cmsgbuf);
+	rv = ecnbits_rdmsg(s, mh, flags, e);
+	mh->msg_control = NULL;
+	mh->msg_controllen = oldclen;
 	return (rv);
 }

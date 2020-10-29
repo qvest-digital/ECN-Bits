@@ -35,8 +35,8 @@ DESCRIPTION
      The ecnbits_recvmsg() function wraps the system call, extending: If
      ecnresult is NULL, ecnbits_recvmsg() just passes control to the equiva-
      lent system function recvmsg(2).  Otherwise, if msg->msg_control is NULL,
-     a suitably large (see below) buffer is temporarily injected into a local
-     WSAMSG, otherwise, the passed structure is used.  Then, the system call
+     a stack-allocated buffer is temporarily injected into a local WSAMSG,
+     otherwise, the passed structure is used.  Then, the system call
      recvmsg(2) is executed, and upon success, the control buffer is inspected
      for the traffic class octet, which is stored, in ECNBITS_VALID(3) format,
      in the location pointed to by ecnresult if possible (if not, an indicator
@@ -47,11 +47,9 @@ DESCRIPTION
      ecnbits_recvmsg() ensures the temporarily injected buffer is not seen by
      the caller, but passes along other changes to the WSAMSG used.
 
-     By contrast, ecnbits_rdmsg() assumes that ecnresult is not NULL, directly
-     injects the suitably large control buffer into the passed msg structure
-     and leaves it there for the caller to inspect afterwards.  This buffer is
-     shared between ecnbits_rdmsg(), ecnbits_read(), ecnbits_recv(),
-     ecnbits_recvfrom() and ecnbits_recvmsg(); it is not thread-isolated.
+     By contrast, ecnbits_rdmsg() assumes that ecnresult is not NULL, injects
+     (unless already set) a static (not thread-isolated) control buffer into
+     the passed msg and leaves it there for the caller to inspect afterwards.
 
      Callers that know to set ecnresult should use ecnbits_rdmsg(), which is
      faster, unless drop-in compatibility with existing applications managing
@@ -117,18 +115,13 @@ AUTHORS
      mirabilos <t.glaser@tarent.de> for Deutsche Telekom.
 
 CAVEATS
-     In a multi-threaded environment, use of the ECN-Bits library is only safe
-     if one of these conditions is met:
+     Calls to ecnbits_rdmsg() where the msg->msg_control argument is NULL are
+     not thread-safe.
 
-     o   The functions ecnbits_rdmsg(), ecnbits_recvmsg(), ecnbits_recvfrom(),
-         ecnbits_recv() and ecnbits_read() are called from only one thread.
-
-     o   Out of these functions, only ecnbits_rdmsg() or ecnbits_recvmsg() are
-         called, and in all calls to these functions, the msg->msg_control ar-
-         gument is not NULL and neither it nor msg nor ecnresult are shared
-         between threads.
+     Should determining the traffic class fail due to control message buffer
+     truncation, recompile the library with a larger ECNBITS_CMSGBUFLEN.
 
 LICENCE
      The MirOS Licence (short name: MirBSD)
 
-ECN-Bits                      September 28, 2020                      ECN-Bits
+ECN-Bits                       October 29, 2020                       ECN-Bits
