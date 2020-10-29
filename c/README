@@ -45,16 +45,24 @@ These applications demonstrate how to use the ECN-Bits library
 and are deliberately simple. See SCReAM for an actual example
 of how to develop L4Sified bandwidth-adaptive applications.
 
-Run the server on one system: ./server [host] port
-(The arguments are for what IP/port this should bind to.
-Numeric and NSS values are supported.)
+Run the server on one system: ./server [+dscp] [host] port
+
+Arguments are:
+• +dscp: “dscp”, either a decimal or (0x-prefixed) hexadecimal number,
+  sets the DSCP bits — all but the lowest two, which are the ECN bits —
+  in the response packet traffic class (optional, default 0x00)
+• host: IP address or hostname (DNS-resolved) to bind to (default any)
+• port: port to bind to (mandatory)
 
 Run the client on another (or same) system: ./client host post [tc]
-(The arguments are for what system to connect to.)
 
-tc sets the outgoing traffic class: NO, ECT0, ECT1, CE, or a
-decimal, octal (leading 0) or hexadecimal (leading 0x) integer
-between 0 and 255, inclusive (default: ECT0)
+Arguments are:
+• host: IP address or hostname (DNS-resolved) of server to send to
+  (multiple results are attempted in order)
+• port: (server) port to send to
+• tc: traffic class for sent packets, default: ECT0
+  valid: NO, ECT0, ECT1, CE or a decimal, octal (leading 0) or
+  hexadecimal (leading 0x) integer between 0 and 255, inclusive
 
 The client will send a “hello” packet to the server, which
 receives it, displays a line with the timestamp it received
