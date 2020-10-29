@@ -487,7 +487,7 @@ Technical details
 
  Darwin Kernel Version 19.6.0 (Mac OS X 10.15.6 Catalina) is tested.
  Older versions might work. Newer versions might work… unless the
- library-/loader-related changes broke anything relevant.
+ library‑/loader-related changes broke anything relevant.
 
  It is unknown whether this works on iOS, as it’s not not intended
  for users to obtain local shell access, build and run CLI programs.
@@ -502,7 +502,7 @@ Technical details
 
 ‣‣‣Solaris
 
- can probably be ported to these systems if there is interest
+ can probably be ported to this system if there is interest
 
 ‣‣Android solution
 
