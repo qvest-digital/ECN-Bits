@@ -261,13 +261,20 @@ do_packet(int s)
 	mh.msg_control = cmsgbuf;
 	mh.msg_controllen = cmsgsz;
 
-	len = snprintf(data, sizeof(data), "%s %s %s{%s} %s -> 0",
+	len = snprintf(data, sizeof(data), "%s %s %s{%s} %s -> "
+#ifdef DEBUG
+	    "8"
+#endif
+	    "0",
 	    revlookup(mh.msg_name, mh.msg_namelen),
 	    tm, ECNBITS_DESC(ecn), tcs, trc);
 	io.iov_len = len;
 	do {
 		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,
-		    data[len - 1] - '0');
+#ifdef DEBUG
+		    0x80 |
+#endif
+		    (data[len - 1] - '0'));
 		if (sendmsg(s, &mh, 0) == (ssize_t)-1)
 			warn("sendmsg");
 	} while (++data[len - 1] < '4');
