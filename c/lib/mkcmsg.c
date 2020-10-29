@@ -82,13 +82,15 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 	case AF_INET:
 		cmsg->cmsg_level = IPPROTO_IP;
 		cmsg->cmsg_type = IP_TOS;
-#if defined(__linux__) || defined(_WIN32) || defined(WIN32)
+#if defined(__linux__) || defined(__APPLE__) || \
+    defined(_WIN32) || defined(WIN32)
 		/*
 		 * The generic case below works on Linux 5.7 (Debian) but
 		 * fails on Linux 3.18 (Android); this here works on both
 		 * but fails on e.g. MidnightBSD because it’s asymmetric:
 		 * we get a char, this sends an int. Winsock (even if the
-		 * traffic class cannot be set!) also wants this.
+		 * traffic class cannot be set!) also wants this, as does
+		 * Darwin (MacOSX).
 		 */
 		cmsg->cmsg_len = CMSG_LEN(sizeof(i));
 		memcpy(CMSG_DATA(cmsg), &i, sizeof(i));
