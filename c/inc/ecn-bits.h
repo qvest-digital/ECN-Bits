@@ -51,7 +51,7 @@ extern const char *ecnbits_meanings[4];
 extern const char *ecnbits_shortnames[4];
 
 /* setup return values */
-#if !defined(__linux__)
+#if !defined(__linux__) && !defined(__APPLE__)
 /* ignore v4-mapped setup failure */
 #define ECNBITS_PREP_FATAL(rv) ((rv) >= 2)
 #else
@@ -69,7 +69,7 @@ extern const char *ecnbits_shortnames[4];
 #endif
 int ecnbits_tcfatal(int);
 #define ECNBITS_TC_FATAL(rv) ecnbits_tcfatal(rv)
-#elif !defined(__linux__)
+#elif !defined(__linux__) && !defined(__APPLE__)
 /* ignore v4-mapped setup failure */
 #define ECNBITS_TC_FATAL(rv) ((rv) >= 2)
 #else
