@@ -51,7 +51,7 @@ extern const char *ecnbits_meanings[4];
 extern const char *ecnbits_shortnames[4];
 
 /* setup return values */
-#if !defined(__linux__) && !defined(__APPLE__)
+#if !defined(__linux__)
 /* ignore v4-mapped setup failure */
 #define ECNBITS_PREP_FATAL(rv) ((rv) >= 2)
 #else
