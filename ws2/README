@@ -70,8 +70,8 @@ Numeric and NSS values are supported.)
 Run the client on another (or same) system: client.exe host post
 (The arguments are for what system to connect to.)
 
-Unlike the standard Unix variant, this client does not have an
-extra argument for setting the outgoing traffic class octets
+Unlike the standard Unix variant, this client and server do not
+have an extra argument for setting the outgoing traffic class octets
 as Windows lacks support for doing so.
 
 The client will send a “hello” packet to the server, which

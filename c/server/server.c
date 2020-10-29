@@ -52,18 +52,35 @@
 static struct pollfd pfd[NUMSOCK];
 
 static int do_resolve(const char *host, const char *service);
-static void do_packet(int sockfd);
+static void do_packet(int sockfd, unsigned int dscp);
 static const char *revlookup(const struct sockaddr *addr, socklen_t addrlen);
 
 int
 main(int argc, char *argv[])
 {
-	int nfd, i;
+	int nfd, i = 1;
+	unsigned char dscp = 0;
 
-	if (argc < 2 || argc > 3)
-		errx(1, "Usage: %s [servername] port", argv[0]);
+	if (argc < 2) {
+ earg:
+		errx(1, "Usage: %s [+dscp] [servername] port", argv[0]);
+	}
+	if (argv[1][0] == '+') {
+		long mnum;
+		char *mep;
 
-	nfd = do_resolve(argc == 2 ? NULL : argv[1], argv[argc == 2 ? 1 : 2]);
+		if ((mnum = strtol(argv[1] + 1, &mep, 0)) >= 0L &&
+		    mnum < 0x100L && mep != (argv[1] + 1) && !*mep)
+			dscp = (unsigned char)(mnum & 0xFC);
+		else
+			goto earg;
+		++i;
+	}
+	if (argc < (i + 1) || argc > (i + 2))
+		goto earg;
+
+	nfd = do_resolve(argc == (i + 1) ? NULL : argv[i],
+	    argv[argc == (i + 1) ? i : (i + 1)]);
 	if (nfd < 1)
 		errx(1, "Could not open server sockets");
 	putc('\n', stderr);
@@ -74,7 +91,7 @@ main(int argc, char *argv[])
 	i = 0;
 	while (i < nfd) {
 		if (pfd[i].revents & POLLIN)
-			do_packet(pfd[i].fd);
+			do_packet(pfd[i].fd, dscp);
 		++i;
 	}
 	goto loop;
@@ -194,7 +211,7 @@ do_resolve(const char *host, const char *service)
 }
 
 static void
-do_packet(int s)
+do_packet(int s, unsigned int dscp)
 {
 	static char data[512];
 	ssize_t len;
@@ -261,13 +278,13 @@ do_packet(int s)
 	mh.msg_control = cmsgbuf;
 	mh.msg_controllen = cmsgsz;
 
-	len = snprintf(data, sizeof(data), "%s %s %s{%s} %s -> 0",
+	len = snprintf(data, sizeof(data), "%s %s %s{%s} %s -> 0x%02X+0",
 	    revlookup(mh.msg_name, mh.msg_namelen),
-	    tm, ECNBITS_DESC(ecn), tcs, trc);
+	    tm, ECNBITS_DESC(ecn), tcs, trc, dscp);
 	io.iov_len = len;
 	do {
 		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,
-		    data[len - 1] - '0');
+		    dscp | (data[len - 1] - '0'));
 		if (sendmsg(s, &mh, 0) == (ssize_t)-1)
 			warn("sendmsg");
 	} while (++data[len - 1] < '4');
