@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: October 28 2020 $
+.Dd $Mdocdate: October 29 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -116,10 +116,11 @@ function sets up a network socket (IPv6 or legacy IPv4) to retrieve
 ECN bits, or rather, the traffic class octet, from incoming packets.
 This works well with datagram sockets (UDP); use with stream sockets
 (TCP) may not work completely, for example the operating system may
-change the sent traffic class value; operating on v4-mapped IPv6 sockets
+change the sent traffic class value.
+Operating on v4-mapped IPv6 sockets
 .Pq Li ::FFFF.0.0.0.0/96
 may be unsupported
-.Pq although known to work under Linux/Android/WSL\ 2 and WSL\ 1 .
+.Pq but known to work on Linux/Android/WSL\ 2 , WSL\ 1 , Darwin/macOS .
 This function is thread-safe.
 .Pp
 The
@@ -171,7 +172,10 @@ control message such as one created by
 this technique is demonstrated by the ECN-Bits c/server example.
 In fact, as shown in the c/client example, calling
 .Fn ecnbits_tc
-is not needed if this technique is used.
+is not needed if the technique is used.
+See
+.Sx CAVEATS
+below re. Darwin/Mac\ OSX.
 .Sh RETURN VALUES
 The
 .Fn ecnbits_prep
@@ -259,6 +263,9 @@ Using v4-mapped IPv6 sockets should be avoided; it only works on Linux
 (including WSL\ 1
 .Pq but not native Windows ,
 WSL\ 2, Android), if even that.
+It also works on Darwin (Mac OSX), except
+.Fn ecnbits_tc
+cannot set the DSCP bits, only the ECN bits, on v4-mapped sockets.
 .Sh LICENCE
 The MirOS Licence
 .Pq short name : Li MirBSD

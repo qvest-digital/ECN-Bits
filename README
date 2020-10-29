@@ -33,29 +33,28 @@ Development funded by Deutsche Telekom.
       (if at all, https://github.com/jnr/jnr-enxio might be useful a base)
   • demo client GUI application
 
-– BSD/Linux/WSL: C/CLI (libecn-bits.a/so)
+– BSD/Linux/MacOSX/WSL: C/CLI (libecn-bits.a/so)
   ‣ see c/README
   • library, manpages
   • CLI client and server examples (run for usage instructions)
-  + known working on FreeBSD/MidnightBSD, Linux (including WSL 2)
+  + known working on FreeBSD/MidnightBSD, Linux (including WSL 2), Mac OSX
   + also on the Linux variant Android runs on, e.g. built with musl libc
   + works on WSL 1, except setting the outgoing traffic class silently fails
   - cannot work on NetBSD, OpenBSD and derivatives: no API to get the TC
-  ? might work on Darwin (Mac OSX and iOS), Solaris
+  ? might work on Solaris
   : Status: completed for those operating systems mentioned
-  : being ported to Darwin at the moment
 
 – Windows: C/CLI (ecn-bitw.lib; libecn-bitw.a)
   ‣ see ws2/README
-  • library, CLI client/server examples, copied from BSD/Linux/WSL C/CLI
+  • library, CLI client/server examples, copied from BSD/Linux/Mac/WSL C/CLI
     but adapted for Winsock2 (supersetting: keeping BSD sockets support
-    so all systems that the BSD/Linux/WSL runs on can be used, modulo
-    removed functionalitty (see below) and applications needing to honour
-    some Winsock2 specifics to remain portable)
+    so all systems that the BSD/Linux/Mac/WSL runs on can be used modulo
+    removed functionality (see below); applications needing to honour some
+    Win32/Winsock2 specifics can remain portable)
   • manpages including preformatted plaintext form for GUI users
   • tested on Windows 10, versions 1909 (WSL 1, WinSock), 2004 (WSL 2)
   ! the outgoing traffic class cannot, at all, be set on Windows and WSL 1
-  - so the server example doesn’t do it and just sends back one packet
+  - so the examples don’t do it, the server just sends back one packet
   - functions dealing with setting the outgoing tc were also removed
   : Status: complete
   ! WSL 2 in theory would work better than WSL 1 (as it uses the native
@@ -65,10 +64,10 @@ Development funded by Deutsche Telekom.
     are strongly encouraged to use WSL 1 instead.
 
 – Windows, C++/UWP
-  • realised by linking the C/CLI library into the application
+  • implemented through linking the C/CLI library into the application
 
 – Windows, C♯/.net
-  • planning stages
+  • pre-planning
 
 – iOS (Apple)
   • pre-planning

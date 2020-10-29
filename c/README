@@ -1,6 +1,6 @@
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ ECN-Bits • C/CLI for Linux/FreeBSD/MidnightBSD ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ECN-Bits • C/CLI for Darwin/Linux/FreeBSD/MidnightBSD ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 ┌─────────────┐
 │ Compilation │
@@ -116,6 +116,8 @@ and :: (IN6ADDR_ANY), not just IN6ADDR_ANY. This is so that it receives
 IPv4 connections on IPv4 sockets, not IPv6 sockets as traffic class
 handling on v4-mapped IPv6 sockets isn’t portable; see below for details.
 
+【SECURITY】 See the comments in server/server.c wrt. ECNBITS_REUSEPORT!
+
 ┌─────────────┐
 │ Portability │
 └─────────────┘
@@ -131,11 +133,9 @@ reading, and this library takes care to support the other
 interpretation.
 
 The legacy IP (IPv4) API/ABI is, au contraire, n̲o̲t̲ widely
-standardised — this library supports the implementation by
-Linux and the one in FreeBSD and MidnightBSD so far. Due to
-the ABI not working on the old Linux kernel version Android
-uses, the server example differs slightly on Linux to make
-it work universally.
+standardised — this library supports the implementation in
+FreeBSD/MidnightBSD, and the ones found in Linux, Winsock2
+and Darwin/Mac OSX so far.
 
 Receiving the traffic class on IPv6 sockets operating with
 v4-mapped (::FFFF:0.0.0.0/96) IPv6 addresses is fragile:
@@ -143,10 +143,12 @@ Linux requires the IPv4 versions of the socket options and
 control messages; MidnightBSD (and therefore FreeBSD) don’t
 accept that (but since they disable v4-mapped by default,
 this is no problem in reality). This library only attempts
-somewhat supporting this on Linux, as Android uses that.
+somewhat supporting this on Linux, as Android uses that…
+Darwin (Mac OSX) also supports v4-mapped addresses, except
+that ecnbits_tc(3) can preset ECN bits (not DSCP) for them.
 As implication, binding to only an IPv6 address, server-side,
 may not work except perhaps on Linux (including WSL 1 and 2,
-excluding native Windows/Winsock2).
+excluding native Windows/Winsock2) and Darwin.
 
 Use in multi-threaded applications is safe if the conditions
 documented under CAVEATS in ecnbits_rdmsg(3) are met.

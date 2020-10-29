@@ -7,9 +7,9 @@
 └─────────────┘
 
 On unixoid systems, this can be compiled the same way as the C/CLI
-for Linux/FreeBSD/MidnightBSD in ../c/ (see there), and in fact,
-that version makes for a better example on those platforms, unless
-Winsock2 support is a requirement.
+for Darwin/Linux/FreeBSD/MidnightBSD, in ../c/ (see there), and in
+fact, that version makes for a better example on those platforms,
+unless Winsock2 support is a requirement.
 
 WSL 1 (Windows Subsystem for Linux) counts as Linux for sake of porting.
 WSL 2 is actually a Linux virtual machine and, if one can get networking
