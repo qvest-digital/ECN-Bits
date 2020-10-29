@@ -35,9 +35,10 @@
 #include "ecn-bits.h"
 
 static int do_resolve(const char *host, const char *service);
-static int do_connect(int sfd);
+static int do_connect(int sfd, int af);
 
 static unsigned char out_tc = ECNBITS_ECT0;
+static unsigned char use_sendmsg = 0;
 
 int
 main(int argc, char *argv[])
@@ -45,6 +46,11 @@ main(int argc, char *argv[])
 	if (argc == 4) {
 		long mnum;
 		char *mep;
+
+		if (argv[3][0] == '!') {
+			use_sendmsg = 1;
+			++argv[3];
+		}
 
 		if (!strcmp(argv[3], "NO"))
 			out_tc = ECNBITS_NON;
@@ -124,7 +130,8 @@ do_resolve(const char *host, const char *service)
 			close(s);
 			continue;
 		}
-		if (ECNBITS_TC_FATAL(ecnbits_tc(s, ap->ai_family, out_tc))) {
+		if (!use_sendmsg &&
+		    ECNBITS_TC_FATAL(ecnbits_tc(s, ap->ai_family, out_tc))) {
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
@@ -143,7 +150,7 @@ do_resolve(const char *host, const char *service)
 		}
 
 		fprintf(stderr, " connected\n");
-		if (do_connect(s)) {
+		if (do_connect(s, ap->ai_family)) {
 			close(s);
 			continue;
 		}
@@ -158,7 +165,7 @@ do_resolve(const char *host, const char *service)
 }
 
 static int
-do_connect(int s)
+do_connect(int s, int af)
 {
 	char buf[512];
 	ssize_t n;
@@ -170,7 +177,33 @@ do_connect(int s)
 	char tcs[3];
 
 	memcpy(buf, "hi!", 3);
-	if ((n = write(s, buf, 3)) != 3) {
+	if (use_sendmsg) {
+		struct msghdr mh;
+		struct iovec io;
+		void *cmsgbuf;
+		size_t cmsgsz;
+		int e;
+
+		if (!(cmsgbuf = ecnbits_mkcmsg(NULL, &cmsgsz, af, out_tc))) {
+			warn("ecnbits_mkcmsg");
+			return (1);
+		}
+
+		io.iov_base = buf;
+		io.iov_len = 3;
+
+		memset(&mh, 0, sizeof(mh));
+		mh.msg_iov = &io;
+		mh.msg_iovlen = 1;
+		mh.msg_control = cmsgbuf;
+		mh.msg_controllen = cmsgsz;
+		n = sendmsg(s, &mh, 0);
+		e = errno;
+		free(cmsgbuf);
+		errno = e;
+	} else
+		n = write(s, buf, 3);
+	if (n != 3) {
 		if (n == (ssize_t)-1) {
 			warn("send");
 			return (1);
