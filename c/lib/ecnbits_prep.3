@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: October 7 2020 $
+.Dd $Mdocdate: October 28 2020 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -168,7 +168,10 @@ with a suitable
 .Xr cmsg 3
 control message such as one created by
 .Xr ecnbits_mkcmsg 3 ;
-the ECN-Bits c/server example demonstrates this technique.
+this technique is demonstrated by the ECN-Bits c/server example.
+In fact, as shown in the c/client example, calling
+.Fn ecnbits_tc
+is not needed if this technique is used.
 .Sh RETURN VALUES
 The
 .Fn ecnbits_prep
