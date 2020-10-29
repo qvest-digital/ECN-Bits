@@ -228,13 +228,13 @@ do_connect(int s)
 	char tcs[3];
 
 	memcpy(buf, "hi!", 3);
-	if ((nsend = send(s, buf, 3, 0)) != 3) {
-		if (nsend == SOCKET_ERROR) {
-			ws2warn("send");
-			return (1);
-		}
-		warnx("wrote %zu bytes but got %zd", (size_t)3, (SSIZE_T)nsend);
+	nsend = send(s, buf, 3, 0);
+	if (nsend == SOCKET_ERROR) {
+		ws2warn("send");
+		return (1);
 	}
+	if (nsend != 3)
+		warnx("wrote %zu bytes but got %zd", (size_t)3, (SSIZE_T)nsend);
 
  loop:
 	pfd.fd = s;
