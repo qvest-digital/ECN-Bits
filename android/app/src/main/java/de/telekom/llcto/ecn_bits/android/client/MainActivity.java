@@ -29,6 +29,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -49,12 +50,19 @@ import org.evolvis.tartools.rfc822.FQDN;
 import org.evolvis.tartools.rfc822.IPAddress;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.DatagramPacket;
 import java.net.ECNBitsDatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.StandardSocketOptions;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -78,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText portText;
     private Spinner bitsDropdown;
     private Button sendButton;
+    private Button startStopButton;
     private RecyclerView outputListView;
     private OutputListAdapter outputListAdapter;
     private LinearLayoutManager outputListLayoutMgr;
@@ -86,6 +95,10 @@ public class MainActivity extends AppCompatActivity {
     private ECNBitsDatagramSocket sock;
     private Thread netThread = null;
     private volatile boolean exiting = false;
+    private boolean channelStarted = false;
+    private DatagramChannel chan = null;
+    private Thread cSendThread = null;
+    private Thread cRecvThread = null;
 
     /**
      * Adapts a {@link Bits} enum for use with an {@link ArrayAdapter}: the
@@ -146,6 +159,10 @@ public class MainActivity extends AppCompatActivity {
         bitsDropdown.setAdapter(bitsAdapter);
         sendButton = findViewById(R.id.sendButton);
         sendButton.setSaveEnabled(false);
+        startStopButton = findViewById(R.id.channelButton);
+        channelStarted = false;
+        startStopButton.setText(R.string.startLabel);
+        startStopButton.setSaveEnabled(false);
         uiEnabled(true);
     }
 
@@ -154,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
         portText.setEnabled(status);
         bitsDropdown.setEnabled(status);
         sendButton.setEnabled(status);
+        startStopButton.setEnabled(status);
     }
 
     @Override
@@ -164,6 +182,14 @@ public class MainActivity extends AppCompatActivity {
                 sock.close();
                 netThread.interrupt();
                 netThread = null;
+            }
+            if (cSendThread != null) {
+                cSendThread.interrupt();
+                cSendThread = null;
+            }
+            if (cRecvThread != null) {
+                cRecvThread.interrupt();
+                cRecvThread = null;
             }
         }
         super.onDestroy();
@@ -422,6 +448,198 @@ public class MainActivity extends AppCompatActivity {
             return defaultValue;
         }
         return values[pos];
+    }
+
+    private void logChannelFD(final DatagramChannel chan) {
+        // erk… a LOT of DatagramChannel (whose direct child class
+        // sun.nio.ch.DatagramChannelImpl is actually chan’s type)
+        // has private visibility; this is going to hurt, effort-wise
+        // calling chan.socket() makes no difference, it instantiates
+        // a DatagramSocketAdaptor with a dummy DatagramSocketImpl ☹
+        try {
+            final Class<?> chanClazz = chan.getClass();
+            final Method chanFd = chanClazz.getDeclaredMethod("getFDVal");
+            chanFd.setAccessible(true);
+            Log.w("ECN-Bits", "channel opened for fd #" + (int) chanFd.invoke(chan));
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            Log.e("ECN-Bits", "getChannelFD reflection", e);
+        }
+    }
+
+    public void clkStartStop(final View v) {
+        if (channelStarted) {
+            uiEnabled(false);
+            addOutputLine("stopping channel");
+            exiting = true;
+            cSendThread.interrupt();
+            cRecvThread.interrupt();
+            try {
+                if (chan != null) {
+                    chan.close();
+                }
+            } catch (IOException e) {
+                addOutputLine("could not close channel");
+            }
+            try {
+                cSendThread.join(200);
+            } catch (InterruptedException e) {
+                // restore interrupted flag
+                Thread.currentThread().interrupt();
+                addOutputLine("could not join send thread");
+            }
+            try {
+                cRecvThread.join(200);
+            } catch (InterruptedException e) {
+                // restore interrupted flag
+                Thread.currentThread().interrupt();
+                addOutputLine("could not join recv thread");
+            }
+            chan = null;
+            cSendThread = null;
+            cRecvThread = null;
+            exiting = false;
+            channelStarted = false;
+            startStopButton.setText(R.string.startLabel);
+            uiEnabled(true);
+            return;
+        }
+
+        final IPorFQDN hostname = getFieldValue(true, hostnameText, this::fqdnOrIPExtractor, "hostname");
+        final Integer port = getFieldValue(false, portText, this::uintExtractor,
+          new UIntExtractorBounds(1, 65535, "port"));
+        final Bits outBits = getDropdownSelectedValueOr(bitsDropdown,
+          BitsAdapter.values, BitsAdapter.values[0]).getBit();
+        if (hostname == null || port == null) {
+            return;
+        }
+        addOutputLine(String.format("connect to [%s]:%d with %s", hostname.resolved ?
+          hostname.a[0].getHostAddress() : hostname.s, port, outBits.getShortname()));
+
+        try {
+            chan = DatagramChannel.open();
+        } catch (IOException e) {
+            addOutputLine("could not create channel: " + e);
+            return;
+        }
+        logChannelFD(chan);
+
+        cSendThread = new Thread(() -> {
+            long counter = 0;
+            val buf = ByteBuffer.allocate(64);
+
+            try {
+                chan.setOption(StandardSocketOptions.IP_TOS, (int) outBits.getBits());
+            } catch (IOException e) {
+                runOnUiThread(() -> addOutputLine("!! setsockopt: " + e));
+                return;
+            }
+            final SocketAddress dst = hostname.resolved ?
+              new InetSocketAddress(hostname.a[0], port) :
+              new InetSocketAddress(hostname.s, port);
+            try {
+                chan.connect(dst);
+            } catch (IOException e) {
+                runOnUiThread(() -> addOutputLine("!! connect: " + e));
+                return;
+            }
+            val hdr = String.format("sent(%s)/received packets ↔ [%s]:%d <%s>",
+              outBits.getShortname(), hostname.resolved ?
+                hostname.a[0].getHostAddress() : hostname.s,
+              port, dst.toString());
+            try {
+                // initialisation done, reset output and start the recv thread
+                runOnUiThread(() -> resetOutputLine(hdr));
+                Thread.sleep(50);
+                cRecvThread.start();
+                Thread.sleep(50);
+                // waited until recv thread is probably online
+            } catch (InterruptedException e) {
+                // restore interrupted flag
+                Thread.currentThread().interrupt();
+                return;
+            }
+            // send thread main
+            while (!exiting) {
+                final String stamp = ZonedDateTime.now(ZoneOffset.UTC)
+                  .truncatedTo(ChronoUnit.MILLIS)
+                  .format(DateTimeFormatter.ISO_INSTANT);
+                final String payload = String.format("%s #%d", stamp, ++counter);
+                buf.clear();
+                val payloadBytes = payload.getBytes(StandardCharsets.UTF_8);
+                buf.put(payloadBytes);
+                buf.flip();
+                try {
+                    final int written = chan.write(buf);
+                    if (written == payloadBytes.length) {
+                        runOnUiThread(() -> addOutputLine("← " + payload));
+                    } else {
+                        runOnUiThread(() -> addOutputLine(String.format("!! send (%s): short write (%d of %d)",
+                          payload, written, payloadBytes.length)));
+                    }
+                } catch (IOException e) {
+                    if (exiting || Thread.interrupted()) {
+                        return;
+                    }
+                    runOnUiThread(() -> addOutputLine(String.format("!! send (%s): %s",
+                      payload, e)));
+                }
+                try {
+                    //noinspection BusyWait
+                    Thread.sleep(666);
+                } catch (InterruptedException e) {
+                    // restore interrupted flag
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        });
+
+        cRecvThread = new Thread(() -> {
+            val buf = ByteBuffer.allocate(512);
+            while (!exiting) {
+                buf.clear();
+                try {
+                    final int read = chan.read(buf);
+                    final String stamp = ZonedDateTime.now(ZoneOffset.UTC)
+                      .truncatedTo(ChronoUnit.MILLIS)
+                      .format(DateTimeFormatter.ISO_INSTANT);
+                    if (read < 0) {
+                        runOnUiThread(() -> addOutputLine("!! recv: EOF @ " + stamp));
+                        // falls through to sleep to not repeat too fast
+                    } else {
+                        buf.flip();
+                        final String userData = StandardCharsets.UTF_8.decode(buf).toString();
+                        final String logLine = String.format("→ %s %s (%d)%s%s",
+                          stamp, "[ECN?]", read, contentSeparator, userData.trim());
+                        runOnUiThread(() -> addOutputLine(logLine));
+                        // does not fall through to sleep below
+                        continue;
+                    }
+                } catch (IOException e) {
+                    if (exiting || Thread.interrupted()) {
+                        return;
+                    }
+                    runOnUiThread(() -> addOutputLine("!! recv: " + e));
+                    // falls through to sleep to not repeat too fast
+                }
+                // do not repeat errors too fast
+                try {
+                    //noinspection BusyWait
+                    Thread.sleep(250);
+                } catch (InterruptedException e) {
+                    // restore interrupted flag
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        });
+
+        uiEnabled(false);
+        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        channelStarted = true;
+        startStopButton.setText(R.string.stopLabel);
+        startStopButton.setEnabled(true);
+        cSendThread.start();
     }
 
     public void clkLicence(final View v) {

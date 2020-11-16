@@ -17,8 +17,8 @@ android {
         ndkVersion "21.3.6528147"
 
         applicationId "de.telekom.llcto.ecn_bits.android.client"
-        versionCode 3
-        versionName "0.3"
+        versionCode 1
+        versionName "0.1.1"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         return void // WTF‽
