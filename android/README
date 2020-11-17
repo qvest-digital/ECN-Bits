@@ -10,10 +10,7 @@ method on the socket), or by using the startMeasurement method
 and then calling the getMeasurement method periodically, e.g.
 every 20 ms, retrieving the congestion factor from its result.
 
-There’s no equivalent function for DatagramChannel, and
-it is not likely one will be added, as some involved classes
-are “final” and so not extensible. If at all, using jnr-enxio
-as base, patching support for ECN-Bits into it, might work.
+There’s no equivalent function for DatagramChannel yet.
 
 The current implementation tries to reuse as much of the
 system implementation as possible, using reflection and

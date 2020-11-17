@@ -29,9 +29,12 @@ Development funded by Deutsche Telekom.
     ! tested on Android 8 and 9 (no change needed) and 10 (see docs)
     : Status: done for DatagramSocket
       testing Android 11
-    - no equivalent for DatagramChannel (probably unfeasible)
-      (if at all, https://github.com/jnr/jnr-enxio might be useful a base)
+    - no equivalent for DatagramChannel
   • demo client GUI application
+
+  Support for DatagramChannel, as well as getting DatagramSocket to
+  work without needing access to internals, is currently being
+  undertaken in a separate development branch and work in progress.
 
 – BSD/Linux/MacOSX/WSL: C/CLI (libecn-bits.a/so)
   ‣ see c/README
