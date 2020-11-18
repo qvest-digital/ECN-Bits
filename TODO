@@ -1,0 +1,4 @@
+• android/ecn-lib/src/main/java/de/telekom/llcto/ecn_bits/android/lib/DatagramSocketAdaptor.java
+• ByteBuffer
+• scatter/gather I/O mit ByteBuffer[]
+• JNI C-Teil
