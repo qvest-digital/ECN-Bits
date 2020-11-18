@@ -35,7 +35,6 @@ package de.telekom.llcto.ecn_bits.android.lib;
  */
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -45,9 +44,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.SocketAddress;
+import java.net.SocketException;
 import java.net.SocketOption;
 import java.net.StandardSocketOptions;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AlreadyBoundException;
 import java.nio.channels.ClosedChannelException;
@@ -57,8 +56,25 @@ import java.nio.channels.UnresolvedAddressException;
 import java.nio.channels.UnsupportedAddressTypeException;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+
+import static de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramChannelImpl.DefaultOptionsHolder.optenum;
+import static de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramChannelImpl.DefaultOptionsHolder.to;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.ioresult;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_bind;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_close;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_connect;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_disconnect;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_getsockname;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_getsockopt;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_recv;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_send;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_setnonblock;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_setsockopt;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_socket;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.toaddr;
 
 /**
  * Java™ side of a JNI reimplementation of a NIO datagram channel with extras.
@@ -151,23 +167,11 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
 
     @Override
     public <T> ECNBitsDatagramChannel setOption(final SocketOption<T> name, final T value) throws IOException {
-        if (name == null) {
-            throw new NullPointerException();
-        }
-        if (!supportedOptions().contains(name)) {
-            throw new UnsupportedOperationException("'" + name + "' not supported");
-        }
+        final int opt = optenum(name);
+        final int val = to(name, opt, value);
         synchronized (stateLock) {
             ensureOpen();
-
-            if (name == StandardSocketOptions.IP_TOS) {
-                // options are protocol dependent
-                Net.setSocketOption(fd, family, name, value);
-                return this;
-            }
-
-            // remaining options don't need any special handling
-            Net.setSocketOption(fd, Net.UNSPEC, name, value);
+            n_setsockopt(fdVal, opt, val);
             return this;
         }
     }
@@ -175,34 +179,63 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getOption(final SocketOption<T> name) throws IOException {
-        if (name == null) {
-            throw new NullPointerException();
-        }
-        if (!supportedOptions().contains(name)) {
-            throw new UnsupportedOperationException("'" + name + "' not supported");
-        }
+        final int opt = optenum(name);
         synchronized (stateLock) {
             ensureOpen();
-
-            if (name == StandardSocketOptions.IP_TOS) {
-                return (T) Net.getSocketOption(fd, family, name);
-            }
-            // no special handling
-            return (T) Net.getSocketOption(fd, Net.UNSPEC, name);
+            return (T) (Integer) n_getsockopt(fdVal, opt);
         }
     }
 
-    private static class DefaultOptionsHolder {
-        static final Set<SocketOption<?>> defaultOptions = defaultOptions();
+    static class DefaultOptionsHolder {
+        static final Map<SocketOption<?>, Integer> defaultMap;
+        static final Set<SocketOption<?>> defaultOptions;
 
-        private static Set<SocketOption<?>> defaultOptions() {
-            HashSet<SocketOption<?>> set = new HashSet<SocketOption<?>>(5);
-            set.add(StandardSocketOptions.SO_SNDBUF);
-            set.add(StandardSocketOptions.SO_RCVBUF);
-            set.add(StandardSocketOptions.SO_REUSEADDR);
-            set.add(StandardSocketOptions.SO_BROADCAST);
-            set.add(StandardSocketOptions.IP_TOS);
-            return Collections.unmodifiableSet(set);
+        static {
+            final HashMap<SocketOption<?>, Integer> map = new HashMap<>(5);
+            map.put(StandardSocketOptions.SO_SNDBUF, JNI.SO_SNDBUF); // Integer
+            map.put(StandardSocketOptions.SO_RCVBUF, JNI.SO_RCVBUF); // Integer
+            map.put(StandardSocketOptions.SO_REUSEADDR, JNI.SO_REUSEADDR); // Boolean
+            map.put(StandardSocketOptions.SO_BROADCAST, JNI.SO_BROADCAST); // Boolean
+            map.put(StandardSocketOptions.IP_TOS, JNI.IP_TOS); // Integer
+            defaultMap = Collections.unmodifiableMap(map);
+            defaultOptions = Collections.unmodifiableSet(map.keySet());
+        }
+
+        static int to(SocketOption<?> option, int opt, Object value) throws SocketException {
+            if (value == null) {
+                throw new NullPointerException();
+            }
+            switch (opt) {
+            case JNI.SO_REUSEADDR:
+            case JNI.SO_BROADCAST:
+                if (!(value instanceof Boolean)) {
+                    throw new SocketException("Bad argument for " + option +
+                      ": expected Boolean, got " + value.getClass().getSimpleName());
+                }
+                return ((Boolean) value) ? 1 : 0;
+            case JNI.SO_SNDBUF:
+            case JNI.SO_RCVBUF:
+            case JNI.IP_TOS:
+                if (!(value instanceof Integer)) {
+                    throw new SocketException("Bad argument for " + option +
+                      ": expected Integer, got " + value.getClass().getSimpleName());
+                }
+                return ((Integer) value);
+            default:
+                throw new SocketException("unexpected socket option " + option +
+                  " (" + opt + ")");
+            }
+        }
+
+        static int optenum(SocketOption<?> option) {
+            if (option == null) {
+                throw new NullPointerException();
+            }
+            final Integer rv = defaultMap.get(option);
+            if (rv == null) {
+                throw new UnsupportedOperationException("'" + option + "' not supported");
+            }
+            return rv;
         }
     }
 
@@ -241,14 +274,14 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     return null;
                 }
                 final SecurityManager security;
-                readerThread = OjNativeThread.current();
+                readerThread = JNI.gettid();
                 final ReceiveArgs args;
                 if (isConnected() || ((security = System.getSecurityManager()) == null)) {
                     args = new ReceiveArgs(dst);
                     do {
                         n = i_recv(args);
-                    } while ((n == OjIOStatus.INTERRUPTED) && isOpen());
-                    if (n == OjIOStatus.UNAVAILABLE) {
+                    } while ((n == JNI.EINTR) && isOpen());
+                    if (n == JNI.UNAVAIL) {
                         return null;
                     }
                 } else {
@@ -257,8 +290,8 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     while (true) {
                         do {
                             n = i_recv(args);
-                        } while ((n == OjIOStatus.INTERRUPTED) && isOpen());
-                        if (n == OjIOStatus.UNAVAILABLE) {
+                        } while ((n == JNI.EINTR) && isOpen());
+                        if (n == JNI.UNAVAIL) {
                             return null;
                         }
                         try {
@@ -278,7 +311,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 return args.sender;
             } finally {
                 readerThread = 0;
-                end((n > 0) || (n == OjIOStatus.UNAVAILABLE));
+                end((n > 0) || (n == JNI.UNAVAIL));
             }
         }
 
@@ -345,20 +378,20 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 if (!isOpen()) {
                     return 0;
                 }
-                writerThread = OjNativeThread.current();
+                writerThread = JNI.gettid();
                 do {
                     n = i_send(src, isa);
-                } while ((n == OjIOStatus.INTERRUPTED) && isOpen());
+                } while ((n == JNI.EINTR) && isOpen());
 
                 synchronized (stateLock) {
                     if (isOpen() && (localAddress == null)) {
                         updateLocalAddress();
                     }
                 }
-                return OjIOStatus.normalize(n);
+                return ioresult(n);
             } finally {
                 writerThread = 0;
-                end((n > 0) || (n == OjIOStatus.UNAVAILABLE));
+                end((n > 0) || (n == JNI.UNAVAIL));
             }
         }
 	/*
@@ -432,15 +465,15 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 if (!isOpen()) {
                     return 0;
                 }
-                readerThread = OjNativeThread.current();
+                readerThread = JNI.gettid();
                 final ReceiveArgs args = new ReceiveArgs(buf);
                 do {
                     n = i_recv(args);
-                } while ((n == OjIOStatus.INTERRUPTED) && isOpen());
-                return OjIOStatus.normalize(n);
+                } while ((n == JNI.EINTR) && isOpen());
+                return ioresult(n);
             } finally {
                 readerThread = 0;
-                end((n > 0) || (n == OjIOStatus.UNAVAILABLE));
+                end((n > 0) || (n == JNI.UNAVAIL));
             }
         }
     }
@@ -500,14 +533,14 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
             if (!isOpen()) {
                 return 0;
             }
-            writerThread = OjNativeThread.current();
+            writerThread = JNI.gettid();
             do {
                 n = i_send(buf, remoteAddress);
-            } while ((n == OjIOStatus.INTERRUPTED) && isOpen());
-            return OjIOStatus.normalize(n);
+            } while ((n == JNI.EINTR) && isOpen());
+            return ioresult(n);
         } finally {
             writerThread = 0;
-            end((n > 0) || (n == OjIOStatus.UNAVAILABLE));
+            end((n > 0) || (n == JNI.UNAVAIL));
         }
     }
 
@@ -662,10 +695,10 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
         synchronized (stateLock) {
             long th;
             if ((th = readerThread) != 0) {
-                OjNativeThread.signal(th);
+                JNI.signal(th);
             }
             if ((th = writerThread) != 0) {
-                OjNativeThread.signal(th);
+                JNI.signal(th);
             }
             if (!isRegistered()) {
                 if (state == ST_KILLED) {
@@ -699,36 +732,6 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
         }
     }
 
-    private static class NativeAddrPort {
-        byte[] addr;
-        int port;
-    }
-
-    private static native int n_socket() throws IOException;
-
-    private static native void n_close(final int fd) throws IOException;
-
-    private static native void n_setnonblock(final int fd,
-      final boolean block) throws IOException;
-
-    private static native void n_getsockname(final int fd,
-      final NativeAddrPort ap) throws IOException;
-
-    private static native void n_bind(final int fd,
-      final byte[] addr, final int port) throws IOException;
-
-    private static native void n_connect(final int fd,
-      final byte[] addr, final int port) throws IOException;
-
-    // connect() with empty, zero’d struct sockaddr_in6 with sin6_family = AF_UNSPEC
-    private static native void n_disconnect(final int fd) throws IOException;
-
-    private static native int n_recv(final int fd,
-      final ByteBuffer buf, final NativeAddrPort ap) throws IOException;
-
-    private static native int n_send(final int fd,
-      final ByteBuffer buf, final byte[] addr, final int port) throws IOException;
-
     private static InetSocketAddress netCheckAddress(final SocketAddress sa) {
         if (sa == null) {
             throw new IllegalArgumentException("sa == null");
@@ -750,31 +753,10 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
         return isa;
     }
 
-    private static byte[] toaddr(final InetAddress ia) {
-        final byte[] ob = ia.getAddress();
-        if (ob.length == 16) {
-            return ob;
-        }
-        final byte[] nb = new byte[16];
-        nb[10] = (byte) 0xFF;
-        nb[11] = (byte) 0xFF;
-        nb[12] = ob[0];
-        nb[13] = ob[1];
-        nb[14] = ob[2];
-        nb[15] = ob[3];
-        return nb;
-    }
-
-    @SneakyThrows(UnknownHostException.class)
-    private static InetAddress fromaddr(final byte[] ia) {
-        // v4-mapped → Inet4Address, rest Inet6Address
-        return InetAddress.getByAddress(ia);
-    }
-
     private void updateLocalAddress() throws IOException {
-        final NativeAddrPort ap = new NativeAddrPort();
+        final JNI.AddrPort ap = new JNI.AddrPort();
         n_getsockname(fdVal, ap);
-        localAddress = new InetSocketAddress(fromaddr(ap.addr), ap.port);
+        localAddress = ap.get();
     }
 
     private int i_send(final ByteBuffer buf, final InetSocketAddress target) throws IOException {
@@ -788,10 +770,10 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
     }
 
     private int i_recv(final ReceiveArgs args) throws IOException {
-        final NativeAddrPort ap = new NativeAddrPort();
+        final JNI.AddrPort ap = new JNI.AddrPort();
         final int rv = n_recv(fdVal, args.buf, ap);
         if (rv >= 0) {
-            args.sender = new InetSocketAddress(fromaddr(ap.addr), ap.port);
+            args.sender = ap.get();
         }
         return rv;
     }
