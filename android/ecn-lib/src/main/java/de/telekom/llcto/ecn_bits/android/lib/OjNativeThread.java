@@ -34,7 +34,7 @@ package de.telekom.llcto.ecn_bits.android.lib;
 // that can be used to release a native thread from a blocking I/O operation.
 // On systems that do not require this type of signalling, the current() method
 // always returns -1 and the signal(long) method has no effect.
-public class NativeThread {
+public class OjNativeThread {
     // Returns an opaque token representing the native thread underlying the
     // invoking Java thread.  On systems that do not require signalling, this
     // method always returns -1.

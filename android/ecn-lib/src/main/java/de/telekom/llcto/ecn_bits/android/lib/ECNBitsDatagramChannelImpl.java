@@ -235,14 +235,14 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     return null;
                 }
                 final SecurityManager security;
-                readerThread = NativeThread.current();
+                readerThread = OjNativeThread.current();
                 final ReceiveArgs args;
                 if (isConnected() || ((security = System.getSecurityManager()) == null)) {
                     args = new ReceiveArgs(dst);
                     do {
                         n = i_recv(args);
-                    } while ((n == IOStatus.INTERRUPTED) && isOpen());
-                    if (n == IOStatus.UNAVAILABLE) {
+                    } while ((n == OjIOStatus.INTERRUPTED) && isOpen());
+                    if (n == OjIOStatus.UNAVAILABLE) {
                         return null;
                     }
                 } else {
@@ -251,8 +251,8 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     while (true) {
                         do {
                             n = i_recv(args);
-                        } while ((n == IOStatus.INTERRUPTED) && isOpen());
-                        if (n == IOStatus.UNAVAILABLE) {
+                        } while ((n == OjIOStatus.INTERRUPTED) && isOpen());
+                        if (n == OjIOStatus.UNAVAILABLE) {
                             return null;
                         }
                         try {
@@ -272,7 +272,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 return args.sender;
             } finally {
                 readerThread = 0;
-                end((n > 0) || (n == IOStatus.UNAVAILABLE));
+                end((n > 0) || (n == OjIOStatus.UNAVAILABLE));
             }
         }
 
@@ -339,20 +339,20 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 if (!isOpen()) {
                     return 0;
                 }
-                writerThread = NativeThread.current();
+                writerThread = OjNativeThread.current();
                 do {
                     n = i_send(src, isa);
-                } while ((n == IOStatus.INTERRUPTED) && isOpen());
+                } while ((n == OjIOStatus.INTERRUPTED) && isOpen());
 
                 synchronized (stateLock) {
                     if (isOpen() && (localAddress == null)) {
                         updateLocalAddress();
                     }
                 }
-                return IOStatus.normalize(n);
+                return OjIOStatus.normalize(n);
             } finally {
                 writerThread = 0;
-                end((n > 0) || (n == IOStatus.UNAVAILABLE));
+                end((n > 0) || (n == OjIOStatus.UNAVAILABLE));
             }
         }
 	/*
@@ -426,15 +426,15 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 if (!isOpen()) {
                     return 0;
                 }
-                readerThread = NativeThread.current();
+                readerThread = OjNativeThread.current();
                 final ReceiveArgs args = new ReceiveArgs(buf);
                 do {
                     n = i_recv(args);
-                } while ((n == IOStatus.INTERRUPTED) && isOpen());
-                return IOStatus.normalize(n);
+                } while ((n == OjIOStatus.INTERRUPTED) && isOpen());
+                return OjIOStatus.normalize(n);
             } finally {
                 readerThread = 0;
-                end((n > 0) || (n == IOStatus.UNAVAILABLE));
+                end((n > 0) || (n == OjIOStatus.UNAVAILABLE));
             }
         }
     }
@@ -494,14 +494,14 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
             if (!isOpen()) {
                 return 0;
             }
-            writerThread = NativeThread.current();
+            writerThread = OjNativeThread.current();
             do {
                 n = i_send(buf, remoteAddress);
-            } while ((n == IOStatus.INTERRUPTED) && isOpen());
-            return IOStatus.normalize(n);
+            } while ((n == OjIOStatus.INTERRUPTED) && isOpen());
+            return OjIOStatus.normalize(n);
         } finally {
             writerThread = 0;
-            end((n > 0) || (n == IOStatus.UNAVAILABLE));
+            end((n > 0) || (n == OjIOStatus.UNAVAILABLE));
         }
     }
 
@@ -656,10 +656,10 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
         synchronized (stateLock) {
             long th;
             if ((th = readerThread) != 0) {
-                NativeThread.signal(th);
+                OjNativeThread.signal(th);
             }
             if ((th = writerThread) != 0) {
-                NativeThread.signal(th);
+                OjNativeThread.signal(th);
             }
             if (!isRegistered()) {
                 if (state == ST_KILLED) {
