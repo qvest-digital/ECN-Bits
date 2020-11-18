@@ -1,4 +1,4 @@
-package java.net;
+package de.telekom.llcto.ecn_bits.android.lib;
 
 /*-
  * Copyright © 2020
@@ -34,12 +34,20 @@ package java.net;
  * to do so, delete this exception statement from your version.
  */
 
-import de.telekom.llcto.ecn_bits.android.lib.IOStatus;
-import de.telekom.llcto.ecn_bits.android.lib.NativeThread;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.SocketAddress;
+import java.net.SocketOption;
+import java.net.StandardSocketOptions;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AlreadyBoundException;
 import java.nio.channels.ClosedChannelException;
