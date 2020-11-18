@@ -30,7 +30,7 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 /**
- * JNI side of a reimplementation of datagram I/O with extras
+ * JNI Java™ side of a reimplementation of datagram I/O with extras
  * (not suitable for use with IP Multicast) and related functionality
  * (such as native thread signalling).
  *
@@ -41,6 +41,7 @@ final class JNI {
     }
 
     // socket options enum for native code, keep in sync with C code!
+    // all supported socket options take an int
     static final int IP_TOS = 0;
     static final int SO_BROADCAST = 1;
     static final int SO_RCVBUF = 2;
@@ -49,16 +50,18 @@ final class JNI {
 
     // return values for error codes, keep in sync with C code!
     // -1 = EOF
-    static final int UNAVAIL = -2;
+    static final int EAVAIL = -2;
     static final int EINTR = -3;
     // -4 = exception thrown in native code, never seen in Java™
 
     /**
      * JNI representation of an IP address and port tuple, address created by
-     * {@link #toaddr(InetAddress)} and consumed by {@link #fromaddr(byte[])}
-     * and port just used as-is in Java™.
+     * {@link #addr(InetSocketAddress)} and port just used as-is in Java™.
+     * Use {@link #get()} to get the Java™ representation of this tuple.
+     *
+     * @author mirabilos (t.glaser@tarent.de)
      */
-    static class AddrPort {
+    static final class AddrPort {
         /**
          * 16 bytes in network order, v4-mapped or IPv6 address
          */
@@ -69,12 +72,35 @@ final class JNI {
         int port;
 
         /**
-         * Retrieve address/port tuple in a form usable for Java™
+         * Converts address part to native addr representation.
+         *
+         * @param isa {@link InetSocketAddress}
+         * @return byte[] isa.getAddress() as IPv6 address or v4-mapped
+         */
+        static byte[] addr(final InetSocketAddress isa) {
+            final byte[] ob = isa.getAddress().getAddress();
+            if (ob.length == 16) {
+                return ob;
+            }
+            final byte[] nb = new byte[16];
+            nb[10] = (byte) 0xFF;
+            nb[11] = (byte) 0xFF;
+            nb[12] = ob[0];
+            nb[13] = ob[1];
+            nb[14] = ob[2];
+            nb[15] = ob[3];
+            return nb;
+        }
+
+        /**
+         * Retrieves address/port tuple in a form usable for Java™
          *
          * @return {@link InetSocketAddress}
          */
+        @SneakyThrows(UnknownHostException.class)
         InetSocketAddress get() {
-            return new InetSocketAddress(fromaddr(addr), port);
+            // v4-mapped → Inet4Address, rest Inet6Address
+            return new InetSocketAddress(InetAddress.getByAddress(addr), port);
         }
 
         static {
@@ -123,32 +149,9 @@ final class JNI {
     static native int n_send(final int fd,
       final ByteBuffer buf, final byte[] addr, final int port) throws IOException;
 
-    // +++ AddrPort operations +++
-
-    static byte[] toaddr(final InetAddress ia) {
-        final byte[] ob = ia.getAddress();
-        if (ob.length == 16) {
-            return ob;
-        }
-        final byte[] nb = new byte[16];
-        nb[10] = (byte) 0xFF;
-        nb[11] = (byte) 0xFF;
-        nb[12] = ob[0];
-        nb[13] = ob[1];
-        nb[14] = ob[2];
-        nb[15] = ob[3];
-        return nb;
-    }
-
-    @SneakyThrows(UnknownHostException.class)
-    static InetAddress fromaddr(final byte[] ia) {
-        // v4-mapped → Inet4Address, rest Inet6Address
-        return InetAddress.getByAddress(ia);
-    }
-
     // +++ I/O operations +++
 
     static int ioresult(final int n) {
-        return n == UNAVAIL ? 0 : n;
+        return n == EAVAIL ? 0 : n;
     }
 }

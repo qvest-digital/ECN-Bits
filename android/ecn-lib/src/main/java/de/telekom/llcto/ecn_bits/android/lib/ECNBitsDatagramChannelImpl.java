@@ -74,7 +74,6 @@ import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_send;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_setnonblock;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_setsockopt;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_socket;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.toaddr;
 
 /**
  * Java™ side of a JNI reimplementation of a NIO datagram channel with extras.
@@ -241,7 +240,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
 
     @Override
     public final Set<SocketOption<?>> supportedOptions() {
-        return ECNBitsDatagramChannelImpl.DefaultOptionsHolder.defaultOptions;
+        return DefaultOptionsHolder.defaultOptions;
     }
 
     private void ensureOpen() throws ClosedChannelException {
@@ -281,7 +280,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     do {
                         n = i_recv(args);
                     } while ((n == JNI.EINTR) && isOpen());
-                    if (n == JNI.UNAVAIL) {
+                    if (n == JNI.EAVAIL) {
                         return null;
                     }
                 } else {
@@ -291,7 +290,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                         do {
                             n = i_recv(args);
                         } while ((n == JNI.EINTR) && isOpen());
-                        if (n == JNI.UNAVAIL) {
+                        if (n == JNI.EAVAIL) {
                             return null;
                         }
                         try {
@@ -311,7 +310,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 return args.sender;
             } finally {
                 readerThread = 0;
-                end((n > 0) || (n == JNI.UNAVAIL));
+                end((n > 0) || (n == JNI.EAVAIL));
             }
         }
 
@@ -391,7 +390,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 return ioresult(n);
             } finally {
                 writerThread = 0;
-                end((n > 0) || (n == JNI.UNAVAIL));
+                end((n > 0) || (n == JNI.EAVAIL));
             }
         }
 	/*
@@ -473,7 +472,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 return ioresult(n);
             } finally {
                 readerThread = 0;
-                end((n > 0) || (n == JNI.UNAVAIL));
+                end((n > 0) || (n == JNI.EAVAIL));
             }
         }
     }
@@ -540,7 +539,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
             return ioresult(n);
         } finally {
             writerThread = 0;
-            end((n > 0) || (n == JNI.UNAVAIL));
+            end((n > 0) || (n == JNI.EAVAIL));
         }
     }
 
@@ -591,7 +590,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     if (sm != null) {
                         sm.checkListen(isa.getPort());
                     }
-                    n_bind(fdVal, toaddr(isa.getAddress()), isa.getPort());
+                    n_bind(fdVal, JNI.AddrPort.addr(isa), isa.getPort());
                     updateLocalAddress();
                 }
             }
@@ -620,7 +619,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     if (sm != null) {
                         sm.checkConnect(isa.getAddress().getHostAddress(), isa.getPort());
                     }
-                    n_connect(fdVal, toaddr(isa.getAddress()), isa.getPort());
+                    n_connect(fdVal, JNI.AddrPort.addr(isa), isa.getPort());
 
                     // Connection succeeded; disallow further invocation
                     state = ST_CONNECTED;
@@ -760,7 +759,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
     }
 
     private int i_send(final ByteBuffer buf, final InetSocketAddress target) throws IOException {
-        return n_send(fdVal, buf, toaddr(target.getAddress()), target.getPort());
+        return n_send(fdVal, buf, JNI.AddrPort.addr(target), target.getPort());
     }
 
     @RequiredArgsConstructor
