@@ -33,6 +33,9 @@ import java.net.SocketException;
  * {@link ECNBitsDatagramSocket} and {@link ECNBitsDatagramChannel#socket()}
  * results, so they share a common API.
  *
+ * This class is basically a stock {@link DatagramSocket} that also offers
+ * the methods from {@link AbstractECNBitsDatagramReceiver} for its instances.
+ *
  * @author mirabilos (t.glaser@tarent.de)
  */
 public abstract class AbstractECNBitsDatagramSocket extends DatagramSocket implements AbstractECNBitsDatagramReceiver {

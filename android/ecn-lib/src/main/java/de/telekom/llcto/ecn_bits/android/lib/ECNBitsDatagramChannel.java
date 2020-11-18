@@ -36,6 +36,16 @@ import java.io.IOException;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.spi.SelectorProvider;
 
+/**
+ * {@link DatagramChannel} equivalent capable of returning and
+ * collecting ECN bits and the traffic class octet from received packets.
+ * Not suitable for use with IP Multicast.
+ *
+ * This class offers the methods from {@link AbstractECNBitsDatagramReceiver}
+ * to determine the IP traffic class and thus the ECN bits. TODO: not yet
+ *
+ * @author mirabilos (t.glaser@tarent.de)
+ */
 public abstract class ECNBitsDatagramChannel extends DatagramChannel /*implements AbstractECNBitsDatagramReceiver*/ {
     /**
      * Opens a datagram channel.

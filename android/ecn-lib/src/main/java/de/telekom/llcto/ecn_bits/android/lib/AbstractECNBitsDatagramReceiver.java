@@ -21,12 +21,17 @@ package de.telekom.llcto.ecn_bits.android.lib;
  * of said person’s immediate fault when using the work as intended.
  */
 
-import java.net.ECNBitsDatagramChannel;
 import java.net.ECNBitsDatagramSocket;
 
 /**
  * Common interface for an API provided to read the IP traffic class octet
  * by {@link ECNBitsDatagramSocket} and {@link ECNBitsDatagramChannel}.
+ *
+ * This class offers the method {@link #retrieveLastTrafficClass()} to retrieve
+ * the traffic class octet, if any, from the last packet received or peekData’d
+ * or null if it could not be determined or no packet was processed yet, and
+ * {@link #startMeasurement()} and {@link #getMeasurement(boolean)} to analyse
+ * the percentage of packets that were congested over a period.
  *
  * @author mirabilos (t.glaser@tarent.de)
  */

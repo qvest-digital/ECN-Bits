@@ -60,6 +60,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Java™ side of a JNI reimplementation of a NIO datagram channel with extras.
+ * Not suitable for use with IP Multicast.
+ *
+ * @author mirabilos (t.glaser@tarent.de)
+ */
 class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
     @SuppressWarnings("UnusedAssignment")
     private int fdVal = -1;
