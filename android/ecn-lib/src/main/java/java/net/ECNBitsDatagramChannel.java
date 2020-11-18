@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.spi.SelectorProvider;
 
-public abstract class ECNBitsDatagramChannel extends DatagramChannel {
+public abstract class ECNBitsDatagramChannel extends DatagramChannel /*implements AbstractECNBitsDatagramReceiver*/ {
     /**
      * Opens a datagram channel.
      *

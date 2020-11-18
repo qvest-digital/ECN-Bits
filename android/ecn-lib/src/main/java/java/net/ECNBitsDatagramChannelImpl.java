@@ -97,7 +97,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
     }
 
     @Override
-    public DatagramSocket socket() {
+    public /*AbstractECNBits*/DatagramSocket socket() {
         /*synchronized (stateLock) {
             if (socket == null)
                 socket = sun.nio.ch.DatagramSocketAdaptor.create(this);
