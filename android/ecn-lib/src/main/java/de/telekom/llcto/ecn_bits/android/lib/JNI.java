@@ -110,6 +110,26 @@ final class JNI {
 
     private static native void cacheAddrPort();
 
+    /**
+     * Scatter/Gather I/O wrapper
+     *
+     * @author mirabilos (t.glaser@tarent.de)
+     */
+    static final class SGIO {
+        ByteBuffer orig; // original ByteBuffer (not used by JNI)
+        ByteBuffer buf; // the one JNI uses (may be = (useDirect) or ≠ (!useDirect) orig)
+        int opos; // orig.position(), not used by JNI
+        int pos; // position in the buffer (0 if !useDirect)
+        int len; // length of the buffer fragment
+        boolean useDirect; // whether to directly use orig
+
+        static {
+            cacheSGIO();
+        }
+    }
+
+    private static native void cacheSGIO();
+
     // +++ OpenJDK NativeThread +++
 
     static native long gettid();
@@ -143,11 +163,21 @@ final class JNI {
     // connect() with empty, zero’d struct sockaddr_in6 with sin6_family = AF_UNSPEC
     static native void n_disconnect(final int fd) throws IOException;
 
+    // ap can be nil if the caller is not interested
     static native int n_recv(final int fd,
-      final ByteBuffer buf, final AddrPort ap) throws IOException;
+      final ByteBuffer buf, final int bbpos, final int bbsize,
+      final AddrPort ap) throws IOException;
 
     static native int n_send(final int fd,
-      final ByteBuffer buf, final byte[] addr, final int port) throws IOException;
+      final ByteBuffer buf, final int bbpos, final int bbsize,
+      final byte[] addr, final int port) throws IOException;
+
+    // ap is nil here ☻
+    static native long n_rd(final int fd,
+      final SGIO[] bufs, final int nbufs) throws IOException;
+
+    static native long n_wr(final int fd,
+      final SGIO[] bufs, final byte[] addr, final int port) throws IOException;
 
     // 1 (ok), 0 (timeout), EINTR or THROWN; similar to nativePoll in D.Socket but different rv + throws
     static native int n_poll(final int fd,
@@ -156,6 +186,10 @@ final class JNI {
     // +++ I/O operations +++
 
     static int ioresult(final int n) {
+        return n == EAVAIL ? 0 : n;
+    }
+
+    static long ioresult(final long n) {
         return n == EAVAIL ? 0 : n;
     }
 }

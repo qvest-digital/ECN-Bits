@@ -34,8 +34,6 @@ package de.telekom.llcto.ecn_bits.android.lib;
  * to do so, delete this exception statement from your version.
  */
 
-import lombok.RequiredArgsConstructor;
-
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -69,11 +67,13 @@ import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_disconnect;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_getsockname;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_getsockopt;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_poll;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_rd;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_recv;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_send;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_setnonblock;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_setsockopt;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_socket;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_wr;
 
 /**
  * Java™ side of a JNI reimplementation of a NIO datagram channel with extras.
@@ -273,28 +273,28 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 }
                 final SecurityManager security;
                 readerThread = JNI.gettid();
-                final ReceiveArgs args;
+                final JNI.AddrPort ap = new JNI.AddrPort();
+                InetSocketAddress sender;
                 if (isConnected() || ((security = System.getSecurityManager()) == null)) {
-                    args = new ReceiveArgs(dst);
                     do {
-                        n = i_recv(args);
+                        n = i_recv(dst, ap);
                     } while ((n == JNI.EINTR) && isOpen());
                     if (n == JNI.EAVAIL) {
                         return null;
                     }
+                    sender = ap.get();
                 } else {
                     final ByteBuffer bb = ByteBuffer.allocateDirect(dst.remaining());
-                    args = new ReceiveArgs(bb);
                     while (true) {
                         do {
-                            n = i_recv(args);
+                            n = i_recv(bb, ap);
                         } while ((n == JNI.EINTR) && isOpen());
                         if (n == JNI.EAVAIL) {
                             return null;
                         }
+                        sender = ap.get();
                         try {
-                            security.checkAccept(args.sender.getAddress().getHostAddress(),
-                              args.sender.getPort());
+                            security.checkAccept(sender.getAddress().getHostAddress(), sender.getPort());
                         } catch (SecurityException se) {
                             // Ignore packet
                             bb.clear();
@@ -306,47 +306,12 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                         break;
                     }
                 }
-                return args.sender;
+                return sender;
             } finally {
                 readerThread = 0;
                 end((n > 0) || (n == JNI.EAVAIL));
             }
         }
-
-	/*
-    private int receive(FileDescriptor fd, ByteBuffer dst)
-        throws IOException
-    {
-        int pos = dst.position();
-        int lim = dst.limit();
-        assert (pos <= lim);
-        int rem = (pos <= lim ? lim - pos : 0);
-        if (dst instanceof sun.nio.ch.DirectBuffer && rem > 0)
-            return receiveIntoNativeBuffer(fd, dst, rem, pos);
-
-        // Substitute a native buffer. If the supplied buffer is empty
-        // we must instead use a nonempty buffer, otherwise the call
-        // will not block waiting for a datagram on some platforms.
-        int newSize = Math.max(rem, 1);
-        ByteBuffer bb = ByteBuffer.allocateDirect(newSize);
-            int n = receiveIntoNativeBuffer(fd, bb, newSize, 0);
-            bb.flip();
-            if (n > 0 && rem > 0)
-                dst.put(bb);
-            return n;
-    }
-
-    private int receiveIntoNativeBuffer(FileDescriptor fd, ByteBuffer bb,
-                                        int rem, int pos)
-        throws IOException
-    {
-        int n = receive0(fd, ((DirectBuffer)bb).address() + pos, rem,
-                         isConnected());
-        if (n > 0)
-            bb.position(pos + n);
-        return n;
-    }
-	*/
     }
 
     @Override
@@ -392,57 +357,6 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 end((n > 0) || (n == JNI.EAVAIL));
             }
         }
-	/*
-    private int send(FileDescriptor fd, ByteBuffer src, InetSocketAddress target)
-        throws IOException
-    {
-        if (src instanceof sun.nio.ch.DirectBuffer)
-            return sendFromNativeBuffer(fd, src, target);
-
-        // Substitute a native buffer
-        int pos = src.position();
-        int lim = src.limit();
-        assert (pos <= lim);
-        int rem = (pos <= lim ? lim - pos : 0);
-
-        ByteBuffer bb = ByteBuffer.allocateDirect(rem);
-            bb.put(src);
-            bb.flip();
-            // Do not update src until we see how many bytes were written
-            src.position(pos);
-
-            int n = sendFromNativeBuffer(fd, bb, target);
-            if (n > 0) {
-                // now update src
-                src.position(pos + n);
-            }
-            return n;
-    }
-
-    private int sendFromNativeBuffer(FileDescriptor fd, ByteBuffer bb,
-                                     InetSocketAddress target)
-        throws IOException
-    {
-        int pos = bb.position();
-        int lim = bb.limit();
-        assert (pos <= lim);
-        int rem = (pos <= lim ? lim - pos : 0);
-
-        boolean preferIPv6 = true;
-        int written;
-        try {
-            written = send0(preferIPv6, fd, ((DirectBuffer)bb).address() + pos,
-                            rem, target.getAddress(), target.getPort());
-        } catch (PortUnreachableException pue) {
-            if (isConnected())
-                throw pue;
-            written = rem;
-        }
-        if (written > 0)
-            bb.position(pos + written);
-        return written;
-    }
-	*/
     }
 
     @Override
@@ -464,9 +378,8 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     return 0;
                 }
                 readerThread = JNI.gettid();
-                final ReceiveArgs args = new ReceiveArgs(buf);
                 do {
-                    n = i_recv(args);
+                    n = i_recv(buf, null);
                 } while ((n == JNI.EINTR) && isOpen());
                 return ioresult(n);
             } finally {
@@ -481,8 +394,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
         if ((offset < 0) || (length < 0) || (offset > dsts.length - length)) {
             throw new IndexOutOfBoundsException();
         }
-        throw new IOException("scatter/gather I/O not yet implemented");
-        /*synchronized (readLock) {
+        synchronized (readLock) {
             synchronized (stateLock) {
                 ensureOpen();
                 if (!isConnected()) {
@@ -495,17 +407,16 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 if (!isOpen()) {
                     return 0;
                 }
-                readerThread = NativeThread.current();
+                readerThread = JNI.gettid();
                 do {
-                    n = IOUtil.read(fd, dsts, offset, length, nd);
-                } while ((n == IOStatus.INTERRUPTED) && isOpen());
-                return IOStatus.normalize(n);
+                    n = sg_rd(dsts, offset, length);
+                } while ((n == JNI.EINTR) && isOpen());
+                return ioresult(n);
             } finally {
                 readerThread = 0;
-                end((n > 0) || (n == IOStatus.UNAVAILABLE));
-                assert IOStatus.check(n);
+                end((n > 0) || (n == JNI.EAVAIL));
             }
-        }*/
+        }
     }
 
     @Override
@@ -547,8 +458,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
         if ((offset < 0) || (length < 0) || (offset > srcs.length - length)) {
             throw new IndexOutOfBoundsException();
         }
-        throw new IOException("scatter/gather I/O not yet implemented");
-        /*synchronized (writeLock) {
+        synchronized (writeLock) {
             synchronized (stateLock) {
                 ensureOpen();
                 if (!isConnected()) {
@@ -561,17 +471,16 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 if (!isOpen()) {
                     return 0;
                 }
-                writerThread = NativeThread.current();
+                writerThread = JNI.gettid();
                 do {
-                    n = IOUtil.write(fd, srcs, offset, length, nd);
-                } while ((n == IOStatus.INTERRUPTED) && isOpen());
-                return IOStatus.normalize(n);
+                    n = sg_wr(srcs, offset, length);
+                } while ((n == JNI.EINTR) && isOpen());
+                return ioresult(n);
             } finally {
                 writerThread = 0;
-                end((n > 0) || (n == IOStatus.UNAVAILABLE));
-                assert IOStatus.check(n);
+                end((n > 0) || (n == JNI.EAVAIL));
             }
-        }*/
+        }
     }
 
     @Override
@@ -758,22 +667,162 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
     }
 
     private int i_send(final ByteBuffer buf, final InetSocketAddress target) throws IOException {
-        return n_send(fdVal, buf, JNI.AddrPort.addr(target), target.getPort());
-    }
+        final int pos = buf.position();
+        final int lim = buf.limit();
+        final int rem = pos <= lim ? lim - pos : 0;
 
-    @RequiredArgsConstructor
-    private static class ReceiveArgs {
-        final ByteBuffer buf; // in, mutated
-        InetSocketAddress sender; // out
-    }
+        final ByteBuffer bb;
+        final int bpos;
 
-    private int i_recv(final ReceiveArgs args) throws IOException {
-        final JNI.AddrPort ap = new JNI.AddrPort();
-        final int rv = n_recv(fdVal, args.buf, ap);
-        if (rv >= 0) {
-            args.sender = ap.get();
+        if (buf.isDirect()) {
+            bpos = pos;
+            bb = buf;
+        } else {
+            bpos = 0; // in newly-created bb
+            bb = ByteBuffer.allocateDirect(rem);
+            // copy data to be sent into bb
+            bb.put(buf);
+            // revert change to position in source buffer
+            buf.position(pos);
+            // switch bb into read mode
+            bb.flip();
         }
-        return rv;
+
+        // send from bb
+        final int n = n_send(fdVal, bb, bpos, rem, JNI.AddrPort.addr(target), target.getPort());
+        // update source buffer accordingly
+        if (n > 0) {
+            buf.position(pos + n);
+        }
+
+        return n;
+    }
+
+    private int i_recv(final ByteBuffer dst, final JNI.AddrPort ap) throws IOException {
+        final int pos = dst.position();
+        final int lim = dst.limit();
+        final int rem = pos <= lim ? lim - pos : 0;
+        final boolean useDirect = dst.isDirect() && rem > 0;
+
+        final ByteBuffer bb;
+        final int bpos;
+        final int blen;
+
+        if (useDirect) {
+            bpos = pos;
+            blen = rem;
+            bb = dst;
+        } else {
+            bpos = 0; // in newly-created bb
+            blen = Math.max(rem, 1); // always read at least one byte
+            bb = ByteBuffer.allocateDirect(blen);
+        }
+
+        final int n = n_recv(fdVal, bb, bpos, blen, ap);
+        if (n > 0) {
+            bb.position(bpos + n);
+        }
+        if (!useDirect && n > 0 && rem > 0) {
+            bb.flip();
+            dst.put(bb);
+        }
+
+        return n;
+    }
+
+    private long sg_wr(final ByteBuffer[] bufs, final int buf0, final int bufn) throws IOException {
+        final JNI.SGIO[] bbs = new JNI.SGIO[bufn];
+
+        for (int i = 0; i < bufn; ++i) {
+            final JNI.SGIO nb = new JNI.SGIO();
+            final ByteBuffer buf = bufs[buf0 + i];
+            final int pos = buf.position();
+            final int lim = buf.limit();
+            final int rem = pos <= lim ? lim - pos : 0;
+            nb.orig = buf;
+            nb.opos = pos;
+            if (buf.isDirect()) {
+                nb.pos = pos;
+                nb.buf = buf;
+            } else {
+                nb.pos = 0; // in newly-created bb
+                final ByteBuffer bb = ByteBuffer.allocateDirect(rem);
+                // copy data to be sent into bb
+                bb.put(buf);
+                // revert change to position in source buffer
+                buf.position(pos);
+                // switch bb into read mode
+                bb.flip();
+                nb.buf = bb;
+            }
+            nb.len = rem;
+            bbs[i] = nb;
+        }
+
+        final long n = n_wr(fdVal, bbs, JNI.AddrPort.addr(remoteAddress), remoteAddress.getPort());
+        if (n > 0) {
+            long rest = n;
+            for (int i = 0; i < bufn; ++i) {
+                final long nb = Math.min(rest, bbs[i].len);
+                if (nb < 1) {
+                    break;
+                }
+                bbs[i].orig.position(bbs[i].opos + (int) nb);
+                rest -= nb;
+            }
+        }
+
+        return n;
+    }
+
+    private long sg_rd(final ByteBuffer[] bufs, final int buf0, final int bufn) throws IOException {
+        final JNI.SGIO[] bbs = new JNI.SGIO[bufn];
+
+        int nbbs = 0;
+        for (int i = 0; i < bufn; ++i) {
+            final ByteBuffer dst = bufs[buf0 + i];
+            final int pos = dst.position();
+            final int lim = dst.limit();
+            final int rem = pos <= lim ? lim - pos : 0;
+            if (rem < 1) {
+                continue;
+            }
+            final JNI.SGIO nb = new JNI.SGIO();
+            nb.orig = dst;
+            nb.opos = pos;
+            nb.useDirect = dst.isDirect();
+            if (nb.useDirect) {
+                nb.pos = pos;
+                nb.buf = dst;
+            } else {
+                nb.pos = 0; // in newly-created bb
+                nb.buf = ByteBuffer.allocateDirect(rem);
+            }
+            nb.len = rem;
+            bbs[nbbs++] = nb;
+        }
+        if (nbbs < 1) {
+            return 0L;
+        }
+
+        final long n = n_rd(fdVal, bbs, nbbs);
+        if (n > 0) {
+            long rest = n;
+            for (int i = 0; i < bufn; ++i) {
+                final long nb = Math.min(rest, bbs[i].len);
+                if (nb < 1) {
+                    break;
+                }
+                bbs[i].buf.position(bbs[i].pos + (int) nb);
+                if (!bbs[i].useDirect) {
+                    bbs[i].buf.flip();
+                    bbs[i].orig.put(bbs[i].buf);
+                }
+                rest -= nb;
+            }
+        }
+
+        return n;
     }
 
     // for ECNBitsDatagramSocketAdapter
