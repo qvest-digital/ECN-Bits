@@ -69,6 +69,7 @@ import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_connect;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_disconnect;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_getsockname;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_getsockopt;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_poll;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_recv;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_send;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_setnonblock;
@@ -127,12 +128,12 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
 
     @Override
     public /*AbstractECNBits*/DatagramSocket socket() {
-        /*synchronized (stateLock) {
-            if (socket == null)
-                socket = sun.nio.ch.DatagramSocketAdaptor.create(this);
+        synchronized (stateLock) {
+            if (socket == null) {
+                socket = new ECNBitsDatagramSocketAdapter(this);
+            }
             return socket;
-        }*/
-        throw new RuntimeException("eimpl");
+        }
     }
 
     @Override
@@ -775,5 +776,39 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
             args.sender = ap.get();
         }
         return rv;
+    }
+
+    // for ECNBitsDatagramSocketAdapter
+
+    SocketAddress i_localAddress() {
+        synchronized (stateLock) {
+            return localAddress;
+        }
+    }
+
+    SocketAddress i_remoteAddress() {
+        synchronized (stateLock) {
+            return remoteAddress;
+        }
+    }
+
+    int pollin(int timeout) throws IOException {
+        synchronized (readLock) {
+            int n = 0;
+            try {
+                begin();
+                synchronized (stateLock) {
+                    if (!isOpen()) {
+                        return 0;
+                    }
+                    readerThread = JNI.gettid();
+                }
+                n = n_poll(fdVal, timeout);
+            } finally {
+                readerThread = 0;
+                end(n > 0);
+            }
+            return n;
+        }
     }
 }

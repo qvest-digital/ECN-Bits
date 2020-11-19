@@ -149,6 +149,10 @@ final class JNI {
     static native int n_send(final int fd,
       final ByteBuffer buf, final byte[] addr, final int port) throws IOException;
 
+    // 1 (ok), 0 (timeout), EINTR or THROWN; similar to nativePoll in D.Socket but different rv + throws
+    static native int n_poll(final int fd,
+      final int timeout) throws IOException;
+
     // +++ I/O operations +++
 
     static int ioresult(final int n) {
