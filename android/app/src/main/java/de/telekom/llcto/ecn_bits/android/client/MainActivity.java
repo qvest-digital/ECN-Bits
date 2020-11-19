@@ -29,7 +29,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -50,8 +49,6 @@ import org.evolvis.tartools.rfc822.FQDN;
 import org.evolvis.tartools.rfc822.IPAddress;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.DatagramPacket;
 import java.net.ECNBitsDatagramSocket;
 import java.net.InetAddress;
@@ -450,22 +447,6 @@ public class MainActivity extends AppCompatActivity {
         return values[pos];
     }
 
-    private void logChannelFD(final DatagramChannel chan) {
-        // erk… a LOT of DatagramChannel (whose direct child class
-        // sun.nio.ch.DatagramChannelImpl is actually chan’s type)
-        // has private visibility; this is going to hurt, effort-wise
-        // calling chan.socket() makes no difference, it instantiates
-        // a DatagramSocketAdaptor with a dummy DatagramSocketImpl ☹
-        try {
-            final Class<?> chanClazz = chan.getClass();
-            final Method chanFd = chanClazz.getDeclaredMethod("getFDVal");
-            chanFd.setAccessible(true);
-            Log.w("ECN-Bits", "channel opened for fd #" + (int) chanFd.invoke(chan));
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            Log.e("ECN-Bits", "getChannelFD reflection", e);
-        }
-    }
-
     public void clkStartStop(final View v) {
         if (channelStarted) {
             uiEnabled(false);
@@ -521,7 +502,6 @@ public class MainActivity extends AppCompatActivity {
             addOutputLine("could not create channel: " + e);
             return;
         }
-        logChannelFD(chan);
 
         cSendThread = new Thread(() -> {
             long counter = 0;
