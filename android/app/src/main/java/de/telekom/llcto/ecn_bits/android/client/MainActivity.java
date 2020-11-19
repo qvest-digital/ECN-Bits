@@ -39,6 +39,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import de.telekom.llcto.ecn_bits.android.lib.Bits;
+import de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramChannel;
 import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
 import de.telekom.llcto.ecn_bits.android.lib.ECNStatistics;
 import lombok.AllArgsConstructor;
@@ -59,7 +60,6 @@ import java.net.SocketTimeoutException;
 import java.net.StandardSocketOptions;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
     private Thread netThread = null;
     private volatile boolean exiting = false;
     private boolean channelStarted = false;
-    private DatagramChannel chan = null;
+    private ECNBitsDatagramChannel chan = null;
     private Thread cSendThread = null;
     private Thread cRecvThread = null;
 
@@ -455,6 +455,16 @@ public class MainActivity extends AppCompatActivity {
             cSendThread.interrupt();
             cRecvThread.interrupt();
             try {
+                final ECNStatistics stats = sock.getMeasurement(false);
+                addOutputLine(stats == null ?
+                  "!! no congestion measurement" :
+                  String.format("ℹ %.2f%% of %d packets received over %.3f s were congested",
+                    stats.getCongestionFactor() * 100.0, stats.getReceivedPackets(),
+                    (double) stats.getLengthOfMeasuringPeriod() / 1000000000.0));
+            } catch (ArithmeticException e) {
+                addOutputLine("!! ECNStatistics: " + e);
+            }
+            try {
                 if (chan != null) {
                     chan.close();
                 }
@@ -497,7 +507,7 @@ public class MainActivity extends AppCompatActivity {
           hostname.a[0].getHostAddress() : hostname.s, port, outBits.getShortname()));
 
         try {
-            chan = DatagramChannel.open();
+            chan = ECNBitsDatagramChannel.open();
         } catch (IOException e) {
             addOutputLine("could not create channel: " + e);
             return;
@@ -576,6 +586,7 @@ public class MainActivity extends AppCompatActivity {
 
         cRecvThread = new Thread(() -> {
             val buf = ByteBuffer.allocate(512);
+            chan.startMeasurement();
             while (!exiting) {
                 buf.clear();
                 try {
@@ -588,9 +599,11 @@ public class MainActivity extends AppCompatActivity {
                         // falls through to sleep to not repeat too fast
                     } else {
                         buf.flip();
+                        final Byte trafficClass = sock.retrieveLastTrafficClass();
                         final String userData = StandardCharsets.UTF_8.decode(buf).toString();
                         final String logLine = String.format("→ %s %s (%d)%s%s",
-                          stamp, "[ECN?]", read, contentSeparator, userData.trim());
+                          stamp, Bits.print(trafficClass), read, contentSeparator,
+                          userData.trim());
                         runOnUiThread(() -> addOutputLine(logLine));
                         // does not fall through to sleep below
                         continue;
