@@ -331,10 +331,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     }
                     return write_locked(src);
                 }
-                final SecurityManager sm = System.getSecurityManager();
-                if (sm != null) {
-                    sm.checkConnect(isa.getAddress().getHostAddress(), isa.getPort());
-                }
+                smConnect(isa);
             }
 
             long n = 0;
@@ -525,10 +522,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                         throw new IllegalStateException("Connect already invoked");
                     }
                     final InetSocketAddress isa = netCheckAddress(sa);
-                    final SecurityManager sm = System.getSecurityManager();
-                    if (sm != null) {
-                        sm.checkConnect(isa.getAddress().getHostAddress(), isa.getPort());
-                    }
+                    smConnect(isa);
                     n_connect(fdVal, JNI.AddrPort.addr(isa), isa.getPort());
 
                     // Connection succeeded; disallow further invocation
@@ -573,10 +567,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     if (!isConnected() || !isOpen()) {
                         return this;
                     }
-                    final SecurityManager sm = System.getSecurityManager();
-                    if (sm != null) {
-                        sm.checkConnect(remoteAddress.getAddress().getHostAddress(), remoteAddress.getPort());
-                    }
+                    smConnect(remoteAddress);
                     n_disconnect(fdVal);
                     remoteAddress = null;
                     state = ST_UNCONNECTED;
@@ -638,6 +629,13 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
             }
         } finally {
             super.finalize();
+        }
+    }
+
+    private static void smConnect(final InetSocketAddress isa) {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkConnect(isa.getAddress().getHostAddress(), isa.getPort());
         }
     }
 
