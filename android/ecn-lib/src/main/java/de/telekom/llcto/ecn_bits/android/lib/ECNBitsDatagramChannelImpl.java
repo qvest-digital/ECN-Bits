@@ -118,6 +118,8 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
 
     // -- End of fields protected by stateLock
 
+    private final ECNMeasurer tcm = new ECNMeasurer();
+
     public ECNBitsDatagramChannelImpl(final SelectorProvider sp) throws IOException {
         super(sp);
         this.fdVal = n_socket();
@@ -379,7 +381,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 }
                 readerThread = JNI.gettid();
                 do {
-                    n = i_recv(buf, null);
+                    n = i_recv(buf, new JNI.AddrPort());
                 } while ((n == JNI.EINTR) && isOpen());
                 return (int) ioresult(n);
             } finally {
@@ -699,6 +701,8 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
     }
 
     private int i_recv(final ByteBuffer dst, final JNI.AddrPort ap) throws IOException {
+        tcm.listen();
+
         final int pos = dst.position();
         final int lim = dst.limit();
         final int rem = pos <= lim ? lim - pos : 0;
@@ -720,6 +724,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
 
         final int n = n_recv(fdVal, bb, bpos, blen, ap);
         if (n > 0) {
+            tcm.received(ap.tcValid, ap.tc);
             bb.position(bpos + n);
         }
         if (!useDirect && n > 0 && rem > 0) {
@@ -776,6 +781,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
     }
 
     private long sg_rd(final ByteBuffer[] bufs, final int buf0, final int bufn) throws IOException {
+        tcm.listen();
         final JNI.SGIO[] bbs = new JNI.SGIO[bufn];
 
         int nbbs = 0;
@@ -805,8 +811,11 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
             return 0L;
         }
 
-        final long n = n_rd(fdVal, bbs, nbbs);
+        final JNI.AddrPort ap = new JNI.AddrPort();
+        final long n = n_rd(fdVal, bbs, nbbs, ap);
         if (n > 0) {
+            tcm.received(ap.tcValid, ap.tc);
+
             long rest = n;
             for (int i = 0; i < bufn; ++i) {
                 final long nb = Math.min(rest, bbs[i].len);
@@ -863,21 +872,16 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
 
     @Override
     public Byte retrieveLastTrafficClass() {
-        // TODO
-        return null;
-        //throw new RuntimeException("not yet implemented");
+        return tcm.last();
     }
 
     @Override
     public void startMeasurement() {
-        // TODO
-        //throw new RuntimeException("not yet implemented");
+        tcm.doMeasuring(true, false);
     }
 
     @Override
     public ECNStatistics getMeasurement(final boolean doContinue) {
-        // TODO
-        return null;
-        //throw new RuntimeException("not yet implemented");
+        return tcm.doMeasuring(doContinue, true);
     }
 }

@@ -25,6 +25,7 @@ import android.util.Log;
 import de.telekom.llcto.ecn_bits.android.lib.AbstractECNBitsDatagramReceiver;
 import de.telekom.llcto.ecn_bits.android.lib.AbstractECNBitsDatagramSocket;
 import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
+import de.telekom.llcto.ecn_bits.android.lib.ECNMeasurer;
 import de.telekom.llcto.ecn_bits.android.lib.ECNStatistics;
 
 import java.io.IOException;
@@ -51,6 +52,7 @@ public class ECNBitsDatagramSocket extends AbstractECNBitsDatagramSocket {
     }
 
     private ECNBitsDatagramSocketImpl eimpl;
+    private final ECNMeasurer tcm;
 
     /**
      * Constructs an ECN-capable datagram socket, wildcard bound to a free port
@@ -85,7 +87,7 @@ public class ECNBitsDatagramSocket extends AbstractECNBitsDatagramSocket {
         }
         if (impl instanceof ECNBitsDatagramSocketImpl) {
             eimpl = (ECNBitsDatagramSocketImpl) impl;
-            eimpl.setUpRecvTclass();
+            tcm = eimpl.setUpRecvTclass();
             return;
         }
         close();
@@ -133,20 +135,16 @@ public class ECNBitsDatagramSocket extends AbstractECNBitsDatagramSocket {
 
     @Override
     public Byte retrieveLastTrafficClass() {
-        return eimpl.retrieveLastTrafficClass();
+        return tcm.last();
     }
 
     @Override
     public void startMeasurement() {
-        try {
-            eimpl.doMeasuring(true);
-        } catch (ArithmeticException e) {
-            /* ignore, this is about the past period */
-        }
+        tcm.doMeasuring(true, false);
     }
 
     @Override
     public ECNStatistics getMeasurement(final boolean doContinue) {
-        return eimpl.doMeasuring(doContinue);
+        return tcm.doMeasuring(doContinue, true);
     }
 }

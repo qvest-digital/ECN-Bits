@@ -71,6 +71,10 @@ final class JNI {
          */
         int port;
 
+        // not part of AddrPort but provided by the receiving JNI calls
+        byte tc; // out
+        boolean tcValid; // out
+
         /**
          * Converts address part to native addr representation.
          *
@@ -163,18 +167,16 @@ final class JNI {
     // connect() with empty, zero’d struct sockaddr_in6 with sin6_family = AF_UNSPEC
     static native void n_disconnect(final int fd) throws IOException;
 
-    // ap can be nil if the caller is not interested
     static native int n_recv(final int fd,
       final ByteBuffer buf, final int bbpos, final int bbsize,
-      final AddrPort ap) throws IOException;
+      final AddrPort aptc) throws IOException;
 
     static native int n_send(final int fd,
       final ByteBuffer buf, final int bbpos, final int bbsize,
       final byte[] addr, final int port) throws IOException;
 
-    // ap is nil here ☻
     static native long n_rd(final int fd,
-      final SGIO[] bufs, final int nbufs) throws IOException;
+      final SGIO[] bufs, final int nbufs, final AddrPort tc) throws IOException;
 
     static native long n_wr(final int fd,
       final SGIO[] bufs, final byte[] addr, final int port) throws IOException;
