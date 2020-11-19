@@ -815,18 +815,20 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
     @Override
     public Byte retrieveLastTrafficClass() {
         // TODO
-        throw new RuntimeException("not yet implemented");
+        return null;
+        //throw new RuntimeException("not yet implemented");
     }
 
     @Override
     public void startMeasurement() {
         // TODO
-        throw new RuntimeException("not yet implemented");
+        //throw new RuntimeException("not yet implemented");
     }
 
     @Override
     public ECNStatistics getMeasurement(final boolean doContinue) {
         // TODO
-        throw new RuntimeException("not yet implemented");
+        return null;
+        //throw new RuntimeException("not yet implemented");
     }
 }
