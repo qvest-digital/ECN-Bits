@@ -36,7 +36,6 @@ package de.telekom.llcto.ecn_bits.android.lib;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.DatagramSocketImpl;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -50,7 +49,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AlreadyBoundException;
 import java.nio.channels.AlreadyConnectedException;
 import java.nio.channels.ClosedChannelException;
-import java.nio.channels.DatagramChannel;
 import java.nio.channels.IllegalBlockingModeException;
 import java.nio.channels.NotYetBoundException;
 import java.nio.channels.NotYetConnectedException;
@@ -60,7 +58,7 @@ import java.nio.channels.UnsupportedAddressTypeException;
 /**
  * Makes a datagram-socket channel look like a datagram socket
  */
-class ECNBitsDatagramSocketAdapter extends DatagramSocket {
+class ECNBitsDatagramSocketAdapter extends AbstractECNBitsDatagramSocket {
     // The channel being adapted
     private final ECNBitsDatagramChannelImpl dc;
 
@@ -93,6 +91,7 @@ class ECNBitsDatagramSocketAdapter extends DatagramSocket {
         }
     }
 
+    @Override
     public void bind(final SocketAddress local) throws SocketException {
         try {
             dc.bind(local);
@@ -101,6 +100,7 @@ class ECNBitsDatagramSocketAdapter extends DatagramSocket {
         }
     }
 
+    @Override
     public void connect(final InetAddress address, final int port) {
         try {
             connectInternal(new InetSocketAddress(address, port));
@@ -109,6 +109,7 @@ class ECNBitsDatagramSocketAdapter extends DatagramSocket {
         }
     }
 
+    @Override
     public void connect(final SocketAddress remote) throws SocketException {
         if (remote == null) {
             throw new IllegalArgumentException("Address can't be null");
@@ -116,6 +117,7 @@ class ECNBitsDatagramSocketAdapter extends DatagramSocket {
         connectInternal(remote);
     }
 
+    @Override
     public void disconnect() {
         try {
             dc.disconnect();
@@ -124,26 +126,31 @@ class ECNBitsDatagramSocketAdapter extends DatagramSocket {
         }
     }
 
+    @Override
     public boolean isBound() {
         return dc.i_localAddress() != null;
     }
 
+    @Override
     public boolean isConnected() {
         return dc.i_remoteAddress() != null;
     }
 
+    @Override
     public InetAddress getInetAddress() {
         return (isConnected()
           ? net_asInetSocketAddress(dc.i_remoteAddress()).getAddress()
           : null);
     }
 
+    @Override
     public int getPort() {
         return (isConnected()
           ? net_asInetSocketAddress(dc.i_remoteAddress()).getPort()
           : -1);
     }
 
+    @Override
     public void send(final DatagramPacket p) throws IOException {
         synchronized (dc.blockingLock()) {
             if (!dc.isBlocking()) {
@@ -213,6 +220,7 @@ class ECNBitsDatagramSocketAdapter extends DatagramSocket {
         }
     }
 
+    @Override
     public void receive(final DatagramPacket p) throws IOException {
         synchronized (dc.blockingLock()) {
             if (!dc.isBlocking()) {
@@ -233,6 +241,7 @@ class ECNBitsDatagramSocketAdapter extends DatagramSocket {
         }
     }
 
+    @Override
     public InetAddress getLocalAddress() {
         if (isClosed()) {
             return null;
@@ -253,6 +262,7 @@ class ECNBitsDatagramSocketAdapter extends DatagramSocket {
         return result;
     }
 
+    @Override
     public int getLocalPort() {
         if (isClosed()) {
             return -1;
@@ -268,10 +278,12 @@ class ECNBitsDatagramSocketAdapter extends DatagramSocket {
         return 0;
     }
 
+    @Override
     public void setSoTimeout(final int timeout) {
         this.timeout = timeout;
     }
 
+    @Override
     public int getSoTimeout() {
         return timeout;
     }
@@ -310,6 +322,7 @@ class ECNBitsDatagramSocketAdapter extends DatagramSocket {
         }
     }
 
+    @Override
     public void setSendBufferSize(final int size) throws SocketException {
         if (size <= 0) {
             throw new IllegalArgumentException("Invalid send size");
@@ -317,10 +330,12 @@ class ECNBitsDatagramSocketAdapter extends DatagramSocket {
         setIntOption(StandardSocketOptions.SO_SNDBUF, size);
     }
 
+    @Override
     public int getSendBufferSize() throws SocketException {
         return getIntOption(StandardSocketOptions.SO_SNDBUF);
     }
 
+    @Override
     public void setReceiveBufferSize(final int size) throws SocketException {
         if (size <= 0) {
             throw new IllegalArgumentException("Invalid receive size");
@@ -328,34 +343,42 @@ class ECNBitsDatagramSocketAdapter extends DatagramSocket {
         setIntOption(StandardSocketOptions.SO_RCVBUF, size);
     }
 
+    @Override
     public int getReceiveBufferSize() throws SocketException {
         return getIntOption(StandardSocketOptions.SO_RCVBUF);
     }
 
+    @Override
     public void setReuseAddress(final boolean on) throws SocketException {
         setBooleanOption(StandardSocketOptions.SO_REUSEADDR, on);
     }
 
+    @Override
     public boolean getReuseAddress() throws SocketException {
         return getBooleanOption(StandardSocketOptions.SO_REUSEADDR);
     }
 
+    @Override
     public void setBroadcast(final boolean on) throws SocketException {
         setBooleanOption(StandardSocketOptions.SO_BROADCAST, on);
     }
 
+    @Override
     public boolean getBroadcast() throws SocketException {
         return getBooleanOption(StandardSocketOptions.SO_BROADCAST);
     }
 
+    @Override
     public void setTrafficClass(final int tc) throws SocketException {
         setIntOption(StandardSocketOptions.IP_TOS, tc);
     }
 
+    @Override
     public int getTrafficClass() throws SocketException {
         return getIntOption(StandardSocketOptions.IP_TOS);
     }
 
+    @Override
     public void close() {
         try {
             dc.close();
@@ -364,12 +387,29 @@ class ECNBitsDatagramSocketAdapter extends DatagramSocket {
         }
     }
 
+    @Override
     public boolean isClosed() {
         return !dc.isOpen();
     }
 
-    public DatagramChannel getChannel() {
+    @Override
+    public ECNBitsDatagramChannel getChannel() {
         return dc;
+    }
+
+    @Override
+    public Byte retrieveLastTrafficClass() {
+        return dc.retrieveLastTrafficClass();
+    }
+
+    @Override
+    public void startMeasurement() {
+        dc.startMeasurement();
+    }
+
+    @Override
+    public ECNStatistics getMeasurement(final boolean doContinue) {
+        return dc.getMeasurement(doContinue);
     }
 
     /*
@@ -378,61 +418,76 @@ class ECNBitsDatagramSocketAdapter extends DatagramSocket {
      * super class.
      */
     private static final DatagramSocketImpl dummyDatagramSocket = new DatagramSocketImpl() {
+        @Override
         protected void create() {
         }
 
+        @Override
         protected void bind(final int lport, final InetAddress laddr) {
         }
 
+        @Override
         protected void send(final DatagramPacket p) {
         }
 
+        @Override
         protected int peek(final InetAddress i) {
             return 0;
         }
 
+        @Override
         protected int peekData(final DatagramPacket p) {
             return 0;
         }
 
+        @Override
         protected void receive(final DatagramPacket p) {
         }
 
-        @Deprecated
+        @Override
         protected void setTTL(final byte ttl) {
         }
 
-        @Deprecated
+        @Override
         protected byte getTTL() {
             return 0;
         }
 
+        @Override
         protected void setTimeToLive(final int ttl) {
         }
 
+        @Override
         protected int getTimeToLive() {
             return 0;
         }
 
+        @Override
         protected void join(final InetAddress inetaddr) {
         }
 
+        @Override
         protected void leave(final InetAddress inetaddr) {
         }
 
+        @Override
         protected void joinGroup(final SocketAddress mcastaddr, final NetworkInterface netIf) {
         }
 
+        @Override
         protected void leaveGroup(final SocketAddress mcastaddr, final NetworkInterface netIf) {
         }
 
+        @Override
         protected void close() {
         }
 
+        @Override
         public Object getOption(final int optID) {
             return null;
         }
 
+        @Override
         public void setOption(final int optID, final Object value) {
         }
     };

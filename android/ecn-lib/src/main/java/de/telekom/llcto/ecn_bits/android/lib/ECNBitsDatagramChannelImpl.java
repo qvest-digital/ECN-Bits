@@ -37,7 +37,6 @@ package de.telekom.llcto.ecn_bits.android.lib;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
-import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -114,9 +113,8 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
     private InetSocketAddress localAddress;
     private InetSocketAddress remoteAddress;
 
-    // Our socket adaptor, if any
-    @SuppressWarnings("unused") //XXX tbd
-    private DatagramSocket socket;
+    // Our socket adapter, if any
+    private AbstractECNBitsDatagramSocket socket;
 
     // -- End of fields protected by stateLock
 
@@ -127,7 +125,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
     }
 
     @Override
-    public /*AbstractECNBits*/DatagramSocket socket() {
+    public AbstractECNBitsDatagramSocket socket() {
         synchronized (stateLock) {
             if (socket == null) {
                 socket = new ECNBitsDatagramSocketAdapter(this);
@@ -810,5 +808,25 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
             }
             return n;
         }
+    }
+
+    // ECN bits and friends
+
+    @Override
+    public Byte retrieveLastTrafficClass() {
+        // TODO
+        throw new RuntimeException("not yet implemented");
+    }
+
+    @Override
+    public void startMeasurement() {
+        // TODO
+        throw new RuntimeException("not yet implemented");
+    }
+
+    @Override
+    public ECNStatistics getMeasurement(final boolean doContinue) {
+        // TODO
+        throw new RuntimeException("not yet implemented");
     }
 }
