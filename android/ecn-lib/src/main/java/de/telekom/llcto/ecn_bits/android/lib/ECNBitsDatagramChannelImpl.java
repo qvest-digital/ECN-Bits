@@ -544,7 +544,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                         try {
                             blocking = isBlocking();
                             // remainder of each packet thrown away
-                            ByteBuffer tmpBuf = ByteBuffer.allocate(1);
+                            ByteBuffer tmpBuf = ByteBuffer.allocateDirect(1);
                             if (blocking) {
                                 configureBlocking(false);
                             }
