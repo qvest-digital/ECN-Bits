@@ -335,7 +335,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 }
             }
 
-            int n = 0;
+            long n = 0;
             try {
                 begin();
                 if (!isOpen()) {
@@ -351,7 +351,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                         updateLocalAddress();
                     }
                 }
-                return ioresult(n);
+                return (int) ioresult(n);
             } finally {
                 writerThread = 0;
                 end((n > 0) || (n == JNI.EAVAIL));
@@ -371,7 +371,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     throw new NotYetConnectedException();
                 }
             }
-            int n = 0;
+            long n = 0;
             try {
                 begin();
                 if (!isOpen()) {
@@ -381,7 +381,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 do {
                     n = i_recv(buf, null);
                 } while ((n == JNI.EINTR) && isOpen());
-                return ioresult(n);
+                return (int) ioresult(n);
             } finally {
                 readerThread = 0;
                 end((n > 0) || (n == JNI.EAVAIL));
@@ -436,7 +436,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
     }
 
     private int write_locked(final ByteBuffer buf) throws IOException {
-        int n = 0;
+        long n = 0;
         try {
             begin();
             if (!isOpen()) {
@@ -446,7 +446,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
             do {
                 n = i_send(buf, remoteAddress);
             } while ((n == JNI.EINTR) && isOpen());
-            return ioresult(n);
+            return (int) ioresult(n);
         } finally {
             writerThread = 0;
             end((n > 0) || (n == JNI.EAVAIL));

@@ -185,10 +185,6 @@ final class JNI {
 
     // +++ I/O operations +++
 
-    static int ioresult(final int n) {
-        return n == EAVAIL ? 0 : n;
-    }
-
     static long ioresult(final long n) {
         return n == EAVAIL ? 0 : n;
     }
