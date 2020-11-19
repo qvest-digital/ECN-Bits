@@ -309,12 +309,9 @@ Technical details
 
 	https://webrtc.googlesource.com/src/
 
- Unfortunately, anything using DatagramChannel (NIO) is out for now: the
- class is declared as final and thus cannot be extended. This also
- includes the NIO channels of Netty (although its OIO channels might
- work). jnr-enxio, however, might be a workable channel base.
-
-	https://github.com/jnr/jnr-enxio
+ Unfortunately, anything using DatagramChannel (NIO) is out for now,
+ including the NIO channels of Netty (although its OIO channels might
+ work). Research to fix this is currently being undertaken.
 
  DatagramSocket is not declaread as final, and one can even set a
  factory for the underlying DatagramSocketImpl which implements socket

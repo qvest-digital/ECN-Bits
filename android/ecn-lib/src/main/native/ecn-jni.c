@@ -161,7 +161,7 @@ nativePoll(JNIEnv *env, jobject self, jint fd, jint tmo)
 	pfd.events = POLLIN;
 	switch (poll(&pfd, 1, tmo)) {
 	case 1:
-		return (0);
+		return ((pfd.revents & POLLIN) ? 0 : 2);
 	case 0:
 		return (1);
 	default:
