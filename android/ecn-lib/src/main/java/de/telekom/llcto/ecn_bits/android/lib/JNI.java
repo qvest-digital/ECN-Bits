@@ -155,7 +155,7 @@ final class JNI {
 
     static native long gettid();
 
-    static native void signal(long tid);
+    static native void sigtid(long tid) throws ErrnoException;
 
     // +++ socket operations +++
 
@@ -199,7 +199,7 @@ final class JNI {
       final SGIO[] bufs, final byte[] addr, final int port) throws ErrnoException;
 
     // 1 (ok), 0 (timeout), EINTR or THROWN; similar to nativePoll in D.Socket but different rv + throws
-    static native int n_poll(final int fd,
+    static native int n_pollin(final int fd,
       final int timeout) throws ErrnoException;
 
     // +++ I/O operations +++

@@ -66,7 +66,7 @@ import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_connect;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_disconnect;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_getsockname;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_getsockopt;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_poll;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_pollin;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_rd;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_recv;
 import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_send;
@@ -595,10 +595,10 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
         synchronized (stateLock) {
             long th;
             if ((th = readerThread) != 0) {
-                JNI.signal(th);
+                JNI.sigtid(th);
             }
             if ((th = writerThread) != 0) {
-                JNI.signal(th);
+                JNI.sigtid(th);
             }
             if (!isRegistered()) {
                 if (state == ST_KILLED) {
@@ -857,7 +857,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     }
                     readerThread = JNI.gettid();
                 }
-                n = n_poll(fdVal, timeout);
+                n = n_pollin(fdVal, timeout);
             } finally {
                 readerThread = 0;
                 end(n > 0);
