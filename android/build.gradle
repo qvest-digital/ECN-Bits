@@ -23,6 +23,7 @@ allprojects {
 
     tasks.withType(JavaCompile) {
         options.compilerArgs << "-Xlint:all"
+        options.getHeaderOutputDirectory().value(project.layout.buildDirectory.dir("headers/" + getName()))
     }
 }
 
