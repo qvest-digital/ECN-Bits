@@ -445,10 +445,12 @@ class ECNBitsDatagramSocketAdapter extends AbstractECNBitsDatagramSocket {
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         protected void setTTL(final byte ttl) {
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         protected byte getTTL() {
             return 0;
         }

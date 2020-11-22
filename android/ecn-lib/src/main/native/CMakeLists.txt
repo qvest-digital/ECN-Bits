@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 
-add_definitions("-fvisibility=hidden")
+add_compile_options(-fvisibility=hidden)
+add_compile_options(-Wall -Wextra -Wformat)
 
 add_library(ecnbits-native SHARED
 	udp.c

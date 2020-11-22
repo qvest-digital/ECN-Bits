@@ -34,6 +34,7 @@
 #include <android/log.h>
 
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
+#define __unused	__attribute__((__unused__))
 
 #define ECNBITS_INVALID_BIT	((unsigned short)0x0100U)
 #define ECNBITS_ISVALID_BIT	((unsigned short)0x0200U)
@@ -105,7 +106,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved __attribute__((__unused__)))
 }
 
 static jint JNICALL
-nativeSetup(JNIEnv *env, jobject self, jint fd)
+nativeSetup(JNIEnv *env __unused, jobject self __unused, jint fd)
 {
 	int on = 1;
 	struct sockaddr sa;
@@ -153,7 +154,7 @@ nativeSetup(JNIEnv *env, jobject self, jint fd)
 
 /* 0=ok  1=timeout  2+=fail */
 static jint JNICALL
-nativePoll(JNIEnv *env, jobject self, jint fd, jint tmo)
+nativePoll(JNIEnv *env __unused, jobject self __unused, jint fd, jint tmo)
 {
 	struct pollfd pfd;
 
@@ -227,7 +228,7 @@ o_init(JNIEnv *env)
  * 0=ok  1=EAGAIN  2=ECONNREFUSED  3+=fail
  */
 static jint JNICALL
-nativeRecv(JNIEnv *env, jobject self, jobject args)
+nativeRecv(JNIEnv *env, jobject self __unused, jobject args)
 {
 	int p, fd;
 	ssize_t nbytes;
