@@ -19,29 +19,24 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/uio.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
+/*#include <netinet6/in6.h>*/
+#include <errno.h>
+#include <poll.h>
+#include <stddef.h>
+#include <string.h>
+
 #include <jni.h>
 #include <android/log.h>
 
-extern jint onload_v1ds(JavaVM *vm, JNIEnv *env);
-extern jint onload_v2dc(JavaVM *vm, JNIEnv *env);
+#define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
 
-JNIEXPORT jint
-JNI_OnLoad(JavaVM *vm, void *reserved __attribute__((__unused__)))
+jint
+onload_v2dc(JavaVM *vm, JNIEnv *env)
 {
-	JNIEnv *env;
-	int rc;
-
-	if ((*vm)->GetEnv(vm, (void **)&env, JNI_VERSION_1_6) != JNI_OK) {
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-		    "failed to get JNI environment");
-		return (JNI_ERR);
-	}
-
-	/* dispatch */
-	if ((rc = onload_v1ds(vm, env)) != JNI_OK)
-		return (rc);
-	if ((rc = onload_v2dc(vm, env)) != JNI_OK)
-		return (rc);
-
-	return (JNI_VERSION_1_6);
+	return (JNI_OK);
 }
