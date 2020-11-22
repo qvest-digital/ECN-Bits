@@ -31,6 +31,7 @@ allprojects {
             outputs.upToDateWhen { false }
             showStandardStreams = true
         }
+        systemProperty 'java.util.logging.config.file', file('src/test/resources/logging.properties').getAbsolutePath()
     }
 }
 
