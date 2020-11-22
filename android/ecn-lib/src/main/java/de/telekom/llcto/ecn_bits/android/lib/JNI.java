@@ -135,13 +135,7 @@ final class JNI {
             // v4-mapped → Inet4Address, rest Inet6Address
             return new InetSocketAddress(InetAddress.getByAddress(addr), port);
         }
-
-        static {
-            cacheAddrPort();
-        }
     }
-
-    private static native void cacheAddrPort();
 
     /**
      * Scatter/Gather I/O wrapper
@@ -155,13 +149,7 @@ final class JNI {
         int pos; // position in the buffer (0 if !useDirect)
         int len; // length of the buffer fragment
         boolean useDirect; // whether to directly use orig
-
-        static {
-            cacheSGIO();
-        }
     }
-
-    private static native void cacheSGIO();
 
     // +++ OpenJDK NativeThread +++
 
