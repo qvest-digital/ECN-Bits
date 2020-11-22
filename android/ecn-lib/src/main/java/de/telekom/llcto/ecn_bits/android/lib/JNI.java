@@ -21,6 +21,7 @@ package de.telekom.llcto.ecn_bits.android.lib;
  * of said person’s immediate fault when using the work as intended.
  */
 
+import lombok.Getter;
 import lombok.SneakyThrows;
 
 import java.io.IOException;
@@ -42,6 +43,30 @@ final class JNI {
 
     static {
         System.loadLibrary("ecnbits-native");
+    }
+
+    /**
+     * Represents an error thrown in native code from ECN-Bits {@link JNI}.
+     *
+     * @author mirabilos (t.glaser@tarent.de)
+     */
+    @Getter
+    public static class ErrnoException extends IOException {
+        private static final long serialVersionUID = 7895422108790195100L;
+
+        final int errno;
+        final String strerror;
+        final String function;
+        final String failureDescription;
+
+        ErrnoException(final String func, final String msg, final int err, final String str) {
+            super(msg == null ? String.format("%s: %s", func, str) :
+              String.format("%s: %s: %s", func, msg, str));
+            errno = err;
+            strerror = str;
+            function = func;
+            failureDescription = msg;
+        }
     }
 
     // socket options enum for native code, keep in sync with C code!
@@ -146,48 +171,48 @@ final class JNI {
 
     // +++ socket operations +++
 
-    static native int n_socket() throws IOException;
+    static native int n_socket() throws ErrnoException;
 
-    static native void n_close(final int fd) throws IOException;
+    static native void n_close(final int fd) throws ErrnoException;
 
     static native void n_setnonblock(final int fd,
-      final boolean block) throws IOException;
+      final boolean block) throws ErrnoException;
 
     static native int n_getsockopt(final int fd,
-      final int optenum) throws IOException;
+      final int optenum) throws ErrnoException;
 
     static native void n_setsockopt(final int fd,
-      final int optenum, final int value) throws IOException;
+      final int optenum, final int value) throws ErrnoException;
 
     static native void n_getsockname(final int fd,
-      final AddrPort ap) throws IOException;
+      final AddrPort ap) throws ErrnoException;
 
     static native void n_bind(final int fd,
-      final byte[] addr, final int port) throws IOException;
+      final byte[] addr, final int port) throws ErrnoException;
 
     static native void n_connect(final int fd,
-      final byte[] addr, final int port) throws IOException;
+      final byte[] addr, final int port) throws ErrnoException;
 
     // connect() with empty, zero’d struct sockaddr_in6 with sin6_family = AF_UNSPEC
-    static native void n_disconnect(final int fd) throws IOException;
+    static native void n_disconnect(final int fd) throws ErrnoException;
 
     static native int n_recv(final int fd,
       final ByteBuffer buf, final int bbpos, final int bbsize,
-      final AddrPort aptc) throws IOException;
+      final AddrPort aptc) throws ErrnoException;
 
     static native int n_send(final int fd,
       final ByteBuffer buf, final int bbpos, final int bbsize,
-      final byte[] addr, final int port) throws IOException;
+      final byte[] addr, final int port) throws ErrnoException;
 
     static native long n_rd(final int fd,
-      final SGIO[] bufs, final int nbufs, final AddrPort tc) throws IOException;
+      final SGIO[] bufs, final int nbufs, final AddrPort tc) throws ErrnoException;
 
     static native long n_wr(final int fd,
-      final SGIO[] bufs, final byte[] addr, final int port) throws IOException;
+      final SGIO[] bufs, final byte[] addr, final int port) throws ErrnoException;
 
     // 1 (ok), 0 (timeout), EINTR or THROWN; similar to nativePoll in D.Socket but different rv + throws
     static native int n_poll(final int fd,
-      final int timeout) throws IOException;
+      final int timeout) throws ErrnoException;
 
     // +++ I/O operations +++
 
