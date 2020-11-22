@@ -30,6 +30,7 @@ allprojects {
         testLogging {
             outputs.upToDateWhen { false }
             showStandardStreams = true
+            exceptionFormat = 'full'
         }
         systemProperty 'java.util.logging.config.file', file('src/test/resources/logging.properties').getAbsolutePath()
     }
