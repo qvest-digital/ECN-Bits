@@ -35,8 +35,19 @@
 
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
 
-jint
-onload_v2dc(JavaVM *vm, JNIEnv *env)
+JNIEXPORT jint
+JNI_OnLoad(JavaVM *vm, void *reserved __attribute__((__unused__)))
 {
-	return (JNI_OK);
+	JNIEnv *env;
+	//int rc;
+
+	if ((*vm)->GetEnv(vm, (void **)&env, JNI_VERSION_1_6) != JNI_OK) {
+		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
+		    "failed to get JNI environment");
+		return (JNI_ERR);
+	}
+
+	/* … */
+
+	return (JNI_VERSION_1_6);
 }

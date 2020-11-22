@@ -40,6 +40,10 @@ final class JNI {
     private JNI() {
     }
 
+    static {
+        System.loadLibrary("ecnbits-native");
+    }
+
     // socket options enum for native code, keep in sync with C code!
     // all supported socket options take an int
     static final int IP_TOS = 0;
