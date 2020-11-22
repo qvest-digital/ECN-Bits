@@ -53,6 +53,11 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.16'
 
     testImplementation 'junit:junit:4.13.1'
+
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+    //noinspection AnnotationProcessorOnCompilePath because both are needed :/
+    testCompileOnly 'org.projectlombok:lombok:1.18.16'
+
     //noinspection GradleDependency
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     //noinspection GradleDependency
