@@ -5,10 +5,12 @@ add_compile_options(-fvisibility=hidden)
 add_compile_options(-Wall -Wextra -Wformat)
 
 add_library(ecnbits-native SHARED
+	alog.h
 	udp.c
 	)
 
 add_library(ecnbits-ndk SHARED
+	alog.h
 	ecn-jni.c
 	)
 

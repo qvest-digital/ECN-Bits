@@ -31,7 +31,9 @@
 #include <string.h>
 
 #include <jni.h>
-#include <android/log.h>
+
+#define ECNBITS_ALOG_TAG "ECN-v1"
+#include "alog.h"
 
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
 #define __unused	__attribute__((__unused__))
@@ -77,28 +79,25 @@ static const JNINativeMethod methods[] = {
 #undef METH
 
 JNIEXPORT jint
-JNI_OnLoad(JavaVM *vm, void *reserved __attribute__((__unused__)))
+JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 {
 	JNIEnv *env;
 	jclass cls;
 	int rc;
 
 	if ((*vm)->GetEnv(vm, (void **)&env, JNI_VERSION_1_6) != JNI_OK) {
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-		    "failed to get JNI environment");
+		ecnlog_err("failed to get JNI environment");
 		return (JNI_ERR);
 	}
 
 	if (!(cls = (*env)->FindClass(env, "java/net/ECNBitsDatagramSocketImpl"))) {
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-		    "failed to get class to attach to");
+		ecnlog_err("failed to get class to attach to");
 		return (JNI_ERR);
 	}
 
 	rc = (*env)->RegisterNatives(env, cls, methods, NELEM(methods));
 	if (rc != JNI_OK) {
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-		    "failed to attach methods to class");
+		ecnlog_err("failed to attach methods to class");
 		return (rc);
 	}
 
@@ -116,8 +115,7 @@ nativeSetup(JNIEnv *env __unused, jobject self __unused, jint fd)
 		return (1);
 
 	if (getsockname(fd, &sa, &sa_len)) {
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-		    "could not get socket address family");
+		ecnlog_err("could not get socket address family");
 		return (1);
 	}
 
@@ -125,28 +123,24 @@ nativeSetup(JNIEnv *env __unused, jobject self __unused, jint fd)
 	case AF_INET:
 		if (setsockopt(fd, IPPROTO_IP, IP_RECVTOS,
 		    (const void *)&on, sizeof(on))) {
-			__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-			    "could not set up IPv4 socket");
+			ecnlog_err("could not set up IPv4 socket");
 			return (1);
 		}
 		break;
 	case AF_INET6:
 		if (setsockopt(fd, IPPROTO_IPV6, IPV6_RECVTCLASS,
 		    (const void *)&on, sizeof(on))) {
-			__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-			    "could not set up IPv6 socket");
+			ecnlog_err("could not set up IPv6 socket");
 			return (1);
 		}
 		if (setsockopt(fd, IPPROTO_IP, IP_RECVTOS,
 		    (const void *)&on, sizeof(on))) {
-			__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-			    "could not set up IPv6 socket for IPv4");
+			ecnlog_err("could not set up IPv6 socket for IPv4");
 			return (1);
 		}
 		break;
 	default:
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-		    "could not set up socket: unknown address family");
+		ecnlog_err("could not set up socket: unknown address family");
 		return (1);
 	}
 	return (0);
@@ -184,15 +178,13 @@ o_init(JNIEnv *env)
 
 	o.o_valid = 0;
 	if (!(cls = (*env)->FindClass(env, "java/net/ECNBitsDatagramSocketImpl$RecvMsgArgs"))) {
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-		    "failed to get RecvMsgArgs class");
+		ecnlog_err("failed to get RecvMsgArgs class");
 		return;
 	}
 
 #define fld(name, type) do {						\
 	if (!(o.name = (*env)->GetFieldID(env, cls, #name, type))) {	\
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",	\
-		    "failed to get RecvMsgArgs.%s field", #name);	\
+		ecnlog_err("failed to get RecvMsgArgs.%s field", #name);\
 		return;							\
 	}								\
 } while (/* CONSTCOND */ 0)
@@ -294,8 +286,7 @@ nativeRecv(JNIEnv *env, jobject self __unused, jobject args)
 		p = ntohs(ss.in6.sin6_port);
 		break;
 	default:
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-		    "bogus address family");
+		ecnlog_err("bogus address family");
 		p = 3;
 		goto cleanup;
 	}
@@ -344,22 +335,19 @@ recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
 	switch (len) {
 	case 0:
 		/* huh? */
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-		    "empty traffic class cmsg");
+		ecnlog_err("empty traffic class cmsg");
 		return;
 	case 3:
 	case 2:
 		/* shouldn’t happen, but… */
-		__android_log_print(ANDROID_LOG_WARN, "ECN-JNI",
-		    "odd-sized traffic class cmsg (%zu)", len);
+		ecnlog_warn("odd-sized traffic class cmsg (%zu)", len);
 		/* FALLTHROUGH */
 	case 1:
 		b1 = d[0];
 		break;
 	default:
 		/* most likely an int, but… */
-		__android_log_print(ANDROID_LOG_WARN, "ECN-JNI",
-		    "oversized traffic class cmsg (%zu)", len);
+		ecnlog_warn("oversized traffic class cmsg (%zu)", len);
 		/* FALLTHROUGH */
 	case 4:
 		b1 = d[0];
@@ -373,8 +361,7 @@ recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
 			break;
 		}
 		/* inconsistent, no luck */
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-		    "inconsistent traffic class cmsg %02X %02X %02X %02X (%zu)",
+		ecnlog_err("inconsistent traffic class cmsg %02X %02X %02X %02X (%zu)",
 		    (unsigned int)d[0], (unsigned int)d[1],
 		    (unsigned int)d[2], (unsigned int)d[3], len);
 		return;
@@ -402,8 +389,7 @@ ecnbits_rdmsg(int s, struct msghdr *msgh, int flags, unsigned short *e)
 
 	if (msgh->msg_flags & MSG_CTRUNC) {
 		/* 64 is enough normally though */
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-JNI",
-		    "cmsg truncated, increase ECNBITS_CMSGBUFLEN and recompile!");
+		ecnlog_err("cmsg truncated, increase ECNBITS_CMSGBUFLEN and recompile!");
 	}
 
 	cmsg = CMSG_FIRSTHDR(msgh);

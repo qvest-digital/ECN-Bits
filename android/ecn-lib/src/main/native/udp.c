@@ -33,7 +33,9 @@
 #include <string.h>
 
 #include <jni.h>
-#include <android/log.h>
+
+#define ECNBITS_ALOG_TAG "ECN-v2"
+#include "alog.h"
 
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
 #define __unused	__attribute__((__unused__))
@@ -111,8 +113,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 	jint rc;
 
 	if ((*vm)->GetEnv(vm, (void **)&env, JNI_VERSION_1_6) != JNI_OK) {
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-v2",
-		    "load: failed to get JNI environment");
+		ecnlog_err("load: failed to get JNI environment");
 		return (JNI_ERR);
 	}
 
@@ -122,8 +123,8 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 	    !((cls_ ## dst) = (*env)->NewGlobalRef(env, tmpcls))) {	\
 		if (tmpcls)						\
 			(*env)->DeleteLocalRef(env, tmpcls);		\
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-v2",	\
-		    "failed to get class reference for %s", (name));	\
+		ecnlog_err("failed to get class reference for %s",	\
+		    (name));						\
 		goto unwind;						\
 	}								\
 	(*env)->DeleteLocalRef(env, tmpcls);				\
@@ -132,8 +133,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 #define _getid(what,pfx,cls,vn,jn,sig,sep,how) do {			\
 	if (!((pfx ## _ ## cls ## _ ## vn) =				\
 	    (*env)->how(env, cls_ ## cls, jn, sig))) {			\
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-v2",	\
-		    "failed to get %s reference to %s%s%s",		\
+		ecnlog_err("failed to get %s reference to %s%s%s",	\
 		    what, #cls, sep, jn);				\
 		goto unwind;						\
 	}								\
@@ -156,13 +156,11 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 
 	rc = (*env)->RegisterNatives(env, cls_JNI, methods, NELEM(methods));
 	if (rc != JNI_OK) {
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-v2",
-		    "failed to attach methods to class");
+		ecnlog_err("failed to attach methods to class");
 		goto unwind2;
 	}
 
-	__android_log_print(ANDROID_LOG_INFO, "ECN-v2",
-	    "load successful");
+	ecnlog_info("load successful");
 	return (JNI_VERSION_1_6);
  unwind:
 	rc = JNI_ERR;
@@ -177,14 +175,12 @@ JNI_OnUnload(JavaVM *vm, void *reserved __unused)
 	JNIEnv *env;
 
 	if ((*vm)->GetEnv(vm, (void **)&env, JNI_VERSION_1_6) != JNI_OK) {
-		__android_log_print(ANDROID_LOG_ERROR, "ECN-v2",
-		    "unload: failed to get JNI environment");
+		ecnlog_err("unload: failed to get JNI environment");
 		return;
 	}
 
 	free_grefs(env);
-	__android_log_print(ANDROID_LOG_INFO, "ECN-v2",
-	    "unload successful");
+	ecnlog_info("unload successful");
 }
 
 static void
