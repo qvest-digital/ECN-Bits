@@ -65,3 +65,30 @@ dependencies {
     //noinspection GradleDependency
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 }
+
+def dirForNativeNoNDK = project.layout.buildDirectory.get().dir("native-noNDK")
+def srcForNativeNoNDK = project.layout.projectDirectory.dir("src/main/native").asFile
+
+task createNativeNoNDK() {
+    def dstdir = dirForNativeNoNDK.asFile
+    if (!dstdir.exists()) dstdir.mkdirs()
+}
+task buildCMakeNativeNoNDK(type: Exec) {
+    dependsOn createNativeNoNDK
+    workingDir dirForNativeNoNDK
+    commandLine "/usr/bin/env", "cmake", "-DANDROID_NDK=OFF", srcForNativeNoNDK.absolutePath
+}
+task buildGMakeNativeNoNDK(type: Exec) {
+    dependsOn buildCMakeNativeNoNDK
+    workingDir dirForNativeNoNDK
+    commandLine "/usr/bin/env", "make"
+}
+
+project.afterEvaluate {
+    if (org.gradle.internal.os.OperatingSystem.current().isLinux()) {
+        testDebugUnitTest {
+            dependsOn buildGMakeNativeNoNDK
+            systemProperty "java.library.path", dirForNativeNoNDK.asFile.absolutePath + ":" + System.getProperty("java.library.path")
+        }
+    }
+}
