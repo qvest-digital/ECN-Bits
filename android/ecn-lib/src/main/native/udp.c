@@ -145,10 +145,10 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 #define getsmeth(cls,name,sig)	_getid("method", M, cls, name, #name, sig, "::", GetStaticMethodID)
 #define getcons(cls,vn,sig)	_getid("constructor", i, cls, vn, "<init>", sig, "", GetMethodID)
 
-	getclass(JNI, "de.telekom.llcto.ecn_bits.android.lib.JNI");
-	getclass(EX, "de.telekom.llcto.ecn_bits.android.lib.JNI$ErrnoException");
-	getclass(AP, "de.telekom.llcto.ecn_bits.android.lib.JNI$AddrPort");
-	getclass(SG, "de.telekom.llcto.ecn_bits.android.lib.JNI$SGIO");
+	getclass(JNI, "de/telekom/llcto/ecn_bits/android/lib/JNI");
+	getclass(EX, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoException");
+	getclass(AP, "de/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort");
+	getclass(SG, "de/telekom/llcto/ecn_bits/android/lib/JNI$SGIO");
 
 	getcons(EX, c, "(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)V");
 
