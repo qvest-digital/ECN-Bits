@@ -25,9 +25,13 @@ import lombok.extern.java.Log;
 import lombok.val;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
 
 import java.util.logging.Level;
 
+import static org.junit.jupiter.api.condition.OS.LINUX;
+
+@EnabledOnOs(LINUX)
 @Log
 public class JNITest {
     @Test
