@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'de.mannodermaus.android-junit5'
 
 // project licence: The MirOS Licence AND GPLv2 with Classpath Exception
 // see src/main/resources/LICENCE.ecn-lib and src/main/resources/COPYING
