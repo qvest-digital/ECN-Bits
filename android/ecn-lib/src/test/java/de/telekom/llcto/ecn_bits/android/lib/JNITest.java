@@ -31,11 +31,15 @@ import java.util.logging.Level;
 
 import static org.junit.jupiter.api.condition.OS.LINUX;
 
-@EnabledOnOs(LINUX)
 @Log
 public class JNITest {
     @Test
     public void testClassBoots() {
+        LOGGER.info("running on " + System.getProperty("os.name"));
+        if (!LINUX.isCurrentOs()) {
+            LOGGER.warning("skipping JNI tests");
+        }
+
         LOGGER.info("testing Java™ part of JNI class…");
         val ap = new JNI.AddrPort();
         ap.addr = new byte[4];
@@ -44,6 +48,7 @@ public class JNITest {
     }
 
     @Test
+    @EnabledOnOs(LINUX)
     public void testJNIBoots() {
         LOGGER.info("testing JNI part of JNI class…");
         final long tid;
@@ -58,6 +63,7 @@ public class JNITest {
     }
 
     @Test
+    @EnabledOnOs(LINUX)
     public void testSignallingThrows() {
         final JNI.ErrnoException t = Assertions.assertThrows(JNI.ErrnoException.class,
           () -> JNI.sigtid(0),
