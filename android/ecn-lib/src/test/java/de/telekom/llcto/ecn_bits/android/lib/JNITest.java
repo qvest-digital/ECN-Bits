@@ -23,13 +23,10 @@ package de.telekom.llcto.ecn_bits.android.lib;
 
 import lombok.extern.java.Log;
 import lombok.val;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.logging.Level;
-
-import static junit.framework.TestCase.fail;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
 
 @Log
 public class JNITest {
@@ -50,7 +47,7 @@ public class JNITest {
             tid = JNI.gettid();
         } catch (Throwable t) {
             LOGGER.log(Level.SEVERE, "it failed", t);
-            fail("JNI does not work");
+            Assertions.fail("JNI does not work");
             return;
         }
         LOGGER.info("it also works: " + tid);
@@ -58,9 +55,10 @@ public class JNITest {
 
     @Test
     public void testSignallingThrows() {
-        final JNI.ErrnoException t = assertThrows("want an ESRCH exception",
-          JNI.ErrnoException.class, () -> JNI.sigtid(0));
+        final JNI.ErrnoException t = Assertions.assertThrows(JNI.ErrnoException.class,
+          () -> JNI.sigtid(0),
+          "want an ESRCH exception");
         LOGGER.log(Level.INFO, "successfully caught", t);
-        assertEquals("is not ESRCH", /* ESRCH */3, t.getErrno());
+        Assertions.assertEquals(/* ESRCH */ 3, t.getErrno(), "is not ESRCH");
     }
 }
