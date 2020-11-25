@@ -90,5 +90,9 @@ project.afterEvaluate {
             dependsOn buildGMakeNativeNoNDK
             systemProperty "java.library.path", dirForNativeNoNDK.asFile.absolutePath + ":" + System.getProperty("java.library.path")
         }
+        testReleaseUnitTest {
+            dependsOn buildGMakeNativeNoNDK
+            systemProperty "java.library.path", dirForNativeNoNDK.asFile.absolutePath + ":" + System.getProperty("java.library.path")
+        }
     }
 }
