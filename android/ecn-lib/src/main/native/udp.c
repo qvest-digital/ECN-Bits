@@ -43,7 +43,7 @@
 static void throw(JNIEnv *, const char *msg);
 
 static JNICALL jlong gettid(JNIEnv *, jclass);
-static JNICALL void sigtid(JNIEnv *, jclass, jlong);
+static JNICALL void sigtid(JNIEnv *, jclass, jlong, jint);
 #if 0
 static JNICALL jint n_socket(JNIEnv *, jclass);
 static JNICALL void n_close(JNIEnv *, jclass, jint);
@@ -65,7 +65,7 @@ static JNICALL jint n_pollin(JNIEnv *, jclass, jint, jint);
 	{ #name, signature, (void *)(name) }
 static const JNINativeMethod methods[] = {
 	METH(gettid, "()J"),
-	METH(sigtid, "(J)V"),
+	METH(sigtid, "(JI)V"),
 #if 0
 	METH(n_socket, "()I"),
 	METH(n_close, "(I)V"),
@@ -216,11 +216,17 @@ gettid(JNIEnv *env __unused, jclass cls __unused)
 }
 
 static JNICALL void
-sigtid(JNIEnv *env, jclass cls __unused, jlong j)
+sigtid(JNIEnv *env, jclass cls __unused, jlong j, jint sig)
 {
 	union tid u = {0};
 
+ecnlog_info("signalling %lu with %d", j, sig);
+	if (sig == -1) {
+		/* signal № expected by Android’s Bionic libc */
+		sig = __SIGRTMIN + 2;
+ecnlog_info("signalling %lu with %d after change", j, sig);
+	}
 	u.j[0] = j;
-	if (pthread_kill(u.pt, /* Bionic */ __SIGRTMIN + 2))
+	if (pthread_kill(u.pt, sig))
 		throw(env, "pthread_kill");
 }
