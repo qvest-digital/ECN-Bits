@@ -220,6 +220,19 @@ sigtid(JNIEnv *env, jclass cls __unused, jlong j)
 {
 	union tid u = {0};
 
+#if (defined(__ANDROID__) && defined(__GLIBC__)) || \
+    (!defined(__ANDROID__) && !defined(__GLIBC__)) || \
+    !defined(__linux__)
+# error Not building either for Android or on GNU(glibc)/Linux
+#elif defined(__GLIBC__)
+	/* ugly hack, for testability */
+	if (j == 0) {
+		errno = ESRCH;
+		throw(env, "pthread_kill (faked)");
+		return;
+	}
+#endif
+
 	u.j[0] = j;
 	if (pthread_kill(u.pt, /* Bionic */ __SIGRTMIN + 2))
 		throw(env, "pthread_kill");
