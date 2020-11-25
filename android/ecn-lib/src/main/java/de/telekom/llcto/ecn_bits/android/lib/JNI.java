@@ -155,17 +155,7 @@ final class JNI {
 
     static native long gettid();
 
-    static native void sigtid(long tid, int sig) throws ErrnoException;
-
-    /**
-     * Sends the default I/O signal to the thread
-     *
-     * @param tid from {@link #gettid()}
-     * @throws ErrnoException in case of errors
-     */
-    static void sigtid(long tid) throws ErrnoException {
-        sigtid(tid, -1);
-    }
+    static native void sigtid(long tid) throws ErrnoException;
 
     // +++ socket operations +++
 

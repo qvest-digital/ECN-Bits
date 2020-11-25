@@ -33,9 +33,6 @@ import static org.junit.jupiter.api.condition.OS.LINUX;
 
 @Log
 public class JNITest {
-    volatile long stid;
-    volatile boolean sset;
-
     @Test
     public void testClassBoots() {
         LOGGER.info("running on " + System.getProperty("os.name"));
@@ -67,39 +64,11 @@ public class JNITest {
 
     @Test
     @EnabledOnOs(LINUX)
-    public void testSignallingThrows() throws InterruptedException {
-        stid = 0;
-        sset = false;
-        final Thread st = new Thread(() -> {
-            stid = JNI.gettid();
-            sset = true;
-            //try {
-            //    Thread.sleep(1000);
-            //} catch (InterruptedException e) {
-            //    /* nothing */
-            //    ;
-            //}
-        });
-        st.start();
-        while (!sset) {
-            //noinspection BusyWait
-            Thread.sleep(5);
-        }
-        try {
-            if (stid == 0) {
-                Assertions.fail("cannot get tid in another thread");
-            }
-            if (stid == JNI.gettid()) {
-                Assertions.fail("another thread gets same tid");
-            }
-            final JNI.ErrnoException t = Assertions.assertThrows(JNI.ErrnoException.class,
-              () -> JNI.sigtid(stid, 0),
-              "want an ESRCH exception");
-            LOGGER.log(Level.INFO, "successfully caught", t);
-            Assertions.assertEquals(/* ESRCH */ 3, t.getErrno(), "is not ESRCH");
-        } finally {
-            st.interrupt();
-            st.join();
-        }
+    public void testSignallingThrows() {
+        final JNI.ErrnoException t = Assertions.assertThrows(JNI.ErrnoException.class,
+          () -> JNI.sigtid(0),
+          "want an ESRCH exception");
+        LOGGER.log(Level.INFO, "successfully caught", t);
+        Assertions.assertEquals(/* ESRCH */ 3, t.getErrno(), "is not ESRCH");
     }
 }
