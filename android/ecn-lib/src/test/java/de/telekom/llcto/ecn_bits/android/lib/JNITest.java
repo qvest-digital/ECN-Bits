@@ -39,6 +39,9 @@ public class JNITest {
         if (!LINUX.isCurrentOs()) {
             LOGGER.warning("skipping JNI tests");
         }
+        // for copy/paste into IntelliJ run options
+        LOGGER.info("VM options: -Djava.library.path=" +
+          System.getProperty("java.library.path"));
 
         LOGGER.info("testing Java™ part of JNI class…");
         val ap = new JNI.AddrPort();
