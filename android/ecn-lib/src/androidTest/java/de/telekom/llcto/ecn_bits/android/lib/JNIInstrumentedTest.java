@@ -21,21 +21,27 @@ package de.telekom.llcto.ecn_bits.android.lib;
  * of said person’s immediate fault when using the work as intended.
  */
 
-import android.util.Log;
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
-
+import android.util.Log;
 import lombok.val;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.logging.Level;
+import static de.telekom.llcto.ecn_bits.android.lib.Testable.assertThrows;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.fail;
 
-import static org.junit.Assert.*;
-
+/**
+ * Instrumented tests for {@link JNI}
+ *
+ * Basically, tests that must run on the Android emulator because these things
+ * cannot be unit-tested on the buildhost system, no thanks to glibc…
+ *
+ * @author mirabilos (t.glaser@tarent.de)
+ */
 @RunWith(AndroidJUnit4.class)
-public class JNITest {
+public class JNIInstrumentedTest {
     @Test
     public void testClassBoots() {
         Log.i("ECN-Bits:JNITest", "testing Java™ part of JNI class…");
@@ -53,19 +59,19 @@ public class JNITest {
             tid = JNI.gettid();
         } catch (Throwable t) {
             Log.e("ECN-Bits:JNITest", "it failed", t);
-            Assertions.fail("JNI does not work");
+            fail("JNI does not work");
             return;
         }
         Log.i("ECN-Bits:JNITest", "it also works: " + tid);
-        assertNotEquals(0, tid, "but is 0");
+        assertNotEquals("but is 0", 0, tid);
     }
 
     @Test
     public void testSignallingThrows() {
-        final JNI.ErrnoException t = Assertions.assertThrows(JNI.ErrnoException.class,
+        final JNI.ErrnoException t = assertThrows(JNI.ErrnoException.class,
           () -> JNI.sigtid(0),
           "want an ESRCH exception");
         Log.i("ECN-Bits:JNITest", "successfully caught", t);
-        Assertions.assertEquals(/* ESRCH */ 3, t.getErrno(), "is not ESRCH");
+        assertEquals("is not ESRCH",/* ESRCH */ 3, t.getErrno());
     }
 }

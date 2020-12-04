@@ -64,6 +64,12 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     //noinspection GradleDependency
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    //noinspection GradleDependency
+    androidTestImplementation 'junit:junit:4.12'
+
+    androidTestAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+    //noinspection AnnotationProcessorOnCompilePath because both are needed :/
+    androidTestCompileOnly 'org.projectlombok:lombok:1.18.16'
 }
 
 def dirForNativeNoNDK = project.layout.buildDirectory.get().dir("native-noNDK")
