@@ -45,9 +45,9 @@ static void ethrow(JNIEnv *, const char *msg);
 
 static JNICALL jlong gettid(JNIEnv *, jclass);
 static JNICALL void sigtid(JNIEnv *, jclass, jlong);
+static JNICALL void n_close(JNIEnv *, jclass, jint);
 #if 0
 static JNICALL jint n_socket(JNIEnv *, jclass);
-static JNICALL void n_close(JNIEnv *, jclass, jint);
 static JNICALL void n_setnonblock(JNIEnv *, jclass, jint, jboolean);
 static JNICALL jint n_getsockopt(JNIEnv *, jclass, jint, jint);
 static JNICALL void n_setsockopt(JNIEnv *, jclass, jint, jint, jint);
@@ -67,9 +67,9 @@ static JNICALL jint n_pollin(JNIEnv *, jclass, jint, jint);
 static const JNINativeMethod methods[] = {
 	METH(gettid, "()J"),
 	METH(sigtid, "(J)V"),
+	METH(n_close, "(I)V"),
 #if 0
 	METH(n_socket, "()I"),
-	METH(n_close, "(I)V"),
 	METH(n_setnonblock, "(IZ)V"),
 	METH(n_getsockopt, "(II)I"),
 	METH(n_setsockopt, "(III)V"),
@@ -233,4 +233,11 @@ sigtid(JNIEnv *env, jclass cls __unused, jlong j)
 	u.j[0] = j;
 	if ((e = pthread_kill(u.pt, /* Bionic */ __SIGRTMIN + 2)))
 		throw(env, e, "pthread_kill");
+}
+
+static JNICALL void
+n_close(JNIEnv *env, jclass cls __unused, jint fd)
+{
+	if (close(fd))
+		ethrow(env, "close");
 }
