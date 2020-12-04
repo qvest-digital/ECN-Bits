@@ -224,6 +224,16 @@ sigtid(JNIEnv *env, jclass cls __unused, jlong j)
 	union tid u = {0};
 
 	u.j[0] = j;
+#if 0
 	if (pthread_kill(u.pt, /* Bionic */ __SIGRTMIN + 2))
 		throw(env, "pthread_kill");
+#else
+	int r, e;
+	errno = 666;
+	r = pthread_kill(u.pt, /* Bionic */ __SIGRTMIN + 2);
+	e = errno;
+	ecnlog_info("pthread_kill returned %d with errno %d", r, e);
+	if (r)
+		throw(env, "pthread_kill");
+#endif
 }
