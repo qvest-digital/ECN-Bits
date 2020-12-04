@@ -44,25 +44,25 @@ import static org.junit.Assert.fail;
 public class JNIInstrumentedTest {
     @Test
     public void testClassBoots() {
-        Log.i("ECN-Bits:JNITest", "testing Java™ part of JNI class…");
+        Log.i("ECN-Bits-JNITest", "testing Java™ part of JNI class…");
         val ap = new JNI.AddrPort();
         ap.addr = new byte[4];
         ap.port = 666;
-        Log.i("ECN-Bits:JNITest", "it works: " + ap.get());
+        Log.i("ECN-Bits-JNITest", "it works: " + ap.get());
     }
 
     @Test
     public void testJNIBoots() {
-        Log.i("ECN-Bits:JNITest", "testing JNI part of JNI class…");
+        Log.i("ECN-Bits-JNITest", "testing JNI part of JNI class…");
         final long tid;
         try {
             tid = JNI.gettid();
         } catch (Throwable t) {
-            Log.e("ECN-Bits:JNITest", "it failed", t);
+            Log.e("ECN-Bits-JNITest", "it failed", t);
             fail("JNI does not work");
             return;
         }
-        Log.i("ECN-Bits:JNITest", "it also works: " + tid);
+        Log.i("ECN-Bits-JNITest", "it also works: " + tid);
         assertNotEquals("but is 0", 0, tid);
     }
 
@@ -71,7 +71,7 @@ public class JNIInstrumentedTest {
         final JNI.ErrnoException t = assertThrows(JNI.ErrnoException.class,
           () -> JNI.sigtid(0),
           "want an ESRCH exception");
-        Log.i("ECN-Bits:JNITest", "successfully caught", t);
+        Log.i("ECN-Bits-JNITest", "successfully caught", t);
         assertEquals("is not ESRCH",/* ESRCH */ 3, t.getErrno());
     }
 }

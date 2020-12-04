@@ -189,7 +189,10 @@ throw(JNIEnv *env, const char *msg __unused/*XXX*/)
 	int ec = errno;
 	jthrowable e, cause;
 
+	ecnlog_info("throwing %d", ec);
+
 	if ((cause = (*env)->ExceptionOccurred(env))) {
+		ecnlog_info("oops no, exception pending");
 		//XXX
 		return;
 	}
