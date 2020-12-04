@@ -29,7 +29,7 @@ import org.junit.jupiter.api.condition.EnabledOnOs;
 
 import java.util.logging.Level;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.condition.OS.LINUX;
 
 @Log
@@ -66,14 +66,4 @@ public class JNITest {
         LOGGER.info("it also works: " + tid);
         assertNotEquals(0, tid, "but is 0");
     }
-
-//    @Test
-//    @EnabledOnOs(LINUX)
-//    public void testSignallingThrows() {
-//        final JNI.ErrnoException t = Assertions.assertThrows(JNI.ErrnoException.class,
-//          () -> JNI.sigtid(0),
-//          "want an ESRCH exception");
-//        LOGGER.log(Level.INFO, "successfully caught", t);
-//        Assertions.assertEquals(/* ESRCH */ 3, t.getErrno(), "is not ESRCH");
-//    }
 }
