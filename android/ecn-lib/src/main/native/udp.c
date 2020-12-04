@@ -40,7 +40,8 @@
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
 #define __unused	__attribute__((__unused__))
 
-static void throw(JNIEnv *, const char *msg);
+static void throw(JNIEnv *, int errno_code, const char *msg);
+static void ethrow(JNIEnv *, const char *msg);
 
 static JNICALL jlong gettid(JNIEnv *, jclass);
 static JNICALL void sigtid(JNIEnv *, jclass, jlong);
@@ -184,9 +185,8 @@ JNI_OnUnload(JavaVM *vm, void *reserved __unused)
 }
 
 static void
-throw(JNIEnv *env, const char *msg __unused/*XXX*/)
+throw(JNIEnv *env, int ec, const char *msg __unused/*XXX*/)
 {
-	int ec = errno;
 	jthrowable e, cause;
 
 	ecnlog_info("throwing %d", ec);
@@ -202,6 +202,12 @@ throw(JNIEnv *env, const char *msg __unused/*XXX*/)
 	    (jobject)NULL, (jobject)NULL, (jint)ec, (jobject)NULL)))
 		return;
 	(*env)->Throw(env, e);
+}
+
+static void
+ethrow(JNIEnv *env, const char *msg)
+{
+	throw(env, errno, msg);
 }
 
 union tid {
@@ -222,18 +228,9 @@ static JNICALL void
 sigtid(JNIEnv *env, jclass cls __unused, jlong j)
 {
 	union tid u = {0};
+	int e;
 
 	u.j[0] = j;
-#if 0
-	if (pthread_kill(u.pt, /* Bionic */ __SIGRTMIN + 2))
-		throw(env, "pthread_kill");
-#else
-	int r, e;
-	errno = 666;
-	r = pthread_kill(u.pt, /* Bionic */ __SIGRTMIN + 2);
-	e = errno;
-	ecnlog_info("pthread_kill returned %d with errno %d", r, e);
-	if (r)
-		throw(env, "pthread_kill");
-#endif
+	if ((e = pthread_kill(u.pt, /* Bionic */ __SIGRTMIN + 2)))
+		throw(env, e, "pthread_kill");
 }
