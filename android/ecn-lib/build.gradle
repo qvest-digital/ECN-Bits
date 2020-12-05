@@ -1,6 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'de.mannodermaus.android-junit5'
 
+def dirToplev = project.layout.projectDirectory.asFile.absolutePath
+
 // project licence: The MirOS Licence AND GPLv2 with Classpath Exception
 // see src/main/resources/LICENCE.ecn-lib and src/main/resources/COPYING
 //
@@ -21,6 +23,15 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+
+        externalNativeBuild {
+            cmake {
+                //noinspection GroovyAssignabilityCheck because Gradle and the IDE have different world views…
+                arguments "-DTOPLEV=" + dirToplev
+            }
+            return void // WTF‽
+        }
+
         return void // WTF‽
     }
 
@@ -82,7 +93,7 @@ task createNativeNoNDK() {
 task buildCMakeNativeNoNDK(type: Exec) {
     dependsOn createNativeNoNDK
     workingDir dirForNativeNoNDK
-    commandLine "/usr/bin/env", "cmake", "-DANDROID_NDK=OFF", srcForNativeNoNDK.absolutePath
+    commandLine "/usr/bin/env", "cmake", "-DTOPLEV=" + dirToplev, "-DUNDER_NDK=OFF", srcForNativeNoNDK.absolutePath
 }
 task buildGMakeNativeNoNDK(type: Exec) {
     dependsOn buildCMakeNativeNoNDK

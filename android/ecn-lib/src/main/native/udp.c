@@ -29,8 +29,12 @@
 #include <poll.h>
 #include <pthread.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <jni.h>
 
@@ -40,11 +44,14 @@
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
 #define __unused	__attribute__((__unused__))
 
-static void throw(JNIEnv *, int errno_code, const char *msg);
-static void ethrow(JNIEnv *, const char *msg);
+#define ethrow(env,...)	throw(env, errno, __VA_ARGS__)
+#define throw(env,ec,...) \
+	    vthrow(__FILE__, __func__, env, __LINE__, ec, __VA_ARGS__)
+static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
+	    int loc_line, int errcode, const char *fmt, ...);
 
-static JNICALL jlong gettid(JNIEnv *, jclass);
-static JNICALL void sigtid(JNIEnv *, jclass, jlong);
+static JNICALL jlong n_gettid(JNIEnv *, jclass);
+static JNICALL void n_sigtid(JNIEnv *, jclass, jlong);
 static JNICALL void n_close(JNIEnv *, jclass, jint);
 #if 0
 static JNICALL jint n_socket(JNIEnv *, jclass);
@@ -65,8 +72,8 @@ static JNICALL jint n_pollin(JNIEnv *, jclass, jint, jint);
 #define METH(name,signature) \
 	{ #name, signature, (void *)(name) }
 static const JNINativeMethod methods[] = {
-	METH(gettid, "()J"),
-	METH(sigtid, "(J)V"),
+	METH(n_gettid, "()J"),
+	METH(n_sigtid, "(J)V"),
 	METH(n_close, "(I)V"),
 #if 0
 	METH(n_socket, "()I"),
@@ -151,7 +158,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 	getclass(AP, "de/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort");
 	getclass(SG, "de/telekom/llcto/ecn_bits/android/lib/JNI$SGIO");
 
-	getcons(EX, c, "(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)V");
+	getcons(EX, c, "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Throwable;)V");
 
 	/* … */
 
@@ -184,30 +191,77 @@ JNI_OnUnload(JavaVM *vm, void *reserved __unused)
 	ecnlog_info("unload successful");
 }
 
-static void
-throw(JNIEnv *env, int ec, const char *msg __unused/*XXX*/)
+static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
+    int loc_line, int errcode, const char *fmt, ...)
 {
-	jthrowable e, cause;
+	jthrowable e;
+	va_list ap;
+	jstring jfile = NULL;
+	jint jline = loc_line;
+	jstring jfunc = NULL;
+	jstring jmsg = NULL;
+	jint jerr = errcode;
+	jstring jstr = NULL;
+	jthrowable cause = NULL;
+	const char *msg;
+	char *msgbuf;
 
-	ecnlog_info("throwing %d", ec);
-
-	if ((cause = (*env)->ExceptionOccurred(env))) {
-		ecnlog_info("oops no, exception pending");
-		//XXX
+	if ((*env)->PushLocalFrame(env, 6)) {
+		cause = (*env)->ExceptionOccurred(env);
+		(*env)->ExceptionClear(env);
+		(*env)->Throw(env, (*env)->NewObject(env, cls_EX, i_EX_c,
+		    jfile, jline, jfunc, jmsg, jerr, jstr, cause));
 		return;
 	}
 
-	if (!(e = (*env)->NewObject(env, cls_EX, i_EX_c,
-	    //XXX
-	    (jobject)NULL, (jobject)NULL, (jint)ec, (jobject)NULL)))
-		return;
-	(*env)->Throw(env, e);
-}
+	if ((cause = (*env)->ExceptionOccurred(env))) {
+		/* will be treated as cause */
+		(*env)->ExceptionClear(env);
+	}
 
-static void
-ethrow(JNIEnv *env, const char *msg)
-{
-	throw(env, errno, msg);
+	va_start(ap, fmt);
+	if (vasprintf(&msgbuf, fmt, ap) == -1) {
+		msgbuf = NULL;
+		msg = fmt;
+	} else
+		msg = msgbuf;
+	va_end(ap);
+
+	jmsg = (*env)->NewStringUTF(env, msg);
+	free(msgbuf);
+	if (!jmsg)
+		goto onStringError;
+
+	if (!(jfunc = (*env)->NewStringUTF(env, loc_func)))
+		goto onStringError;
+	if (!(jstr = (*env)->NewStringUTF(env, strerror(errcode))))
+		goto onStringError;
+#ifdef OLD_CLANG_SRCDIR_HACK
+	if (!strncmp(loc_file, OLD_CLANG_SRCDIR_HACK, sizeof(OLD_CLANG_SRCDIR_HACK) - 1) &&
+	    asprintf(&msgbuf, "«ECN-Bits»/%s", loc_file + sizeof(OLD_CLANG_SRCDIR_HACK) - 1) != -1) {
+		msg = msgbuf;
+	} else {
+		msg = loc_file;
+		msgbuf = NULL;
+	}
+#else
+#define msg loc_file
+#endif
+	jfile = (*env)->NewStringUTF(env, msg);
+#ifdef OLD_CLANG_SRCDIR_HACK
+	free(msgbuf);
+#else
+#undef msg
+#endif
+	if (!jfile) {
+ onStringError:
+		(*env)->ExceptionClear(env);
+	}
+
+	e = (*env)->PopLocalFrame(env, (*env)->NewObject(env, cls_EX, i_EX_c,
+	    jfile, jline, jfunc, jmsg, jerr, jstr, cause));
+	if (e)
+		(*env)->Throw(env, e);
 }
 
 union tid {
@@ -216,7 +270,7 @@ union tid {
 };
 
 static JNICALL jlong
-gettid(JNIEnv *env __unused, jclass cls __unused)
+n_gettid(JNIEnv *env __unused, jclass cls __unused)
 {
 	union tid u = {0};
 
@@ -225,19 +279,19 @@ gettid(JNIEnv *env __unused, jclass cls __unused)
 }
 
 static JNICALL void
-sigtid(JNIEnv *env, jclass cls __unused, jlong j)
+n_sigtid(JNIEnv *env, jclass cls __unused, jlong j)
 {
 	union tid u = {0};
 	int e;
 
 	u.j[0] = j;
 	if ((e = pthread_kill(u.pt, /* Bionic */ __SIGRTMIN + 2)))
-		throw(env, e, "pthread_kill");
+		throw(env, e, "pthread_kill(%llu)", (unsigned long long)j);
 }
 
 static JNICALL void
 n_close(JNIEnv *env, jclass cls __unused, jint fd)
 {
 	if (close(fd))
-		ethrow(env, "close");
+		ethrow(env, "close(%d)", (int)fd);
 }

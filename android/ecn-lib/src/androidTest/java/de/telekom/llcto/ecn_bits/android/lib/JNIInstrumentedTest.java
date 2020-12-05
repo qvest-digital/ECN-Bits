@@ -56,7 +56,7 @@ public class JNIInstrumentedTest {
         Log.i("ECN-Bits-JNITest", "testing JNI part of JNI class…");
         final long tid;
         try {
-            tid = JNI.gettid();
+            tid = JNI.n_gettid();
         } catch (Throwable t) {
             Log.e("ECN-Bits-JNITest", "it failed", t);
             fail("JNI does not work");
@@ -69,7 +69,7 @@ public class JNIInstrumentedTest {
     @Test
     public void testSignallingThrows() {
         final JNI.ErrnoException t = assertThrows(JNI.ErrnoException.class,
-          () -> JNI.sigtid(0),
+          () -> JNI.n_sigtid(0),
           "want an ESRCH exception");
         Log.i("ECN-Bits-JNITest", "successfully caught", t);
         assertEquals("is not ESRCH",/* ESRCH */ 3, t.getErrno());

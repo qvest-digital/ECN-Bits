@@ -32,6 +32,16 @@ import java.util.logging.Level;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.condition.OS.LINUX;
 
+/**
+ * Unit tests for {@link JNI}
+ *
+ * These are run on the build host, with a copy of the JNI library linked
+ * against the system libc (usually glibc), which makes testing some aspects
+ * impossible (see JNIInstrumentedTest for these). But we can do some basic
+ * testing here.
+ *
+ * @author mirabilos (t.glaser@tarent.de)
+ */
 @Log
 public class JNITest {
     @Test
@@ -57,7 +67,7 @@ public class JNITest {
         LOGGER.info("testing JNI part of JNI class…");
         final long tid;
         try {
-            tid = JNI.gettid();
+            tid = JNI.n_gettid();
         } catch (Throwable t) {
             LOGGER.log(Level.SEVERE, "it failed", t);
             Assertions.fail("JNI does not work");
@@ -65,5 +75,15 @@ public class JNITest {
         }
         LOGGER.info("it also works: " + tid);
         assertNotEquals(0, tid, "but is 0");
+    }
+
+    @Test
+    @EnabledOnOs(LINUX)
+    public void testJNIException() {
+        final JNI.ErrnoException t = Assertions.assertThrows(JNI.ErrnoException.class,
+          () -> JNI.n_close(-1),
+          "want an EBADF exception");
+        LOGGER.log(Level.INFO, "successfully caught", t);
+        Assertions.assertEquals(/* EBADF */ 9, t.getErrno(), "is not EBADF");
     }
 }

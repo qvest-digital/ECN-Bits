@@ -21,6 +21,7 @@ package de.telekom.llcto.ecn_bits.android.lib;
  * of said person’s immediate fault when using the work as intended.
  */
 
+import android.annotation.SuppressLint;
 import lombok.Getter;
 import lombok.SneakyThrows;
 
@@ -52,20 +53,26 @@ final class JNI {
      */
     @Getter
     public static class ErrnoException extends IOException {
-        private static final long serialVersionUID = 7895422108790195100L;
+        private static final long serialVersionUID = 4796003619902398102L;
 
         final int errno;
         final String strerror;
-        final String function;
         final String failureDescription;
 
-        ErrnoException(final String func, final String msg, final int err, final String str) {
-            super(msg == null ? String.format("%s: %s", func, str) :
-              String.format("%s: %s: %s", func, msg, str));
+        @SuppressLint("DefaultLocale")
+        ErrnoException(final String file, final int line, final String func,
+          final String msg, final int err, final String str, final Throwable cause) {
+            super(msg == null ? String.format("%s:%d:%s(): %s", file, line, func, str) :
+              String.format("%s:%d:%s(): %s: %s", file, line, func, msg, str), cause);
             errno = err;
             strerror = str;
-            function = func;
             failureDescription = msg;
+
+            StackTraceElement[] currentStack = getStackTrace();
+            StackTraceElement[] newStack = new StackTraceElement[currentStack.length + 1];
+            System.arraycopy(currentStack, 0, newStack, 1, currentStack.length);
+            newStack[0] = new StackTraceElement("<native>", func, file, line);
+            setStackTrace(newStack);
         }
     }
 
@@ -153,9 +160,9 @@ final class JNI {
 
     // +++ OpenJDK NativeThread +++
 
-    static native long gettid();
+    static native long n_gettid();
 
-    static native void sigtid(long tid) throws ErrnoException;
+    static native void n_sigtid(long tid) throws ErrnoException;
 
     // +++ socket operations +++
 

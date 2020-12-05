@@ -274,7 +274,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     return null;
                 }
                 final SecurityManager security;
-                readerThread = JNI.gettid();
+                readerThread = JNI.n_gettid();
                 final JNI.AddrPort ap = new JNI.AddrPort();
                 InetSocketAddress sender;
                 if (isConnected() || ((security = System.getSecurityManager()) == null)) {
@@ -340,7 +340,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 if (!isOpen()) {
                     return 0;
                 }
-                writerThread = JNI.gettid();
+                writerThread = JNI.n_gettid();
                 do {
                     n = i_send(src, isa);
                 } while ((n == JNI.EINTR) && isOpen());
@@ -376,7 +376,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 if (!isOpen()) {
                     return 0;
                 }
-                readerThread = JNI.gettid();
+                readerThread = JNI.n_gettid();
                 do {
                     n = i_recv(buf, new JNI.AddrPort());
                 } while ((n == JNI.EINTR) && isOpen());
@@ -406,7 +406,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 if (!isOpen()) {
                     return 0;
                 }
-                readerThread = JNI.gettid();
+                readerThread = JNI.n_gettid();
                 do {
                     n = sg_rd(dsts, offset, length);
                 } while ((n == JNI.EINTR) && isOpen());
@@ -441,7 +441,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
             if (!isOpen()) {
                 return 0;
             }
-            writerThread = JNI.gettid();
+            writerThread = JNI.n_gettid();
             do {
                 n = i_send(buf, remoteAddress);
             } while ((n == JNI.EINTR) && isOpen());
@@ -470,7 +470,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                 if (!isOpen()) {
                     return 0;
                 }
-                writerThread = JNI.gettid();
+                writerThread = JNI.n_gettid();
                 do {
                     n = sg_wr(srcs, offset, length);
                 } while ((n == JNI.EINTR) && isOpen());
@@ -595,10 +595,10 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
         synchronized (stateLock) {
             long th;
             if ((th = readerThread) != 0) {
-                JNI.sigtid(th);
+                JNI.n_sigtid(th);
             }
             if ((th = writerThread) != 0) {
-                JNI.sigtid(th);
+                JNI.n_sigtid(th);
             }
             if (!isRegistered()) {
                 if (state == ST_KILLED) {
@@ -855,7 +855,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     if (!isOpen()) {
                         return 0;
                     }
-                    readerThread = JNI.gettid();
+                    readerThread = JNI.n_gettid();
                 }
                 n = n_pollin(fdVal, timeout);
             } finally {
