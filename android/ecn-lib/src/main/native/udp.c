@@ -38,8 +38,14 @@
 
 #include <jni.h>
 
+#include "nh.h"
+#include "UDPnet.h"
+
 #define ECNBITS_ALOG_TAG "ECN-v2"
 #include "alog.h"
+
+/* errlist entries in bionic are about 48 chars max, plus safety */
+#define STRERROR_BUFSZ	64
 
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
 #define __unused	__attribute__((__unused__))
@@ -53,8 +59,8 @@ static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
 static JNICALL jlong n_gettid(JNIEnv *, jclass);
 static JNICALL void n_sigtid(JNIEnv *, jclass, jlong);
 static JNICALL void n_close(JNIEnv *, jclass, jint);
-#if 0
 static JNICALL jint n_socket(JNIEnv *, jclass);
+#if 0
 static JNICALL void n_setnonblock(JNIEnv *, jclass, jint, jboolean);
 static JNICALL jint n_getsockopt(JNIEnv *, jclass, jint, jint);
 static JNICALL void n_setsockopt(JNIEnv *, jclass, jint, jint, jint);
@@ -75,8 +81,8 @@ static const JNINativeMethod methods[] = {
 	METH(n_gettid, "()J"),
 	METH(n_sigtid, "(J)V"),
 	METH(n_close, "(I)V"),
-#if 0
 	METH(n_socket, "()I"),
+#if 0
 	METH(n_setnonblock, "(IZ)V"),
 	METH(n_getsockopt, "(II)I"),
 	METH(n_setsockopt, "(III)V"),
@@ -107,6 +113,10 @@ free_grefs(JNIEnv *env)
 	(*env)->DeleteGlobalRef(env, (x));	\
 	(x) = NULL;				\
 } } while (/* CONSTCOND */ 0)
+#ifndef ECNBITS_SKIP_DALVIK
+	f(cls_FD);
+	f(cls_STAG);
+#endif
 	f(cls_SG);
 	f(cls_AP);
 	f(cls_EX);
@@ -157,8 +167,29 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 	getclass(EX, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoException");
 	getclass(AP, "de/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort");
 	getclass(SG, "de/telekom/llcto/ecn_bits/android/lib/JNI$SGIO");
+#ifndef ECNBITS_SKIP_DALVIK
+	/* for udpnet */
+	getclass(STAG, "dalvik/system/SocketTagger");
+	/* for nh library */
+	getclass(FD, "java/io/FileDescriptor");
+#endif
 
 	getcons(EX, c, "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Throwable;)V");
+#ifndef ECNBITS_SKIP_DALVIK
+	/* for nh library */
+	getcons(FD, c, "()V");
+#endif
+
+#ifndef ECNBITS_SKIP_DALVIK
+	/* for udpnet */
+	getsmeth(STAG, get, "()Ldalvik/system/SocketTagger;");
+	getmeth(STAG, tag, "(Ljava/io/FileDescriptor;)V");
+#endif
+
+#ifndef ECNBITS_SKIP_DALVIK
+	/* for nh library */
+	getfield(FD, descriptor, "I");
+#endif
 
 	/* … */
 
@@ -205,6 +236,7 @@ static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
 	jthrowable cause = NULL;
 	const char *msg;
 	char *msgbuf;
+	char errbuf[STRERROR_BUFSZ];
 
 	if ((*env)->PushLocalFrame(env, 6)) {
 		cause = (*env)->ExceptionOccurred(env);
@@ -234,7 +266,8 @@ static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
 
 	if (!(jfunc = (*env)->NewStringUTF(env, loc_func)))
 		goto onStringError;
-	if (!(jstr = (*env)->NewStringUTF(env, strerror(errcode))))
+	if (!(jstr = (*env)->NewStringUTF(env, jniStrError(errcode,
+	    errbuf, sizeof(errbuf)))))
 		goto onStringError;
 #ifdef OLD_CLANG_SRCDIR_HACK
 	if (!strncmp(loc_file, OLD_CLANG_SRCDIR_HACK, sizeof(OLD_CLANG_SRCDIR_HACK) - 1) &&
@@ -295,3 +328,83 @@ n_close(JNIEnv *env, jclass cls __unused, jint fd)
 	if (close(fd))
 		ethrow(env, "close(%d)", (int)fd);
 }
+
+static void
+eclose(int fd)
+{
+	int e = errno;
+
+	close(fd);
+	errno = e;
+}
+
+static JNICALL jint
+n_socket(JNIEnv *env, jclass cls __unused)
+{
+	int fd;
+	int so;
+
+	if ((fd = socket(AF_INET6, SOCK_DGRAM, 0)) == -1) {
+		ethrow(env, "socket");
+		return (-1);
+	}
+	tagSocket(env, fd);
+
+	/* ensure v4-mapped is enabled on this socket */
+	so = 0;
+	if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY,
+	    (const void *)&so, sizeof(so))) {
+		eclose(fd);
+		ethrow(env, "setsockopt(%s)", "IPV6_V6ONLY");
+		return (-1);
+	}
+
+	/* setup ECN-Bits */
+	so = 1;
+	if (setsockopt(fd, IPPROTO_IPV6, IPV6_RECVTCLASS,
+	    (const void *)&so, sizeof(so))) {
+		eclose(fd);
+		ethrow(env, "setsockopt(%s)", "IPV6_RECVTCLASS");
+		return (-1);
+	}
+	if (setsockopt(fd, IPPROTO_IP, IP_RECVTOS,
+	    (const void *)&so, sizeof(so))) {
+		eclose(fd);
+		ethrow(env, "setsockopt(%s)", "IP_RECVTOS");
+		return (-1);
+	}
+
+	return (fd);
+}
+
+#if 0
+static JNICALL void
+n_setnonblock(JNIEnv *env, jclass cls __unused, jint, jboolean block)
+static JNICALL jint
+n_getsockopt(JNIEnv *env, jclass cls __unused, jint, jint optenum)
+static JNICALL void
+n_setsockopt(JNIEnv *env, jclass cls __unused, jint, jint optenum, jint value)
+static JNICALL void
+n_getsockname(JNIEnv *env, jclass cls __unused, jint fd, jobject ap)
+static JNICALL void
+n_bind(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port)
+static JNICALL void
+n_connect(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port)
+// connect() with empty, zero’d struct sockaddr_in6 with sin6_family = AF_UNSPEC
+static JNICALL void
+n_disconnect(JNIEnv *env, jclass cls __unused, jint fd)
+static JNICALL jint
+n_recv(JNIEnv *env, jclass cls __unused, jint fd,
+    jobject bbuf, jint bbpos, jint bbsize, jobject aptc)
+static JNICALL jint
+n_send(JNIEnv *env, jclass cls __unused, jint fd,
+    jobject bbuf, jint bbpos, jint bbsize, jbyteArray addr, jint port)
+static JNICALL jlong
+n_rd(JNIEnv *env, jclass cls __unused, jint fd,
+    jobjectArray bufs, jint nbufs, jobject tc)
+static JNICALL jlong
+n_wr(JNIEnv *env, jclass cls __unused, jint fd,
+    jobjectArray bufs, jbyteArray addr, jint port)
+static JNICALL jint
+n_pollin(JNIEnv *env, jclass cls __unused, jint fd, jint timeout)
+#endif

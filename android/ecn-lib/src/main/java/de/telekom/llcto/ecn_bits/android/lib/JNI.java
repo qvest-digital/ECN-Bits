@@ -188,7 +188,6 @@ final class JNI {
     static native void n_connect(final int fd,
       final byte[] addr, final int port) throws ErrnoException;
 
-    // connect() with empty, zero’d struct sockaddr_in6 with sin6_family = AF_UNSPEC
     static native void n_disconnect(final int fd) throws ErrnoException;
 
     static native int n_recv(final int fd,

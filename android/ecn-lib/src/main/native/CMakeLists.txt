@@ -11,8 +11,18 @@ add_compile_options(-fvisibility=hidden)
 add_compile_options(-Wall -Wextra -Wformat)
 
 add_library(ecnbits-native SHARED
+	# MirBSD licenced
 	alog.h
 	udp.c
+
+	# GPLv2+Classpath licenced
+	UDPnet.h
+	UDPnet.c
+
+	# separate module, Apache 2 licenced
+	nh.h
+	nh_c.c
+	nh_cxx.cc
 	)
 
 add_library(ecnbits-ndk SHARED
@@ -40,6 +50,7 @@ else (UNDER_NDK)
 	include_directories(${JNI_INCLUDE_DIRS})
 
 	add_definitions(-D_GNU_SOURCE)
+	add_definitions(-DECNBITS_SKIP_DALVIK)
 
 	add_definitions("-ffile-prefix-map=${TOPLEV}=«ECN-Bits»")
 endif (UNDER_NDK)
