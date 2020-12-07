@@ -349,6 +349,12 @@ n_socket(JNIEnv *env, jclass cls __unused)
 		return (-1);
 	}
 	tagSocket(env, fd);
+	if ((*env)->ExceptionCheck(env) == JNI_TRUE) {
+		/* OOM in jniCreateFileDescriptor or failure to tag */
+		ecnlog_warn("could not tag newly created socket");
+		/* don’t care */
+		(*env)->ExceptionClear(env);
+	}
 
 	/* ensure v4-mapped is enabled on this socket */
 	so = 0;

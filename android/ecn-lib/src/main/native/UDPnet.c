@@ -51,8 +51,15 @@ void
 tagSocket(JNIEnv *env _dalvik_used, int fd _dalvik_used)
 {
 #ifndef ECNBITS_SKIP_DALVIK
-	jobject socketTagger = (*env)->CallStaticObjectMethod(env, cls_STAG, M_STAG_get);
-	jobject fileDescriptor = jniCreateFileDescriptor(env, fd);
+	jobject socketTagger;
+	jobject fileDescriptor;
+
+	socketTagger = (*env)->CallStaticObjectMethod(env, cls_STAG, M_STAG_get);
+	if (!socketTagger || (*env)->ExceptionCheck(env) == JNI_TRUE)
+		return;
+	fileDescriptor = jniCreateFileDescriptor(env, fd);
+	if (!fileDescriptor)
+		return;
 	(*env)->CallVoidMethod(env, socketTagger, m_STAG_tag, fileDescriptor);
 #endif
 }
