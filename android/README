@@ -39,6 +39,25 @@ ECN bits (see above) yet.
 Normal Android build mechanisms (./gradlew build) or building
 in IntelliJ / Android Studio should be used.
 
+Testing in the IDE requires Linux as host and some special
+setup, see: https://stackoverflow.com/a/65172775/2171120
+(Basically run them from the command line once, copy/paste
+the -Djava.library.path=… into an IntelliJ Run Configuration.)
+
+To test from the command line, run ./gradlew test cAT
+where test runs the unittests on the local buildhost (dev PC)
+and cAT (connectedAndroidTest, in full) runs the instrumented
+tests on a connected Android device or running emulator. You
+can do ../gradlew test cAT in a subdirectory (app or ecn-lib)
+as well. Again, the unit tests require a Linux host to have
+even some coverage at all, since they test a JNI library, for
+ecn-lib at least.
+
+Test output for the unittests is shown on stdout/stderr or in
+the IDE pane; the instrumented tests output to logcat, so use
+“adb shell” then “logcat -s ECN-v2:D ECN-Bits-JNITest:D” to
+watch it.
+
 When testing on the Android emulator note that its network
 emulation removes the ECN bits from packets. Use either a
 connection to localhost (by compiling the C/CLI library, e.g.
