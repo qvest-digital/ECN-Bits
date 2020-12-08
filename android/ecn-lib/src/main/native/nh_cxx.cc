@@ -28,6 +28,9 @@
 
 #include "nh.h"
 
+#ifndef __ANDROID__
+/* not needed on Android: Bionic libc strerror is thread-safe since 4.2 */
+
 namespace {
 
 // Note: glibc has a nonstandard strerror_r that returns char* rather than POSIX's int.
@@ -76,3 +79,4 @@ jniStrError(int errnum, char *buf, size_t buflen)
 	// inline will ensure that we don't have any indirect calls.
 	return realJniStrError(strerror_r, errnum, buf, buflen);
 }
+#endif /* !__ANDROID__ */

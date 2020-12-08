@@ -44,11 +44,16 @@
 #define ECNBITS_ALOG_TAG "ECN-v2"
 #include "alog.h"
 
-/* errlist entries in bionic are about 48 chars max, plus safety */
-#define STRERROR_BUFSZ	64
-
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
 #define __unused	__attribute__((__unused__))
+
+#ifdef __ANDROID__
+#define rstrerrinit()	/* nothing */
+#define rstrerror(e)	strerror(e)	/* thread-safe in Bionic since 4.2 */
+#else
+#define rstrerrinit()	char rstrerrstr[1024]	/* size from glibc manpage */
+#define rstrerror(e)	jniStrError((e), rstrerrstr, sizeof(rstrerrstr))
+#endif
 
 #define ethrow(env,...)	throw(env, errno, __VA_ARGS__)
 #define throw(env,ec,...) \
@@ -236,7 +241,7 @@ static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
 	jthrowable cause = NULL;
 	const char *msg;
 	char *msgbuf;
-	char errbuf[STRERROR_BUFSZ];
+	rstrerrinit();
 
 	if ((*env)->PushLocalFrame(env, 6)) {
 		cause = (*env)->ExceptionOccurred(env);
@@ -266,8 +271,7 @@ static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
 
 	if (!(jfunc = (*env)->NewStringUTF(env, loc_func)))
 		goto onStringError;
-	if (!(jstr = (*env)->NewStringUTF(env, jniStrError(errcode,
-	    errbuf, sizeof(errbuf)))))
+	if (!(jstr = (*env)->NewStringUTF(env, rstrerror(errcode))))
 		goto onStringError;
 #ifdef OLD_CLANG_SRCDIR_HACK
 	if (!strncmp(loc_file, OLD_CLANG_SRCDIR_HACK, sizeof(OLD_CLANG_SRCDIR_HACK) - 1) &&

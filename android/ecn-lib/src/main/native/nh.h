@@ -34,6 +34,8 @@ extern jfieldID o_FD_descriptor;	// java.io.FileDescriptor.descriptor
 extern "C" {
 #endif
 
+#ifndef __ANDROID__
+/* not needed on Android: Bionic libc strerror is thread-safe since 4.2 */
 /*
  * Return a pointer to a locale-dependent error string explaining errno
  * value 'errnum'. The returned pointer may or may not be equal to 'buf'.
@@ -41,6 +43,7 @@ extern "C" {
  * strerror_r).
  */
 const char *jniStrError(int errnum, char *buf, size_t buflen);
+#endif
 
 #ifndef ECNBITS_SKIP_DALVIK
 /*
