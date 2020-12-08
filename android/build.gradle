@@ -1,5 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
+// project licence: refer to each module’s individual build.gradle file
+
 buildscript {
     repositories {
         google()

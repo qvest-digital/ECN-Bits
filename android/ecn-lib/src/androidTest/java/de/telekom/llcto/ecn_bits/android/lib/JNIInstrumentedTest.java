@@ -28,9 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static de.telekom.llcto.ecn_bits.android.lib.Testable.assertThrows;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Instrumented tests for {@link JNI}
@@ -73,5 +71,19 @@ public class JNIInstrumentedTest {
           "want an ESRCH exception");
         Log.i("ECN-Bits-JNITest", "successfully caught", t);
         assertEquals("is not ESRCH",/* ESRCH */ 3, t.getErrno());
+        assertEquals("description", "pthread_kill(0)", t.getFailureDescription());
+        if ("No such process".equals(t.getStrerror())) {
+            Log.i("ECN-Bits-JNITest", "strerror also matches");
+        } else {
+            Log.w("ECN-Bits-JNITest", String.format("strerror \"%s\" does not match," +
+              " could also be locale-dependent, please check manually!", t.getStrerror()));
+        }
+    }
+
+    @Test
+    public void testOpenSocket() throws JNI.ErrnoException {
+        final int fd = JNI.n_socket();
+        Log.i("ECN-Bits-JNITest", String.format("got socket %d", fd));
+        JNI.n_close(fd);
     }
 }

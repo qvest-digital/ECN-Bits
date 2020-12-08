@@ -21,7 +21,7 @@ package de.telekom.llcto.ecn_bits.android.lib;
  * of said person’s immediate fault when using the work as intended.
  */
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Implementation of {@link #assertThrows(Class, Testable, String)}

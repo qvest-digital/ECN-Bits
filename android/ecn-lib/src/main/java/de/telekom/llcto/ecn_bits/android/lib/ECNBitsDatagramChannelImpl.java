@@ -57,23 +57,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramChannelImpl.DefaultOptionsHolder.optenum;
-import static de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramChannelImpl.DefaultOptionsHolder.to;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.ioresult;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_bind;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_close;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_connect;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_disconnect;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_getsockname;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_getsockopt;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_pollin;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_rd;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_recv;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_send;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_setnonblock;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_setsockopt;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_socket;
-import static de.telekom.llcto.ecn_bits.android.lib.JNI.n_wr;
+import static de.telekom.llcto.ecn_bits.android.lib.JNI.*;
 
 /**
  * Java™ side of a JNI reimplementation of a NIO datagram channel with extras.
@@ -167,8 +151,8 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
 
     @Override
     public <T> ECNBitsDatagramChannel setOption(final SocketOption<T> name, final T value) throws IOException {
-        final int opt = optenum(name);
-        final int val = to(name, opt, value);
+        final int opt = DefaultOptionsHolder.optenum(name);
+        final int val = DefaultOptionsHolder.to(name, opt, value);
         synchronized (stateLock) {
             ensureOpen();
             n_setsockopt(fdVal, opt, val);
@@ -179,7 +163,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getOption(final SocketOption<T> name) throws IOException {
-        final int opt = optenum(name);
+        final int opt = DefaultOptionsHolder.optenum(name);
         synchronized (stateLock) {
             ensureOpen();
             return (T) (Integer) n_getsockopt(fdVal, opt);
