@@ -58,11 +58,13 @@
 #define rstrerror(e)	jniStrError((e), rstrerrstr, sizeof(rstrerrstr))
 #endif
 
-#define ethrow(env,...)	throw(env, errno, __VA_ARGS__)
-#define throw(env,ec,...) \
-	    vthrow(__FILE__, __func__, env, __LINE__, ec, __VA_ARGS__)
+#define eX		0
+#define eX_S		1
+#define ethrow(env,kind,...)	throw(env, kind, errno, __VA_ARGS__)
+#define throw(env,kind,ec,...)	\
+	    vthrow(__FILE__, __func__, env, __LINE__, kind, ec, __VA_ARGS__)
 static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
-	    int loc_line, int errcode, const char *fmt, ...);
+	    int loc_line, int kind, int errcode, const char *fmt, ...);
 
 static JNICALL jlong n_gettid(JNIEnv *, jclass);
 static JNICALL void n_sigtid(JNIEnv *, jclass, jlong);
@@ -109,10 +111,12 @@ static const JNINativeMethod methods[] = {
 
 static jclass cls_JNI;	// JNI
 static jclass cls_EX;	// JNI.ErrnoException
+static jclass cls_EX_S;	// JNI.ErrnoSocketException
 static jclass cls_AP;	// JNI.AddrPort
 static jclass cls_SG;	// JNI.SGIO
 
 static jmethodID i_EX_c;	// exception constructor
+static jmethodID i_EX_S_c;	// exception constructor
 
 static void
 free_grefs(JNIEnv *env)
@@ -127,6 +131,7 @@ free_grefs(JNIEnv *env)
 #endif
 	f(cls_SG);
 	f(cls_AP);
+	f(cls_EX_S);
 	f(cls_EX);
 	f(cls_JNI);
 #undef f
@@ -173,6 +178,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 
 	getclass(JNI, "de/telekom/llcto/ecn_bits/android/lib/JNI");
 	getclass(EX, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoException");
+	getclass(EX_S, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoSocketException");
 	getclass(AP, "de/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort");
 	getclass(SG, "de/telekom/llcto/ecn_bits/android/lib/JNI$SGIO");
 #ifndef ECNBITS_SKIP_DALVIK
@@ -183,6 +189,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 #endif
 
 	getcons(EX, c, "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Throwable;)V");
+	getcons(EX_S, c, "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Throwable;)V");
 #ifndef ECNBITS_SKIP_DALVIK
 	/* for nh library */
 	getcons(FD, c, "()V");
@@ -231,7 +238,7 @@ JNI_OnUnload(JavaVM *vm, void *reserved __unused)
 }
 
 static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
-    int loc_line, int errcode, const char *fmt, ...)
+    int loc_line, int kind, int errcode, const char *fmt, ...)
 {
 	jthrowable e;
 	va_list ap;
@@ -243,13 +250,27 @@ static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
 	jstring jstr = NULL;
 	jthrowable cause = NULL;
 	const char *msg;
+	jclass e_cls;
+	jmethodID e_init;
 	char *msgbuf;
 	rstrerrinit();
+
+	switch (kind) {
+	case eX_S:
+		e_cls = cls_EX_S;
+		e_init = i_EX_S_c;
+		break;
+	case eX:
+	default:
+		e_cls = cls_EX;
+		e_init = i_EX_c;
+		break;
+	}
 
 	if ((*env)->PushLocalFrame(env, 6)) {
 		cause = (*env)->ExceptionOccurred(env);
 		(*env)->ExceptionClear(env);
-		(*env)->Throw(env, (*env)->NewObject(env, cls_EX, i_EX_c,
+		(*env)->Throw(env, (*env)->NewObject(env, e_cls, e_init,
 		    jfile, jline, jfunc, jmsg, jerr, jstr, cause));
 		return;
 	}
@@ -298,7 +319,7 @@ static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
 		(*env)->ExceptionClear(env);
 	}
 
-	e = (*env)->PopLocalFrame(env, (*env)->NewObject(env, cls_EX, i_EX_c,
+	e = (*env)->PopLocalFrame(env, (*env)->NewObject(env, e_cls, e_init,
 	    jfile, jline, jfunc, jmsg, jerr, jstr, cause));
 	if (e)
 		(*env)->Throw(env, e);
@@ -326,14 +347,14 @@ n_sigtid(JNIEnv *env, jclass cls __unused, jlong j)
 
 	u.j[0] = j;
 	if ((e = pthread_kill(u.pt, /* Bionic */ __SIGRTMIN + 2)))
-		throw(env, e, "pthread_kill(%llu)", (unsigned long long)j);
+		throw(env, eX, e, "pthread_kill(%llu)", (unsigned long long)j);
 }
 
 static JNICALL void
 n_close(JNIEnv *env, jclass cls __unused, jint fd)
 {
 	if (close(fd))
-		ethrow(env, "close(%d)", (int)fd);
+		ethrow(env, eX, "close(%d)", (int)fd);
 }
 
 static void
@@ -352,7 +373,7 @@ n_socket(JNIEnv *env, jclass cls __unused)
 	int so;
 
 	if ((fd = socket(AF_INET6, SOCK_DGRAM, 0)) == -1) {
-		ethrow(env, "socket");
+		ethrow(env, eX, "socket");
 		return (-1);
 	}
 	tagSocket(env, fd);
@@ -368,7 +389,7 @@ n_socket(JNIEnv *env, jclass cls __unused)
 	if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY,
 	    (const void *)&so, sizeof(so))) {
 		eclose(fd);
-		ethrow(env, "setsockopt(%s)", "IPV6_V6ONLY");
+		ethrow(env, eX, "setsockopt(%s)", "IPV6_V6ONLY");
 		return (-1);
 	}
 
@@ -377,13 +398,13 @@ n_socket(JNIEnv *env, jclass cls __unused)
 	if (setsockopt(fd, IPPROTO_IPV6, IPV6_RECVTCLASS,
 	    (const void *)&so, sizeof(so))) {
 		eclose(fd);
-		ethrow(env, "setsockopt(%s)", "IPV6_RECVTCLASS");
+		ethrow(env, eX, "setsockopt(%s)", "IPV6_RECVTCLASS");
 		return (-1);
 	}
 	if (setsockopt(fd, IPPROTO_IP, IP_RECVTOS,
 	    (const void *)&so, sizeof(so))) {
 		eclose(fd);
-		ethrow(env, "setsockopt(%s)", "IP_RECVTOS");
+		ethrow(env, eX, "setsockopt(%s)", "IP_RECVTOS");
 		return (-1);
 	}
 
@@ -396,10 +417,10 @@ n_setnonblock(JNIEnv *env, jclass cls __unused, jint fd, jboolean block)
 	int oflags, nflags;
 
 	if ((oflags = fcntl(fd, F_GETFL)) == -1)
-		ethrow(env, "fcntl(%s)", "F_GETFL");
+		ethrow(env, eX, "fcntl(%d, %s)", fd, "F_GETFL");
 	nflags = (oflags & ~O_NONBLOCK) | (block == JNI_TRUE ? 0 : O_NONBLOCK);
 	if (nflags != oflags && fcntl(fd, F_SETFL, nflags) == -1)
-		ethrow(env, "fcntl(%s)", "F_SETFL");
+		ethrow(env, eX, "fcntl(%d, %s)", fd, "F_SETFL");
 }
 
 static JNICALL jint
@@ -442,8 +463,7 @@ n_getsockopt(JNIEnv *env, jclass cls __unused, jint fd, jint optenum)
 
 	optlen = sizeof(optval);
 	if (getsockopt(fd, level, optname, &optval, &optlen) == -1) {
-		//XXX should be SocketException
-		ethrow(env, "getsockopt(%d,%d)", level, optname);
+		ethrow(env, eX_S, "getsockopt(%d, %d, %d)", fd, level, optname);
 		return (-1);
 	}
 

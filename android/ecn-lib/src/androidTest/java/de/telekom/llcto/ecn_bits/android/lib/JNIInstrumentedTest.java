@@ -73,9 +73,25 @@ public class JNIInstrumentedTest {
         assertEquals("is not ESRCH",/* ESRCH */ 3, t.getErrno());
         assertEquals("description", "pthread_kill(0)", t.getFailureDescription());
         if ("No such process".equals(t.getStrerror())) {
-            Log.i("ECN-Bits-JNITest", "strerror also matches");
+            Log.i("ECN-Bits-JNITest", "strerror also matches ESRCH (sigtid)");
         } else {
-            Log.w("ECN-Bits-JNITest", String.format("strerror \"%s\" does not match," +
+            Log.w("ECN-Bits-JNITest", String.format("strerror \"%s\" does not match ESRCH (sigtid)," +
+              " could also be locale-dependent, please check manually!", t.getStrerror()));
+        }
+    }
+
+    @Test
+    public void testJNISocketException() {
+        final JNI.ErrnoSocketException t = assertThrows(JNI.ErrnoSocketException.class,
+          () -> JNI.n_getsockopt(-1, JNI.IP_TOS),
+          "want an EBADF exception");
+        Log.i("ECN-Bits-JNITest", "successfully caught", t);
+        assertEquals("is not EBADF",/* EBADF */ 9, t.getErrno());
+        assertEquals("description", "getsockopt(-1, 41, 67)", t.getFailureDescription());
+        if ("Bad file descriptor".equals(t.getStrerror())) {
+            Log.i("ECN-Bits-JNITest", "strerror also matches EBADF (getsockopt)");
+        } else {
+            Log.w("ECN-Bits-JNITest", String.format("strerror \"%s\" does not match EBADF (getsockopt)," +
               " could also be locale-dependent, please check manually!", t.getStrerror()));
         }
     }

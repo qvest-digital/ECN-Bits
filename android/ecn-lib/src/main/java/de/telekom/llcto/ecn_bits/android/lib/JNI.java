@@ -21,13 +21,14 @@ package de.telekom.llcto.ecn_bits.android.lib;
  * of said person’s immediate fault when using the work as intended.
  */
 
-import android.annotation.SuppressLint;
+import android.util.Log;
 import lombok.Getter;
 import lombok.SneakyThrows;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
@@ -46,36 +47,6 @@ final class JNI {
         System.loadLibrary("ecnbits-native");
     }
 
-    /**
-     * Represents an error thrown in native code from ECN-Bits {@link JNI}.
-     *
-     * @author mirabilos (t.glaser@tarent.de)
-     */
-    @Getter
-    public static class ErrnoException extends IOException {
-        private static final long serialVersionUID = 4796003619902398102L;
-
-        final int errno;
-        final String strerror;
-        final String failureDescription;
-
-        @SuppressLint("DefaultLocale")
-        ErrnoException(final String file, final int line, final String func,
-          final String msg, final int err, final String str, final Throwable cause) {
-            super(msg == null ? String.format("%s:%d:%s(): %s", file, line, func, str) :
-              String.format("%s:%d:%s(): %s: %s", file, line, func, msg, str), cause);
-            errno = err;
-            strerror = str;
-            failureDescription = msg;
-
-            StackTraceElement[] currentStack = getStackTrace();
-            StackTraceElement[] newStack = new StackTraceElement[currentStack.length + 1];
-            System.arraycopy(currentStack, 0, newStack, 1, currentStack.length);
-            newStack[0] = new StackTraceElement("<native>", func, file, line);
-            setStackTrace(newStack);
-        }
-    }
-
     // socket options enum for native code, keep in sync with C code!
     // all supported socket options take an int
     static final int IP_TOS = 0;
@@ -89,6 +60,79 @@ final class JNI {
     static final int EAVAIL = -2;
     static final int EINTR = -3;
     // -4 = exception thrown in native code, never seen in Java™
+
+    static String renderNativeExceptionMessage(final String file, final int line, final String func,
+      final String msg, final String str) {
+        final StringBuilder sb = new StringBuilder(128);
+        sb.append(file).append(':').append(line).append(':').append(func).append("(): ");
+        if (msg != null) {
+            sb.append(msg).append(": ");
+        }
+        sb.append(str);
+        return sb.toString();
+    }
+
+    static void prependNativeStackTrace(final Throwable t,
+      final String file, final int line, final String func) {
+        StackTraceElement[] currentStack = t.getStackTrace();
+        StackTraceElement[] newStack = new StackTraceElement[currentStack.length + 1];
+        System.arraycopy(currentStack, 0, newStack, 1, currentStack.length);
+        newStack[0] = new StackTraceElement("<native>", func, file, line);
+        t.setStackTrace(newStack);
+    }
+
+    /**
+     * Represents an error thrown in native code from ECN-Bits {@link JNI}.
+     * This one is an {@link IOException}.
+     *
+     * @author mirabilos (t.glaser@tarent.de)
+     */
+    @Getter
+    public static class ErrnoException extends IOException {
+        private static final long serialVersionUID = 4796003619902398102L;
+
+        final int errno;
+        final String strerror;
+        final String failureDescription;
+
+        ErrnoException(final String file, final int line, final String func,
+          final String msg, final int err, final String str, final Throwable cause) {
+            super(renderNativeExceptionMessage(file, line, func, msg, str), cause);
+            errno = err;
+            strerror = str;
+            failureDescription = msg;
+            prependNativeStackTrace(this, file, line, func);
+        }
+    }
+
+    /**
+     * Represents an error thrown in native code from ECN-Bits {@link JNI}.
+     * This one is a {@link SocketException}.
+     *
+     * @author mirabilos (t.glaser@tarent.de)
+     */
+    @Getter
+    public static class ErrnoSocketException extends SocketException {
+        private static final long serialVersionUID = 765509932782664221L;
+
+        final int errno;
+        final String strerror;
+        final String failureDescription;
+
+        ErrnoSocketException(final String file, final int line, final String func,
+          final String msg, final int err, final String str, final Throwable cause) {
+            super(renderNativeExceptionMessage(file, line, func, msg, str));
+            if (cause != null) {
+                Log.e("ECN-Bits-JNI",
+                  "Due to Android API limitations, lost cause for ErrnoSocketException: " + getMessage(),
+                  cause);
+            }
+            errno = err;
+            strerror = str;
+            failureDescription = msg;
+            prependNativeStackTrace(this, file, line, func);
+        }
+    }
 
     /**
      * JNI representation of an IP address and port tuple, address created by
@@ -174,7 +218,7 @@ final class JNI {
       final boolean block) throws ErrnoException;
 
     static native int n_getsockopt(final int fd,
-      final int optenum) throws ErrnoException;
+      final int optenum) throws SocketException;
 
     static native void n_setsockopt(final int fd,
       final int optenum, final int value) throws ErrnoException;

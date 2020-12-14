@@ -80,6 +80,10 @@ public class JNITest {
         assertNotEquals(0, tid, "but is 0");
     }
 
+    // Java 9 has List.of(…) directly but Android is at best Java 8 :/
+    final List<String> knownStrerrorVariantsEBADF = Stream.of("Bad file descriptor",
+      "Ungültiger Dateideskriptor").collect(Collectors.toCollection(ArrayList::new));
+
     @Test
     @EnabledOnOs(LINUX)
     public void testJNIException() {
@@ -90,13 +94,28 @@ public class JNITest {
         assertEquals(/* EBADF */ 9, t.getErrno(), "is not EBADF");
         assertEquals("close(-1)", t.getFailureDescription(), "description");
 
-        // Java 9 has List.of(…) directly but Android is at best Java 8 :/
-        final List<String> knownStrerrorVariants = Stream.of("Bad file descriptor",
-          "Ungültiger Dateideskriptor").collect(Collectors.toCollection(ArrayList::new));
-        if (knownStrerrorVariants.contains(t.getStrerror())) {
-            LOGGER.info("strerror also matches or is known");
+        if (knownStrerrorVariantsEBADF.contains(t.getStrerror())) {
+            LOGGER.info("strerror also matches EBADF (close) or is known");
         } else {
-            LOGGER.warning(String.format("strerror \"%s\" does not match," +
+            LOGGER.warning(String.format("strerror \"%s\" does not match EBADF (close)," +
+              " could also be locale-dependent, please check manually!", t.getStrerror()));
+        }
+    }
+
+    @Test
+    @EnabledOnOs(LINUX)
+    public void testJNISocketException() {
+        final JNI.ErrnoSocketException t = assertThrows(JNI.ErrnoSocketException.class,
+          () -> JNI.n_getsockopt(-1, JNI.IP_TOS),
+          "want an EBADF exception");
+        LOGGER.log(Level.INFO, "successfully caught", t);
+        assertEquals(/* EBADF */ 9, t.getErrno(), "is not EBADF");
+        assertEquals("getsockopt(-1, 41, 67)", t.getFailureDescription(), "description");
+
+        if (knownStrerrorVariantsEBADF.contains(t.getStrerror())) {
+            LOGGER.info("strerror also matches EBADF (getsockopt) or is known");
+        } else {
+            LOGGER.warning(String.format("strerror \"%s\" does not match EBADF (getsockopt)," +
               " could also be locale-dependent, please check manually!", t.getStrerror()));
         }
     }
