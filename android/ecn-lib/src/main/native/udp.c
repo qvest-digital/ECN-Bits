@@ -26,11 +26,13 @@
 #include <netinet/ip.h>
 /*#include <netinet6/in6.h>*/
 #include <errno.h>
+#include <fcntl.h>
 #include <poll.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,6 +48,7 @@
 
 #define NELEM(a)	(sizeof(a) / sizeof((a)[0]))
 #define __unused	__attribute__((__unused__))
+#define ecnbool		uint8_t
 
 #ifdef __ANDROID__
 #define rstrerrinit()	/* nothing */
@@ -65,9 +68,9 @@ static JNICALL jlong n_gettid(JNIEnv *, jclass);
 static JNICALL void n_sigtid(JNIEnv *, jclass, jlong);
 static JNICALL void n_close(JNIEnv *, jclass, jint);
 static JNICALL jint n_socket(JNIEnv *, jclass);
-#if 0
 static JNICALL void n_setnonblock(JNIEnv *, jclass, jint, jboolean);
 static JNICALL jint n_getsockopt(JNIEnv *, jclass, jint, jint);
+#if 0
 static JNICALL void n_setsockopt(JNIEnv *, jclass, jint, jint, jint);
 static JNICALL void n_getsockname(JNIEnv *, jclass, jint, jobject);
 static JNICALL void n_bind(JNIEnv *, jclass, jint, jbyteArray, jint);
@@ -87,9 +90,9 @@ static const JNINativeMethod methods[] = {
 	METH(n_sigtid, "(J)V"),
 	METH(n_close, "(I)V"),
 	METH(n_socket, "()I"),
-#if 0
 	METH(n_setnonblock, "(IZ)V"),
 	METH(n_getsockopt, "(II)I"),
+#if 0
 	METH(n_setsockopt, "(III)V"),
 	METH(n_getsockname, "(ILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)V"),
 	METH(n_bind, "(I[BI)V"),
@@ -387,13 +390,79 @@ n_socket(JNIEnv *env, jclass cls __unused)
 	return (fd);
 }
 
+static JNICALL void
+n_setnonblock(JNIEnv *env, jclass cls __unused, jint fd, jboolean block)
+{
+	int oflags, nflags;
+
+	if ((oflags = fcntl(fd, F_GETFL)) == -1)
+		ethrow(env, "fcntl(%s)", "F_GETFL");
+	nflags = (oflags & ~O_NONBLOCK) | (block == JNI_TRUE ? 0 : O_NONBLOCK);
+	if (nflags != oflags && fcntl(fd, F_SETFL, nflags) == -1)
+		ethrow(env, "fcntl(%s)", "F_SETFL");
+}
+
+static JNICALL jint
+n_getsockopt(JNIEnv *env, jclass cls __unused, jint fd, jint optenum)
+{
+	int level, optname, optval;
+	socklen_t optlen;
+	ecnbool isbool;
+
+	switch (optenum) {
+	case 0: // IP_TOS
+		isbool = 0;
+		level = IPPROTO_IPV6;
+		optname = IPV6_TCLASS;
+		break;
+	case 1: // SO_BROADCAST
+		isbool = 1;
+		level = SOL_SOCKET;
+		optname = SO_BROADCAST;
+		break;
+	case 2: // SO_RCVBUF
+		isbool = 0;
+		level = SOL_SOCKET;
+		optname = SO_RCVBUF;
+		break;
+	case 3: // SO_REUSEADDR
+		isbool = 1;
+		level = SOL_SOCKET;
+		optname = SO_REUSEADDR;
+		break;
+	case 4: // SO_SNDBUF
+		isbool = 0;
+		level = SOL_SOCKET;
+		optname = SO_SNDBUF;
+		break;
+	default:
+		/* NOTREACHED */
+		return (-1);
+	}
+
+	optlen = sizeof(optval);
+	if (getsockopt(fd, level, optname, &optval, &optlen) == -1) {
+		//XXX should be SocketException
+		ethrow(env, "getsockopt(%d,%d)", level, optname);
+		return (-1);
+	}
+
+	switch (optenum) {
+	case 2: // SO_RCVBUF
+	case 4: // SO_SNDBUF
+		/* doubled return values under Linux */
+		optval /= 2;
+		break;
+	}
+
+	return (isbool ? (optval ? JNI_TRUE : JNI_FALSE) : (jint)optval);
+}
+
 #if 0
 static JNICALL void
-n_setnonblock(JNIEnv *env, jclass cls __unused, jint, jboolean block)
-static JNICALL jint
-n_getsockopt(JNIEnv *env, jclass cls __unused, jint, jint optenum)
-static JNICALL void
-n_setsockopt(JNIEnv *env, jclass cls __unused, jint, jint optenum, jint value)
+n_setsockopt(JNIEnv *env, jclass cls __unused, jint fd, jint optenum, jint value)
+{
+
 static JNICALL void
 n_getsockname(JNIEnv *env, jclass cls __unused, jint fd, jobject ap)
 static JNICALL void

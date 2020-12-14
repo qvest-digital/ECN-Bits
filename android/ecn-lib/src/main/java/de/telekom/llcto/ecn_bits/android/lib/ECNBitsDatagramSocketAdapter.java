@@ -138,16 +138,12 @@ class ECNBitsDatagramSocketAdapter extends AbstractECNBitsDatagramSocket {
 
     @Override
     public InetAddress getInetAddress() {
-        return (isConnected()
-          ? net_asInetSocketAddress(dc.i_remoteAddress()).getAddress()
-          : null);
+        return (isConnected() ? net_asInetSocketAddress(dc.i_remoteAddress()).getAddress() : null);
     }
 
     @Override
     public int getPort() {
-        return (isConnected()
-          ? net_asInetSocketAddress(dc.i_remoteAddress()).getPort()
-          : -1);
+        return (isConnected() ? net_asInetSocketAddress(dc.i_remoteAddress()).getPort() : -1);
     }
 
     @Override

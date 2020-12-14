@@ -153,6 +153,20 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
     public <T> ECNBitsDatagramChannel setOption(final SocketOption<T> name, final T value) throws IOException {
         final int opt = DefaultOptionsHolder.optenum(name);
         final int val = DefaultOptionsHolder.to(name, opt, value);
+        switch (opt) {
+        case JNI.IP_TOS:
+            if (val < 0 || val > 255) {
+                throw new IllegalArgumentException("Invalid IP_TOS value");
+            }
+            break;
+        case JNI.SO_RCVBUF:
+        case JNI.SO_SNDBUF:
+            if (val < 0) {
+                throw new IllegalArgumentException("Invalid send/receive buffer size");
+            }
+            break;
+        }
+
         synchronized (stateLock) {
             ensureOpen();
             n_setsockopt(fdVal, opt, val);
