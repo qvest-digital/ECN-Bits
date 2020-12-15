@@ -406,7 +406,7 @@ final class JNI {
       final AddrPort ap) throws SocketException;
 
     static native void n_bind(final int fd,
-      final byte[] addr, final int port, final int scopeId) throws ErrnoException;
+      final byte[] addr, final int port, final int scopeId) throws SocketException;
 
     static native void n_connect(final int fd,
       final byte[] addr, final int port, final int scopeId) throws ErrnoException;

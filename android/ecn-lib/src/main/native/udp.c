@@ -27,6 +27,7 @@
 /*#include <netinet6/in6.h>*/
 #include <errno.h>
 #include <fcntl.h>
+#include <netdb.h>
 #include <poll.h>
 #include <pthread.h>
 #include <signal.h>
@@ -58,6 +59,14 @@
 #define rstrerror(e)	jniStrError((e), rstrerrstr, sizeof(rstrerrstr))
 #endif
 
+#define rgetnaminfo(e,s,S) \
+			int e = errno; \
+			char s[64]; \
+			if (getnameinfo((struct sockaddr *)(S), \
+			    sizeof(struct sockaddr_in6), \
+			    s, sizeof(s), NULL, 0, NI_NUMERICHOST)) \
+				memcpy(s, "<EAI_*>", sizeof("<EAI_*>") + 1)
+
 #define eX		0	// ErrnoException : IOException
 #define eX_S		1	// ErrnoSocketException
 #define eX_PROTO	2	// ErrnoProtocolException
@@ -79,8 +88,8 @@ static JNICALL void n_setnonblock(JNIEnv *, jclass, jint, jboolean);
 static JNICALL jint n_getsockopt(JNIEnv *, jclass, jint, jint);
 static JNICALL void n_setsockopt(JNIEnv *, jclass, jint, jint, jint);
 static JNICALL void n_getsockname(JNIEnv *, jclass, jint, jobject);
-#if 0
 static JNICALL void n_bind(JNIEnv *, jclass, jint, jbyteArray, jint, jint);
+#if 0
 static JNICALL void n_connect(JNIEnv *, jclass, jint, jbyteArray, jint, jint);
 static JNICALL void n_disconnect(JNIEnv *, jclass, jint);
 static JNICALL jint n_recv(JNIEnv *, jclass, jint, jobject, jint, jint, jobject);
@@ -101,8 +110,8 @@ static const JNINativeMethod methods[] = {
 	METH(n_getsockopt, "(II)I"),
 	METH(n_setsockopt, "(III)V"),
 	METH(n_getsockname, "(ILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)V"),
-#if 0
 	METH(n_bind, "(I[BII)V"),
+#if 0
 	METH(n_connect, "(I[BII)V"),
 	METH(n_disconnect, "(I)V"),
 	METH(n_recv, "(ILjava/nio/ByteBuffer;IILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)I"),
@@ -609,12 +618,40 @@ n_getsockname(JNIEnv *env, jclass cls __unused, jint fd, jobject ap)
 	(*env)->SetIntField(env, ap, o_AP_port, ntohs(sa.sin6.sin6_port));
 }
 
-#if 0
+static int
+mksockaddr(JNIEnv *env, struct sockaddr_in6 *sin6, jbyteArray arr, jint port, jint scope)
+{
+	jbyte *addr;
+
+	memset(sin6, '\0', sizeof(struct sockaddr_in6));
+	sin6->sin6_family = AF_INET6;
+	sin6->sin6_port = htons((uint16_t)port);
+
+	if (!(addr = (*env)->GetPrimitiveArrayCritical(env, arr, NULL)))
+		return (1);
+	memcpy(sin6->sin6_addr.s6_addr, addr, 16);
+	(*env)->ReleasePrimitiveArrayCritical(env, arr, addr, JNI_ABORT);
+
+	sin6->sin6_scope_id = scope > 0 ? (uint32_t)scope : 0U;
+
+	return (0);
+}
+
 static JNICALL void
 n_bind(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port, jint scope)
 {
+	struct sockaddr_in6 sin6;
 
+	if (mksockaddr(env, &sin6, addr, port, scope) /* threw an exception */)
+		return;
+	if (bind(fd, (struct sockaddr *)&sin6, sizeof(sin6)) == -1) {
+		rgetnaminfo(r_errno, r_host, &sin6);
+		throw(env, eX_S_auto, r_errno, "bind(%d, [%s]:%u)",
+		    fd, r_host, (int)port);
+	}
+}
 
+#if 0
 static JNICALL void
 n_connect(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port, jint scope)
 // connect() with empty, zero’d struct sockaddr_in6 with sin6_family = AF_UNSPEC
