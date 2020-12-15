@@ -846,6 +846,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
         }
     }
 
+    // for {@link ECNBitsDatagramSocketAdapter#receive(ByteBuffer)}
     int pollin(int timeout) throws IOException {
         synchronized (readLock) {
             int n = 0;

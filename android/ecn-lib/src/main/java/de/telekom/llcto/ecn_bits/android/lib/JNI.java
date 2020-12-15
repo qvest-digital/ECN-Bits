@@ -409,9 +409,9 @@ final class JNI {
       final byte[] addr, final int port, final int scopeId) throws SocketException;
 
     static native void n_connect(final int fd,
-      final byte[] addr, final int port, final int scopeId) throws ErrnoException;
+      final byte[] addr, final int port, final int scopeId) throws SocketException;
 
-    static native void n_disconnect(final int fd) throws ErrnoException;
+    static native void n_disconnect(final int fd) throws SocketException;
 
     static native int n_recv(final int fd,
       final ByteBuffer buf, final int bbpos, final int bbsize,
@@ -428,9 +428,9 @@ final class JNI {
       final SGIO[] bufs,
       final byte[] addr, final int port, final int scopeId) throws ErrnoException;
 
-    // 1 (ok), 0 (timeout), EINTR or THROWN; similar to nativePoll in D.Socket but different rv + throws
+    // 1 (ok), 0 (timeout or POLLERR/POLLHUP/POLLNVAL), EINTR or THROWN
     static native int n_pollin(final int fd,
-      final int timeout) throws ErrnoException;
+      final int timeout) throws SocketException;
 
     // +++ I/O operations +++
 

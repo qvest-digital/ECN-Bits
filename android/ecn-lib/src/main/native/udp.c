@@ -59,6 +59,11 @@
 #define rstrerror(e)	jniStrError((e), rstrerrstr, sizeof(rstrerrstr))
 #endif
 
+#define IO_THROWN	(-4)
+#define IO_EINTR	(-3)
+#define IO_EAVAIL	(-2)
+/* -1 is EOF */
+
 #define rgetnaminfo(e,s,S) \
 			int e = errno; \
 			char s[64]; \
@@ -67,17 +72,21 @@
 			    s, sizeof(s), NULL, 0, NI_NUMERICHOST)) \
 				memcpy(s, "<EAI_*>", sizeof("<EAI_*>") + 1)
 
+/* throw kinds: */
 #define eX		0	// ErrnoException : IOException
-#define eX_S		1	// ErrnoSocketException
-#define eX_PROTO	2	// ErrnoProtocolException
-#define eX_CONNECT	3	// ErrnoConnectException
-#define eX_UNREACH	4	// ErrnoNoRouteToHostException
-#define eX_BIND		5	// ErrnoBindException
+#define eX_S		1	// ErrnoSocketException : SocketException
+#define eX_PROTO	2	// ErrnoProtocolException : IOException (!)
+#define eX_CONNECT	3	// ErrnoConnectException : SocketException
+#define eX_UNREACH	4	// ErrnoNoRouteToHostException : SocketException
+#define eX_BIND		5	// ErrnoBindException : SocketException
+/* _auto ones return SocketException if EPROTO isn’t encountered, IOException otherwise */
 #define eX_S_auto	6	// 2‥5 depending on errno, default 1
+#define eX_CONNECT_auto	7	// 2‥5 depending on errno, default 3
+
 #define ethrow(env,kind,...)	throw(env, kind, errno, __VA_ARGS__)
 #define throw(env,kind,ec,...)	\
 	    vthrow(__FILE__, __func__, env, __LINE__, kind, ec, __VA_ARGS__)
-static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
+static int vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
 	    int loc_line, int kind, int errcode, const char *fmt, ...);
 
 static JNICALL jlong n_gettid(JNIEnv *, jclass);
@@ -89,15 +98,15 @@ static JNICALL jint n_getsockopt(JNIEnv *, jclass, jint, jint);
 static JNICALL void n_setsockopt(JNIEnv *, jclass, jint, jint, jint);
 static JNICALL void n_getsockname(JNIEnv *, jclass, jint, jobject);
 static JNICALL void n_bind(JNIEnv *, jclass, jint, jbyteArray, jint, jint);
-#if 0
 static JNICALL void n_connect(JNIEnv *, jclass, jint, jbyteArray, jint, jint);
 static JNICALL void n_disconnect(JNIEnv *, jclass, jint);
+#if 0
 static JNICALL jint n_recv(JNIEnv *, jclass, jint, jobject, jint, jint, jobject);
 static JNICALL jint n_send(JNIEnv *, jclass, jint, jobject, jint, jint, jbyteArray, jint, jint);
 static JNICALL jlong n_rd(JNIEnv *, jclass, jint, jobjectArray, jint, jobject);
 static JNICALL jlong n_wr(JNIEnv *, jclass, jint, jobjectArray, jbyteArray, jint, jint);
-static JNICALL jint n_pollin(JNIEnv *, jclass, jint, jint);
 #endif
+static JNICALL jint n_pollin(JNIEnv *, jclass, jint, jint);
 
 #define METH(name,signature) \
 	{ #name, signature, (void *)(name) }
@@ -111,15 +120,15 @@ static const JNINativeMethod methods[] = {
 	METH(n_setsockopt, "(III)V"),
 	METH(n_getsockname, "(ILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)V"),
 	METH(n_bind, "(I[BII)V"),
-#if 0
 	METH(n_connect, "(I[BII)V"),
 	METH(n_disconnect, "(I)V"),
+#if 0
 	METH(n_recv, "(ILjava/nio/ByteBuffer;IILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)I"),
 	METH(n_send, "(ILjava/nio/ByteBuffer;II[BII)I"),
 	METH(n_rd, "(I[Lde/telekom/llcto/ecn_bits/android/lib/JNI$SGIO;ILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)J"),
 	METH(n_wr, "(I[Lde/telekom/llcto/ecn_bits/android/lib/JNI$SGIO;[BII)J"),
-	METH(n_pollin, "(II)I")
 #endif
+	METH(n_pollin, "(II)I")
 };
 #undef METH
 
@@ -281,7 +290,7 @@ JNI_OnUnload(JavaVM *vm, void *reserved __unused)
 	ecnlog_info("unload successful");
 }
 
-static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
+static int vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
     int loc_line, int kind, int errcode, const char *fmt, ...)
 {
 	jthrowable e;
@@ -314,8 +323,11 @@ static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
 #undef KIND
 	case eX_S_auto:
 		kind = eX_S;
-// handleSocketErrorWithDefault:
+ handleSocketErrorWithDefault:
 		switch (errcode) {
+		case EINPROGRESS:
+			/* nōn-blocking connect */
+			return (0);
 		case EPROTO:
 			kind = eX_PROTO;
 			break;
@@ -332,6 +344,9 @@ static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
 			break;
 		}
 		goto rekindle;
+	case eX_CONNECT_auto:
+		kind = eX_CONNECT;
+		goto handleSocketErrorWithDefault;
 	case eX:
 	default:
 		e_cls = cls_EX;
@@ -344,7 +359,7 @@ static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
 		(*env)->ExceptionClear(env);
 		(*env)->Throw(env, (*env)->NewObject(env, e_cls, e_init,
 		    jfile, jline, jfunc, jmsg, jerr, jstr, cause));
-		return;
+		return (IO_THROWN);
 	}
 
 	if ((cause = (*env)->ExceptionOccurred(env))) {
@@ -395,6 +410,7 @@ static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
 	    jfile, jline, jfunc, jmsg, jerr, jstr, cause));
 	if (e)
 		(*env)->Throw(env, e);
+	return (IO_THROWN);
 }
 
 union tid {
@@ -651,12 +667,32 @@ n_bind(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port, ji
 	}
 }
 
-#if 0
 static JNICALL void
 n_connect(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port, jint scope)
-// connect() with empty, zero’d struct sockaddr_in6 with sin6_family = AF_UNSPEC
+{
+	struct sockaddr_in6 sin6;
+
+	if (mksockaddr(env, &sin6, addr, port, scope) /* threw an exception */)
+		return;
+	if (connect(fd, (struct sockaddr *)&sin6, sizeof(sin6)) == -1) {
+		rgetnaminfo(r_errno, r_host, &sin6);
+		throw(env, eX_CONNECT_auto, r_errno, "connect(%d, [%s]:%u)",
+		    fd, r_host, (int)port);
+	}
+}
+
 static JNICALL void
 n_disconnect(JNIEnv *env, jclass cls __unused, jint fd)
+{
+	struct sockaddr_in6 sin6;
+
+	memset(&sin6, '\0', sizeof(sin6));
+	sin6.sin6_family = AF_UNSPEC;
+	if (connect(fd, (struct sockaddr *)&sin6, sizeof(sin6)) == -1)
+		ethrow(env, eX_S_auto, "disconnect(%d)", fd);
+}
+
+#if 0
 static JNICALL jint
 n_recv(JNIEnv *env, jclass cls __unused, jint fd,
     jobject bbuf, jint bbpos, jint bbsize, jobject aptc)
@@ -669,6 +705,23 @@ n_rd(JNIEnv *env, jclass cls __unused, jint fd,
 static JNICALL jlong
 n_wr(JNIEnv *env, jclass cls __unused, jint fd,
     jobjectArray bufs, jbyteArray addr, jint port, jint scope)
+#endif
+
 static JNICALL jint
 n_pollin(JNIEnv *env, jclass cls __unused, jint fd, jint timeout)
-#endif
+{
+	struct pollfd pfd;
+
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+	switch (poll(&pfd, 1, timeout)) {
+	case 1:
+		return ((pfd.revents & POLLIN) ? 1 : 0);
+	case 0:
+		return (0);
+	default:
+		if (errno == EINTR)
+			return (IO_EINTR);
+		return (ethrow(env, eX_S_auto, "poll(%d, POLLIN, %d)", fd, timeout));
+	}
+}
