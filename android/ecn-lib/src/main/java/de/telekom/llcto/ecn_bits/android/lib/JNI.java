@@ -299,6 +299,10 @@ final class JNI {
                 throw new UnknownHostException("addr is of illegal length");
             }
             final byte[] nb = new byte[16];
+            if (ob[0] == 0 && ob[1] == 0 && ob[2] == 0 && ob[3] == 0) {
+                // INADDR_ANY, map to IN6ADDR_ANY
+                return nb;
+            }
             nb[10] = (byte) 0xFF;
             nb[11] = (byte) 0xFF;
             nb[12] = ob[0];
