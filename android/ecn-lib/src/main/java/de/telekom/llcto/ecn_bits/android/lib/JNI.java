@@ -330,7 +330,7 @@ final class JNI {
 
     // +++ socket operations +++
 
-    static native int n_socket() throws ErrnoException;
+    static native int n_socket() throws SocketException;
 
     static native void n_close(final int fd) throws ErrnoException;
 
@@ -341,10 +341,10 @@ final class JNI {
       final int optenum) throws SocketException;
 
     static native void n_setsockopt(final int fd,
-      final int optenum, final int value) throws ErrnoException;
+      final int optenum, final int value) throws SocketException;
 
     static native void n_getsockname(final int fd,
-      final AddrPort ap) throws ErrnoException;
+      final AddrPort ap) throws SocketException;
 
     static native void n_bind(final int fd,
       final byte[] addr, final int port) throws ErrnoException;
