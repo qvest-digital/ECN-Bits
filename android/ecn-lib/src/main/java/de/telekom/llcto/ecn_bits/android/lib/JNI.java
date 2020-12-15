@@ -26,8 +26,12 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 
 import java.io.IOException;
+import java.net.BindException;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NoRouteToHostException;
+import java.net.ProtocolException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
@@ -123,9 +127,125 @@ final class JNI {
           final String msg, final int err, final String str, final Throwable cause) {
             super(renderNativeExceptionMessage(file, line, func, msg, str));
             if (cause != null) {
-                Log.e("ECN-Bits-JNI",
-                  "Due to Android API limitations, lost cause for ErrnoSocketException: " + getMessage(),
-                  cause);
+                Log.e("ECN-Bits-JNI", "Due to Android API limitations, " +
+                  ErrnoSocketException.class.getSimpleName() +
+                  "(" + getMessage() + ") lost cause:", cause);
+            }
+            errno = err;
+            strerror = str;
+            failureDescription = msg;
+            prependNativeStackTrace(this, file, line, func);
+        }
+    }
+
+    /**
+     * Represents an error thrown in native code from ECN-Bits {@link JNI}.
+     * This one is a {@link ProtocolException}.
+     *
+     * @author mirabilos (t.glaser@tarent.de)
+     */
+    @Getter
+    public static class ErrnoProtocolException extends ProtocolException {
+        private static final long serialVersionUID = -1983205541360443188L;
+
+        final int errno;
+        final String strerror;
+        final String failureDescription;
+
+        ErrnoProtocolException(final String file, final int line, final String func,
+          final String msg, final int err, final String str, final Throwable cause) {
+            super(renderNativeExceptionMessage(file, line, func, msg, str));
+            if (cause != null) {
+                Log.e("ECN-Bits-JNI", "Due to Android API limitations, " +
+                  ErrnoProtocolException.class.getSimpleName() +
+                  "(" + getMessage() + ") lost cause:", cause);
+            }
+            errno = err;
+            strerror = str;
+            failureDescription = msg;
+            prependNativeStackTrace(this, file, line, func);
+        }
+    }
+
+    /**
+     * Represents an error thrown in native code from ECN-Bits {@link JNI}.
+     * This one is a {@link ConnectException}.
+     *
+     * @author mirabilos (t.glaser@tarent.de)
+     */
+    @Getter
+    public static class ErrnoConnectException extends ConnectException {
+        private static final long serialVersionUID = 3188126153655642133L;
+
+        final int errno;
+        final String strerror;
+        final String failureDescription;
+
+        ErrnoConnectException(final String file, final int line, final String func,
+          final String msg, final int err, final String str, final Throwable cause) {
+            super(renderNativeExceptionMessage(file, line, func, msg, str));
+            if (cause != null) {
+                Log.e("ECN-Bits-JNI", "Due to Android API limitations, " +
+                  ErrnoConnectException.class.getSimpleName() +
+                  "(" + getMessage() + ") lost cause:", cause);
+            }
+            errno = err;
+            strerror = str;
+            failureDescription = msg;
+            prependNativeStackTrace(this, file, line, func);
+        }
+    }
+
+    /**
+     * Represents an error thrown in native code from ECN-Bits {@link JNI}.
+     * This one is a {@link NoRouteToHostException}.
+     *
+     * @author mirabilos (t.glaser@tarent.de)
+     */
+    @Getter
+    public static class ErrnoNoRouteToHostException extends NoRouteToHostException {
+        private static final long serialVersionUID = 4471447243574037695L;
+
+        final int errno;
+        final String strerror;
+        final String failureDescription;
+
+        ErrnoNoRouteToHostException(final String file, final int line, final String func,
+          final String msg, final int err, final String str, final Throwable cause) {
+            super(renderNativeExceptionMessage(file, line, func, msg, str));
+            if (cause != null) {
+                Log.e("ECN-Bits-JNI", "Due to Android API limitations, " +
+                  ErrnoNoRouteToHostException.class.getSimpleName() +
+                  "(" + getMessage() + ") lost cause:", cause);
+            }
+            errno = err;
+            strerror = str;
+            failureDescription = msg;
+            prependNativeStackTrace(this, file, line, func);
+        }
+    }
+
+    /**
+     * Represents an error thrown in native code from ECN-Bits {@link JNI}.
+     * This one is a {@link BindException}.
+     *
+     * @author mirabilos (t.glaser@tarent.de)
+     */
+    @Getter
+    public static class ErrnoBindException extends BindException {
+        private static final long serialVersionUID = -6833794700911991286L;
+
+        final int errno;
+        final String strerror;
+        final String failureDescription;
+
+        ErrnoBindException(final String file, final int line, final String func,
+          final String msg, final int err, final String str, final Throwable cause) {
+            super(renderNativeExceptionMessage(file, line, func, msg, str));
+            if (cause != null) {
+                Log.e("ECN-Bits-JNI", "Due to Android API limitations, " +
+                  ErrnoBindException.class.getSimpleName() +
+                  "(" + getMessage() + ") lost cause:", cause);
             }
             errno = err;
             strerror = str;

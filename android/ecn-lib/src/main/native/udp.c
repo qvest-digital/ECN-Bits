@@ -58,8 +58,13 @@
 #define rstrerror(e)	jniStrError((e), rstrerrstr, sizeof(rstrerrstr))
 #endif
 
-#define eX		0
-#define eX_S		1
+#define eX		0	// ErrnoException : IOException
+#define eX_S		1	// ErrnoSocketException
+#define eX_PROTO	2	// ErrnoProtocolException
+#define eX_CONNECT	3	// ErrnoConnectException
+#define eX_UNREACH	4	// ErrnoNoRouteToHostException
+#define eX_BIND		5	// ErrnoBindException
+#define eX_S_auto	6	// 2‥5 depending on errno, default 1
 #define ethrow(env,kind,...)	throw(env, kind, errno, __VA_ARGS__)
 #define throw(env,kind,ec,...)	\
 	    vthrow(__FILE__, __func__, env, __LINE__, kind, ec, __VA_ARGS__)
@@ -109,14 +114,23 @@ static const JNINativeMethod methods[] = {
 };
 #undef METH
 
-static jclass cls_JNI;	// JNI
-static jclass cls_EX;	// JNI.ErrnoException
-static jclass cls_EX_S;	// JNI.ErrnoSocketException
-static jclass cls_AP;	// JNI.AddrPort
-static jclass cls_SG;	// JNI.SGIO
+static jclass cls_JNI;		// JNI
+static jclass cls_EX;		// JNI.ErrnoException
+static jclass cls_EX_S;		// JNI.ErrnoSocketException
+static jclass cls_EX_PROTO;	// JNI.ErrnoProtocolException
+static jclass cls_EX_CONNECT;	// JNI.ErrnoConnectException
+static jclass cls_EX_UNREACH;	// JNI.ErrnoNoRouteToHostException
+static jclass cls_EX_BIND;	// JNI.ErrnoBindException
+static jclass cls_AP;		// JNI.AddrPort
+static jclass cls_SG;		// JNI.SGIO
 
-static jmethodID i_EX_c;	// exception constructor
-static jmethodID i_EX_S_c;	// exception constructor
+// exception constructors:
+static jmethodID i_EX_c;
+static jmethodID i_EX_S_c;
+static jmethodID i_EX_PROTO_c;
+static jmethodID i_EX_CONNECT_c;
+static jmethodID i_EX_UNREACH_c;
+static jmethodID i_EX_BIND_c;
 
 static void
 free_grefs(JNIEnv *env)
@@ -131,6 +145,10 @@ free_grefs(JNIEnv *env)
 #endif
 	f(cls_SG);
 	f(cls_AP);
+	f(cls_EX_BIND);
+	f(cls_EX_UNREACH);
+	f(cls_EX_CONNECT);
+	f(cls_EX_PROTO);
 	f(cls_EX_S);
 	f(cls_EX);
 	f(cls_JNI);
@@ -179,6 +197,10 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 	getclass(JNI, "de/telekom/llcto/ecn_bits/android/lib/JNI");
 	getclass(EX, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoException");
 	getclass(EX_S, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoSocketException");
+	getclass(EX_PROTO, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoProtocolException");
+	getclass(EX_CONNECT, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoConnectException");
+	getclass(EX_UNREACH, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoNoRouteToHostException");
+	getclass(EX_BIND, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoBindException");
 	getclass(AP, "de/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort");
 	getclass(SG, "de/telekom/llcto/ecn_bits/android/lib/JNI$SGIO");
 #ifndef ECNBITS_SKIP_DALVIK
@@ -190,6 +212,10 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 
 	getcons(EX, c, "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Throwable;)V");
 	getcons(EX_S, c, "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Throwable;)V");
+	getcons(EX_PROTO, c, "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Throwable;)V");
+	getcons(EX_CONNECT, c, "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Throwable;)V");
+	getcons(EX_UNREACH, c, "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Throwable;)V");
+	getcons(EX_BIND, c, "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Throwable;)V");
 #ifndef ECNBITS_SKIP_DALVIK
 	/* for nh library */
 	getcons(FD, c, "()V");
@@ -255,11 +281,39 @@ static void vthrow(const char *loc_file, const char *loc_func, JNIEnv *env,
 	char *msgbuf;
 	rstrerrinit();
 
+ rekindle:
 	switch (kind) {
-	case eX_S:
-		e_cls = cls_EX_S;
-		e_init = i_EX_S_c;
-		break;
+#define KIND(what) \
+	case eX_ ## what: \
+		e_cls = cls_EX_ ## what; \
+		e_init = i_EX_ ## what ## _c; \
+		break
+	KIND(S);
+	KIND(PROTO);
+	KIND(CONNECT);
+	KIND(UNREACH);
+	KIND(BIND);
+#undef KIND
+	case eX_S_auto:
+		kind = eX_S;
+// handleSocketErrorWithDefault:
+		switch (errcode) {
+		case EPROTO:
+			kind = eX_PROTO;
+			break;
+		case ECONNREFUSED:
+		case ETIMEDOUT:
+			kind = eX_CONNECT;
+			break;
+		case EHOSTUNREACH:
+			kind = eX_UNREACH;
+			break;
+		case EADDRINUSE:
+		case EADDRNOTAVAIL:
+			kind = eX_BIND;
+			break;
+		}
+		goto rekindle;
 	case eX:
 	default:
 		e_cls = cls_EX;
@@ -373,7 +427,7 @@ n_socket(JNIEnv *env, jclass cls __unused)
 	int so;
 
 	if ((fd = socket(AF_INET6, SOCK_DGRAM, 0)) == -1) {
-		ethrow(env, eX, "socket");
+		ethrow(env, eX_S_auto, "socket");
 		return (-1);
 	}
 	tagSocket(env, fd);
@@ -389,7 +443,7 @@ n_socket(JNIEnv *env, jclass cls __unused)
 	if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY,
 	    (const void *)&so, sizeof(so))) {
 		eclose(fd);
-		ethrow(env, eX, "setsockopt(%s)", "IPV6_V6ONLY");
+		ethrow(env, eX_S, "setsockopt(%s)", "IPV6_V6ONLY");
 		return (-1);
 	}
 
@@ -398,13 +452,13 @@ n_socket(JNIEnv *env, jclass cls __unused)
 	if (setsockopt(fd, IPPROTO_IPV6, IPV6_RECVTCLASS,
 	    (const void *)&so, sizeof(so))) {
 		eclose(fd);
-		ethrow(env, eX, "setsockopt(%s)", "IPV6_RECVTCLASS");
+		ethrow(env, eX_S, "setsockopt(%s)", "IPV6_RECVTCLASS");
 		return (-1);
 	}
 	if (setsockopt(fd, IPPROTO_IP, IP_RECVTOS,
 	    (const void *)&so, sizeof(so))) {
 		eclose(fd);
-		ethrow(env, eX, "setsockopt(%s)", "IP_RECVTOS");
+		ethrow(env, eX_S, "setsockopt(%s)", "IP_RECVTOS");
 		return (-1);
 	}
 
