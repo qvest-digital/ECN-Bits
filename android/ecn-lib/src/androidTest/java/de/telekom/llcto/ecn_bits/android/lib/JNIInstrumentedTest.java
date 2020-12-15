@@ -70,7 +70,7 @@ public class JNIInstrumentedTest {
           () -> JNI.n_sigtid(0),
           "want an ESRCH exception");
         Log.i("ECN-Bits-JNITest", "successfully caught", t);
-        assertEquals("is not ESRCH",/* ESRCH */ 3, t.getErrno());
+        assertEquals("is not ESRCH", /* ESRCH */ 3, t.getErrno());
         assertEquals("description", "pthread_kill(0)", t.getFailureDescription());
         if ("No such process".equals(t.getStrerror())) {
             Log.i("ECN-Bits-JNITest", "strerror also matches ESRCH (sigtid)");
@@ -86,7 +86,7 @@ public class JNIInstrumentedTest {
           () -> JNI.n_getsockopt(-1, JNI.IP_TOS),
           "want an EBADF exception");
         Log.i("ECN-Bits-JNITest", "successfully caught", t);
-        assertEquals("is not EBADF",/* EBADF */ 9, t.getErrno());
+        assertEquals("is not EBADF", /* EBADF */ 9, t.getErrno());
         assertEquals("description", "getsockopt(-1, 41, 67)", t.getFailureDescription());
         if ("Bad file descriptor".equals(t.getStrerror())) {
             Log.i("ECN-Bits-JNITest", "strerror also matches EBADF (getsockopt)");
@@ -94,6 +94,16 @@ public class JNIInstrumentedTest {
             Log.w("ECN-Bits-JNITest", String.format("strerror \"%s\" does not match EBADF (getsockopt)," +
               " could also be locale-dependent, please check manually!", t.getStrerror()));
         }
+    }
+
+    @Test
+    public void testOtherExceptionNoCause() {
+        final NullPointerException cause = new NullPointerException("meow");
+        Log.i("ECN-Bits-JNITest", "constructing JNI exception caused by cat NPE");
+        final JNI.ErrnoSocketException t = new JNI.ErrnoSocketException("file", 1, "func",
+          "msg", 0, "Success", cause);
+        assertNull("cause is nil", t.getCause());
+        Log.i("ECN-Bits-JNITest", "end of test");
     }
 
     @Test
