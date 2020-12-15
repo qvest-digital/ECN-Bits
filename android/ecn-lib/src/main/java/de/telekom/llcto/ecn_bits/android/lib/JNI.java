@@ -28,10 +28,13 @@ import lombok.SneakyThrows;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.ConnectException;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NoRouteToHostException;
 import java.net.ProtocolException;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
@@ -270,6 +273,10 @@ final class JNI {
          * Port in host order
          */
         int port;
+        /**
+         * IPv6 scope ID (numeric); -1 if not set
+         */
+        int scopeId = -1;
 
         // not part of AddrPort but provided by the receiving JNI calls
         byte tc; // out
@@ -297,14 +304,57 @@ final class JNI {
         }
 
         /**
-         * Retrieves address/port tuple in a form usable for Java™
+         * Retrieves the IPv6 scope ID of an IP address
+         *
+         * @param isa {@link InetSocketAddress}
+         * @return scope ID (-1 if not set)
+         */
+        static int scopeId(final SocketAddress isa) {
+            if (isa instanceof InetSocketAddress) {
+                final InetAddress ia = ((InetSocketAddress) isa).getAddress();
+                if (ia instanceof Inet6Address) {
+                    return ((Inet6Address) ia).getScopeId();
+                }
+            }
+            return -1;
+        }
+
+        /**
+         * Checks whether this 16-byte address is a v4-mapped IPv6 address.
+         *
+         * @return true if it is a v4-mapped address
+         */
+        private boolean isIPv4MappedAddress() {
+            return (addr[0] == 0x00) && (addr[1] == 0x00) &&
+              (addr[2] == 0x00) && (addr[3] == 0x00) &&
+              (addr[4] == 0x00) && (addr[5] == 0x00) &&
+              (addr[6] == 0x00) && (addr[7] == 0x00) &&
+              (addr[8] == 0x00) && (addr[9] == 0x00) &&
+              (addr[10] == (byte) 0xFF) &&
+              (addr[11] == (byte) 0xFF);
+        }
+
+        /**
+         * Retrieves address in a form usable for Java™
+         *
+         * @return {@link Inet4Address} or (possibly scoped) {@link Inet6Address}
+         */
+        @SneakyThrows(UnknownHostException.class)
+        InetAddress getAddr() {
+            if (addr.length == 16 && (scopeId != -1 || !isIPv4MappedAddress())) {
+                return Inet6Address.getByAddress(null, addr, scopeId);
+            }
+            return InetAddress.getByAddress(addr);
+        }
+
+        /**
+         * Retrieves address/scope/port tuple in a form usable for Java™
          *
          * @return {@link InetSocketAddress}
          */
-        @SneakyThrows(UnknownHostException.class)
         InetSocketAddress get() {
             // v4-mapped → Inet4Address, rest Inet6Address
-            return new InetSocketAddress(InetAddress.getByAddress(addr), port);
+            return new InetSocketAddress(getAddr(), port);
         }
     }
 
@@ -347,10 +397,10 @@ final class JNI {
       final AddrPort ap) throws SocketException;
 
     static native void n_bind(final int fd,
-      final byte[] addr, final int port) throws ErrnoException;
+      final byte[] addr, final int port, final int scopeId) throws ErrnoException;
 
     static native void n_connect(final int fd,
-      final byte[] addr, final int port) throws ErrnoException;
+      final byte[] addr, final int port, final int scopeId) throws ErrnoException;
 
     static native void n_disconnect(final int fd) throws ErrnoException;
 
@@ -360,13 +410,14 @@ final class JNI {
 
     static native int n_send(final int fd,
       final ByteBuffer buf, final int bbpos, final int bbsize,
-      final byte[] addr, final int port) throws ErrnoException;
+      final byte[] addr, final int port, final int scopeId) throws ErrnoException;
 
     static native long n_rd(final int fd,
       final SGIO[] bufs, final int nbufs, final AddrPort tc) throws ErrnoException;
 
     static native long n_wr(final int fd,
-      final SGIO[] bufs, final byte[] addr, final int port) throws ErrnoException;
+      final SGIO[] bufs,
+      final byte[] addr, final int port, final int scopeId) throws ErrnoException;
 
     // 1 (ok), 0 (timeout), EINTR or THROWN; similar to nativePoll in D.Socket but different rv + throws
     static native int n_pollin(final int fd,

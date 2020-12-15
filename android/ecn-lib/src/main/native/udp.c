@@ -80,13 +80,13 @@ static JNICALL jint n_getsockopt(JNIEnv *, jclass, jint, jint);
 static JNICALL void n_setsockopt(JNIEnv *, jclass, jint, jint, jint);
 static JNICALL void n_getsockname(JNIEnv *, jclass, jint, jobject);
 #if 0
-static JNICALL void n_bind(JNIEnv *, jclass, jint, jbyteArray, jint);
-static JNICALL void n_connect(JNIEnv *, jclass, jint, jbyteArray, jint);
+static JNICALL void n_bind(JNIEnv *, jclass, jint, jbyteArray, jint, jint);
+static JNICALL void n_connect(JNIEnv *, jclass, jint, jbyteArray, jint, jint);
 static JNICALL void n_disconnect(JNIEnv *, jclass, jint);
 static JNICALL jint n_recv(JNIEnv *, jclass, jint, jobject, jint, jint, jobject);
-static JNICALL jint n_send(JNIEnv *, jclass, jint, jobject, jint, jint, jbyteArray, jint);
+static JNICALL jint n_send(JNIEnv *, jclass, jint, jobject, jint, jint, jbyteArray, jint, jint);
 static JNICALL jlong n_rd(JNIEnv *, jclass, jint, jobjectArray, jint, jobject);
-static JNICALL jlong n_wr(JNIEnv *, jclass, jint, jobjectArray, jbyteArray, jint);
+static JNICALL jlong n_wr(JNIEnv *, jclass, jint, jobjectArray, jbyteArray, jint, jint);
 static JNICALL jint n_pollin(JNIEnv *, jclass, jint, jint);
 #endif
 
@@ -102,13 +102,13 @@ static const JNINativeMethod methods[] = {
 	METH(n_setsockopt, "(III)V"),
 	METH(n_getsockname, "(ILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)V"),
 #if 0
-	METH(n_bind, "(I[BI)V"),
-	METH(n_connect, "(I[BI)V"),
+	METH(n_bind, "(I[BII)V"),
+	METH(n_connect, "(I[BII)V"),
 	METH(n_disconnect, "(I)V"),
 	METH(n_recv, "(ILjava/nio/ByteBuffer;IILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)I"),
-	METH(n_send, "(ILjava/nio/ByteBuffer;II[BI)I"),
+	METH(n_send, "(ILjava/nio/ByteBuffer;II[BII)I"),
 	METH(n_rd, "(I[Lde/telekom/llcto/ecn_bits/android/lib/JNI$SGIO;ILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)J"),
-	METH(n_wr, "(I[Lde/telekom/llcto/ecn_bits/android/lib/JNI$SGIO;[BI)J"),
+	METH(n_wr, "(I[Lde/telekom/llcto/ecn_bits/android/lib/JNI$SGIO;[BII)J"),
 	METH(n_pollin, "(II)I")
 #endif
 };
@@ -134,6 +134,7 @@ static jmethodID i_EX_BIND_c;
 
 static jfieldID o_AP_addr;
 static jfieldID o_AP_port;
+static jfieldID o_AP_scopeId;
 static jfieldID o_AP_tc;
 static jfieldID o_AP_tcValid;
 
@@ -234,6 +235,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 
 	getfield(AP, addr, "[B");
 	getfield(AP, port, "I");
+	getfield(AP, scopeId, "I");
 	getfield(AP, tc, "B");
 	getfield(AP, tcValid, "Z");
 #ifndef ECNBITS_SKIP_DALVIK
@@ -609,9 +611,9 @@ n_getsockname(JNIEnv *env, jclass cls __unused, jint fd, jobject ap)
 
 #if 0
 static JNICALL void
-n_bind(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port)
+n_bind(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port, jint scope)
 static JNICALL void
-n_connect(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port)
+n_connect(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port, jint scope)
 // connect() with empty, zero’d struct sockaddr_in6 with sin6_family = AF_UNSPEC
 static JNICALL void
 n_disconnect(JNIEnv *env, jclass cls __unused, jint fd)
@@ -620,13 +622,13 @@ n_recv(JNIEnv *env, jclass cls __unused, jint fd,
     jobject bbuf, jint bbpos, jint bbsize, jobject aptc)
 static JNICALL jint
 n_send(JNIEnv *env, jclass cls __unused, jint fd,
-    jobject bbuf, jint bbpos, jint bbsize, jbyteArray addr, jint port)
+    jobject bbuf, jint bbpos, jint bbsize, jbyteArray addr, jint port, jint scope)
 static JNICALL jlong
 n_rd(JNIEnv *env, jclass cls __unused, jint fd,
     jobjectArray bufs, jint nbufs, jobject tc)
 static JNICALL jlong
 n_wr(JNIEnv *env, jclass cls __unused, jint fd,
-    jobjectArray bufs, jbyteArray addr, jint port)
+    jobjectArray bufs, jbyteArray addr, jint port, jint scope)
 static JNICALL jint
 n_pollin(JNIEnv *env, jclass cls __unused, jint fd, jint timeout)
 #endif

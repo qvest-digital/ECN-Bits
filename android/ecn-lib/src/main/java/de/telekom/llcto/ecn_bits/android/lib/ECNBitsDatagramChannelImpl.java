@@ -495,7 +495,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     if (sm != null) {
                         sm.checkListen(isa.getPort());
                     }
-                    n_bind(fdVal, JNI.AddrPort.addr(isa), isa.getPort());
+                    n_bind(fdVal, JNI.AddrPort.addr(isa), isa.getPort(), JNI.AddrPort.scopeId(isa));
                     updateLocalAddress();
                 }
             }
@@ -521,7 +521,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                     }
                     final InetSocketAddress isa = netCheckAddress(sa);
                     smConnect(isa);
-                    n_connect(fdVal, JNI.AddrPort.addr(isa), isa.getPort());
+                    n_connect(fdVal, JNI.AddrPort.addr(isa), isa.getPort(), JNI.AddrPort.scopeId(isa));
 
                     // Connection succeeded; disallow further invocation
                     state = ST_CONNECTED;
@@ -687,7 +687,8 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
         }
 
         // send from bb
-        final int n = n_send(fdVal, bb, bpos, rem, JNI.AddrPort.addr(target), target.getPort());
+        final int n = n_send(fdVal, bb, bpos, rem,
+          JNI.AddrPort.addr(target), target.getPort(), JNI.AddrPort.scopeId(target));
         // update source buffer accordingly
         if (n > 0) {
             buf.position(pos + n);
@@ -760,7 +761,8 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
             bbs[i] = nb;
         }
 
-        final long n = n_wr(fdVal, bbs, JNI.AddrPort.addr(remoteAddress), remoteAddress.getPort());
+        final long n = n_wr(fdVal, bbs,
+          JNI.AddrPort.addr(remoteAddress), remoteAddress.getPort(), JNI.AddrPort.scopeId(remoteAddress));
         if (n > 0) {
             long rest = n;
             for (int i = 0; i < bufn; ++i) {
