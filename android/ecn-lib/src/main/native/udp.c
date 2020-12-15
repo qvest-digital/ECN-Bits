@@ -77,9 +77,9 @@ static JNICALL void n_close(JNIEnv *, jclass, jint);
 static JNICALL jint n_socket(JNIEnv *, jclass);
 static JNICALL void n_setnonblock(JNIEnv *, jclass, jint, jboolean);
 static JNICALL jint n_getsockopt(JNIEnv *, jclass, jint, jint);
-#if 0
 static JNICALL void n_setsockopt(JNIEnv *, jclass, jint, jint, jint);
 static JNICALL void n_getsockname(JNIEnv *, jclass, jint, jobject);
+#if 0
 static JNICALL void n_bind(JNIEnv *, jclass, jint, jbyteArray, jint);
 static JNICALL void n_connect(JNIEnv *, jclass, jint, jbyteArray, jint);
 static JNICALL void n_disconnect(JNIEnv *, jclass, jint);
@@ -99,9 +99,9 @@ static const JNINativeMethod methods[] = {
 	METH(n_socket, "()I"),
 	METH(n_setnonblock, "(IZ)V"),
 	METH(n_getsockopt, "(II)I"),
-#if 0
 	METH(n_setsockopt, "(III)V"),
 	METH(n_getsockname, "(ILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)V"),
+#if 0
 	METH(n_bind, "(I[BI)V"),
 	METH(n_connect, "(I[BI)V"),
 	METH(n_disconnect, "(I)V"),
@@ -131,6 +131,11 @@ static jmethodID i_EX_PROTO_c;
 static jmethodID i_EX_CONNECT_c;
 static jmethodID i_EX_UNREACH_c;
 static jmethodID i_EX_BIND_c;
+
+static jfieldID o_AP_addr;
+static jfieldID o_AP_port;
+static jfieldID o_AP_tc;
+static jfieldID o_AP_tcValid;
 
 static void
 free_grefs(JNIEnv *env)
@@ -227,12 +232,14 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 	getmeth(STAG, tag, "(Ljava/io/FileDescriptor;)V");
 #endif
 
+	getfield(AP, addr, "[B");
+	getfield(AP, port, "I");
+	getfield(AP, tc, "B");
+	getfield(AP, tcValid, "Z");
 #ifndef ECNBITS_SKIP_DALVIK
 	/* for nh library */
 	getfield(FD, descriptor, "I");
 #endif
-
-	/* … */
 
 	rc = (*env)->RegisterNatives(env, cls_JNI, methods, NELEM(methods));
 	if (rc != JNI_OK) {
@@ -517,7 +524,8 @@ n_getsockopt(JNIEnv *env, jclass cls __unused, jint fd, jint optenum)
 
 	optlen = sizeof(optval);
 	if (getsockopt(fd, level, optname, &optval, &optlen) == -1) {
-		ethrow(env, eX_S, "getsockopt(%d, %d, %d)", fd, level, optname);
+		ethrow(env, eX_S, "getsockopt(%d, %d, %d)",
+		    fd, level, optname);
 		return (-1);
 	}
 
@@ -532,13 +540,74 @@ n_getsockopt(JNIEnv *env, jclass cls __unused, jint fd, jint optenum)
 	return (isbool ? (optval ? JNI_TRUE : JNI_FALSE) : (jint)optval);
 }
 
-#if 0
-static JNICALL void
-n_setsockopt(JNIEnv *env, jclass cls __unused, jint fd, jint optenum, jint value)
+static void
+do_setsockopt(JNIEnv *env, int fd, int level, int name, int val)
 {
+	if (setsockopt(fd, level, name, &val, sizeof(val)) == -1)
+		ethrow(env, eX_S, "setsockopt(%d, %d, %d, %d)",
+		    fd, level, name, val);
+}
+
+static JNICALL void
+n_setsockopt(JNIEnv *env, jclass cls __unused, jint fd, jint optenum, jint val)
+{
+	switch (optenum) {
+	case 0: // IP_TOS
+		do_setsockopt(env, fd, IPPROTO_IP, IP_TOS, val);
+		do_setsockopt(env, fd, IPPROTO_IPV6, IPV6_TCLASS, val);
+		/* ordered like this as the last exception is shown */
+		break;
+	case 1: // SO_BROADCAST
+		do_setsockopt(env, fd, SOL_SOCKET, SO_BROADCAST,
+		    val == JNI_FALSE ? 0 : 1);
+		break;
+	case 2: // SO_RCVBUF
+		/*
+		 * kernel minimum is 128 but this also discards smaller
+		 * packets (say the JRE comments at least) so bump too
+		 * small requests
+		 */
+		if (val < 1024)
+			val = 1024;
+		do_setsockopt(env, fd, SOL_SOCKET, SO_RCVBUF, val);
+		break;
+	case 3: // SO_REUSEADDR
+		do_setsockopt(env, fd, SOL_SOCKET, SO_REUSEADDR,
+		    val == JNI_FALSE ? 0 : 1);
+		break;
+	case 4: // SO_SNDBUF
+		/* kernel minimum is 1024 */
+		if (val < 1024)
+			val = 1024;
+		do_setsockopt(env, fd, SOL_SOCKET, SO_SNDBUF, val);
+		break;
+	}
+}
 
 static JNICALL void
 n_getsockname(JNIEnv *env, jclass cls __unused, jint fd, jobject ap)
+{
+	union {
+		struct sockaddr_storage ss;
+		struct sockaddr_in6 sin6;
+	} sa;
+	socklen_t slen = sizeof(sa);
+	jbyteArray addr;
+
+	if (getsockname(fd, (struct sockaddr *)&sa, &slen) == -1)
+		ethrow(env, eX_S_auto, "getsockname(%d)", fd);
+	if (sa.ss.ss_family != AF_INET6)
+		throw(env, eX_S, EAFNOSUPPORT,
+		    "AF %d in getsockname(%d)", (int)sa.ss.ss_family, fd);
+
+	addr = (*env)->NewByteArray(env, 16);
+	(*env)->SetByteArrayRegion(env, addr, 0, 16,
+	    (const void *)&sa.sin6.sin6_addr.s6_addr);
+	(*env)->SetObjectField(env, ap, o_AP_addr, addr);
+	(*env)->SetIntField(env, ap, o_AP_port, ntohs(sa.sin6.sin6_port));
+}
+
+#if 0
 static JNICALL void
 n_bind(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port)
 static JNICALL void

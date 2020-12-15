@@ -27,6 +27,8 @@ import lombok.val;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.IOException;
+
 import static de.telekom.llcto.ecn_bits.android.lib.Testable.assertThrows;
 import static org.junit.Assert.*;
 
@@ -107,9 +109,12 @@ public class JNIInstrumentedTest {
     }
 
     @Test
-    public void testOpenSocket() throws JNI.ErrnoException {
+    public void testOpenSocket() throws IOException {
         final int fd = JNI.n_socket();
         Log.i("ECN-Bits-JNITest", String.format("got socket %d", fd));
+        final JNI.AddrPort ap = new JNI.AddrPort();
+        JNI.n_getsockname(fd, ap);
+        Log.i("ECN-Bits-JNITest", " bound to " + ap.get().toString());
         JNI.n_close(fd);
     }
 }
