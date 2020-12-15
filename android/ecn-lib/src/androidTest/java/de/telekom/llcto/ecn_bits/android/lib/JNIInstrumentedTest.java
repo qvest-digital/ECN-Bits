@@ -68,7 +68,7 @@ public class JNIInstrumentedTest {
 
     @Test
     public void testSignallingThrows() {
-        final JNI.ErrnoException t = assertThrows(JNI.ErrnoException.class,
+        val t = assertThrows(JNI.ErrnoException.class,
           () -> JNI.n_sigtid(0),
           "want an ESRCH exception");
         Log.i("ECN-Bits-JNITest", "successfully caught", t);
@@ -77,14 +77,15 @@ public class JNIInstrumentedTest {
         if ("No such process".equals(t.getStrerror())) {
             Log.i("ECN-Bits-JNITest", "strerror also matches ESRCH (sigtid)");
         } else {
-            Log.w("ECN-Bits-JNITest", String.format("strerror \"%s\" does not match ESRCH (sigtid)," +
-              " could also be locale-dependent, please check manually!", t.getStrerror()));
+            Log.w("ECN-Bits-JNITest",
+              String.format("strerror \"%s\" does not match ESRCH (sigtid)," +
+                " could also be locale-dependent, please check manually!", t.getStrerror()));
         }
     }
 
     @Test
     public void testJNISocketException() {
-        final JNI.ErrnoSocketException t = assertThrows(JNI.ErrnoSocketException.class,
+        val t = assertThrows(JNI.ErrnoSocketException.class,
           () -> JNI.n_getsockopt(-1, JNI.IP_TOS),
           "want an EBADF exception");
         Log.i("ECN-Bits-JNITest", "successfully caught", t);
@@ -93,16 +94,17 @@ public class JNIInstrumentedTest {
         if ("Bad file descriptor".equals(t.getStrerror())) {
             Log.i("ECN-Bits-JNITest", "strerror also matches EBADF (getsockopt)");
         } else {
-            Log.w("ECN-Bits-JNITest", String.format("strerror \"%s\" does not match EBADF (getsockopt)," +
-              " could also be locale-dependent, please check manually!", t.getStrerror()));
+            Log.w("ECN-Bits-JNITest",
+              String.format("strerror \"%s\" does not match EBADF (getsockopt)," +
+                " could also be locale-dependent, please check manually!", t.getStrerror()));
         }
     }
 
     @Test
     public void testOtherExceptionNoCause() {
-        final NullPointerException cause = new NullPointerException("meow");
+        val cause = new NullPointerException("meow");
         Log.i("ECN-Bits-JNITest", "constructing JNI exception caused by cat NPE");
-        final JNI.ErrnoSocketException t = new JNI.ErrnoSocketException("file", 1, "func",
+        val t = new JNI.ErrnoSocketException("file", 1, "func",
           "msg", 0, "Success", cause);
         assertNull("cause is nil", t.getCause());
         Log.i("ECN-Bits-JNITest", "end of test");
@@ -112,7 +114,7 @@ public class JNIInstrumentedTest {
     public void testOpenSocket() throws IOException {
         final int fd = JNI.n_socket();
         Log.i("ECN-Bits-JNITest", String.format("got socket %d", fd));
-        final JNI.AddrPort ap = new JNI.AddrPort();
+        val ap = new JNI.AddrPort();
         JNI.n_getsockname(fd, ap);
         Log.i("ECN-Bits-JNITest", " bound to " + ap.get().toString());
         JNI.n_close(fd);

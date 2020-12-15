@@ -87,7 +87,7 @@ public class JNITest {
     @Test
     @EnabledOnOs(LINUX)
     public void testJNIException() {
-        final JNI.ErrnoException t = assertThrows(JNI.ErrnoException.class,
+        val t = assertThrows(JNI.ErrnoException.class,
           () -> JNI.n_close(-1),
           "want an EBADF exception");
         LOGGER.log(Level.INFO, "successfully caught", t);
@@ -105,7 +105,7 @@ public class JNITest {
     @Test
     @EnabledOnOs(LINUX)
     public void testJNISocketException() {
-        final JNI.ErrnoSocketException t = assertThrows(JNI.ErrnoSocketException.class,
+        val t = assertThrows(JNI.ErrnoSocketException.class,
           () -> JNI.n_getsockopt(-1, JNI.IP_TOS),
           "want an EBADF exception");
         LOGGER.log(Level.INFO, "successfully caught", t);
