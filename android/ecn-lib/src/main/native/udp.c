@@ -612,6 +612,9 @@ n_getsockname(JNIEnv *env, jclass cls __unused, jint fd, jobject ap)
 #if 0
 static JNICALL void
 n_bind(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port, jint scope)
+{
+
+
 static JNICALL void
 n_connect(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port, jint scope)
 // connect() with empty, zero’d struct sockaddr_in6 with sin6_family = AF_UNSPEC

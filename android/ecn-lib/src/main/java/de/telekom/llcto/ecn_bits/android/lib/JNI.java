@@ -286,12 +286,17 @@ final class JNI {
          * Converts address part to native addr representation.
          *
          * @param isa {@link InetSocketAddress}
-         * @return byte[] isa.getAddress() as IPv6 address or v4-mapped
+         * @return byte[16] isa.getAddress() as IPv6 address or v4-mapped
          */
+        @SneakyThrows(UnknownHostException.class)
         static byte[] addr(final InetSocketAddress isa) {
             final byte[] ob = isa.getAddress().getAddress();
             if (ob.length == 16) {
                 return ob;
+            }
+            if (ob.length != 4) {
+                /* NOTREACHED */
+                throw new UnknownHostException("addr is of illegal length");
             }
             final byte[] nb = new byte[16];
             nb[10] = (byte) 0xFF;
