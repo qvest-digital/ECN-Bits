@@ -455,7 +455,7 @@ public class MainActivity extends AppCompatActivity {
             cSendThread.interrupt();
             cRecvThread.interrupt();
             try {
-                final ECNStatistics stats = sock.getMeasurement(false);
+                final ECNStatistics stats = chan.getMeasurement(false);
                 addOutputLine(stats == null ?
                   "!! no congestion measurement" :
                   String.format("ℹ %.2f%% of %d packets received over %.3f s were congested",
@@ -599,7 +599,7 @@ public class MainActivity extends AppCompatActivity {
                         // falls through to sleep to not repeat too fast
                     } else {
                         buf.flip();
-                        final Byte trafficClass = sock.retrieveLastTrafficClass();
+                        final Byte trafficClass = chan.retrieveLastTrafficClass();
                         final String userData = StandardCharsets.UTF_8.decode(buf).toString();
                         final String logLine = String.format("→ %s %s (%d)%s%s",
                           stamp, Bits.print(trafficClass), read, contentSeparator,
