@@ -52,7 +52,6 @@ import org.evolvis.tartools.rfc822.IPAddress;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.ECNBitsDatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -340,7 +339,8 @@ public class MainActivity extends AppCompatActivity {
           BitsAdapter.values, BitsAdapter.values[0]).getBit();
 
         try {
-            sock = new ECNBitsDatagramSocket();
+            //sock = new ECNBitsDatagramSocket();
+            sock = ECNBitsDatagramChannel.open().socket();
         } catch (ECNBitsLibraryException e) {
             addOutputLine("could not initialise ECN-Bits library: " + e.getMessage());
             return;
