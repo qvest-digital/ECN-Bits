@@ -627,11 +627,14 @@ n_getsockname(JNIEnv *env, jclass cls __unused, jint fd, jobject ap)
 		throw(env, eX_S, EAFNOSUPPORT,
 		    "AF %d in getsockname(%d)", (int)sa.ss.ss_family, fd);
 
-	addr = (*env)->NewByteArray(env, 16);
+	if (!(addr = (*env)->NewByteArray(env, 16)))
+		return;
 	(*env)->SetByteArrayRegion(env, addr, 0, 16,
 	    (const void *)&sa.sin6.sin6_addr.s6_addr);
 	(*env)->SetObjectField(env, ap, o_AP_addr, addr);
 	(*env)->SetIntField(env, ap, o_AP_port, ntohs(sa.sin6.sin6_port));
+	(*env)->SetIntField(env, ap, o_AP_scopeId,
+	    sa.sin6.sin6_scope_id > 0 ? (int)sa.sin6.sin6_scope_id : -1);
 }
 
 static int
