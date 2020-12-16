@@ -42,7 +42,8 @@ import java.nio.channels.spi.SelectorProvider;
  * Not suitable for use with IP Multicast.
  *
  * This class offers the methods from {@link AbstractECNBitsDatagramReceiver}
- * to determine the IP traffic class and thus the ECN bits.
+ * to determine the IP traffic class and thus the ECN bits. Any associated
+ * datagram socket will also offer them (acting on the channel’s backend).
  *
  * @author mirabilos (t.glaser@tarent.de)
  */
@@ -69,4 +70,12 @@ public abstract class ECNBitsDatagramChannel extends DatagramChannel implements 
     protected ECNBitsDatagramChannel(final SelectorProvider provider) {
         super(provider);
     }
+
+    /**
+     * Retrieves a datagram socket associated with this channel.
+     *
+     * @return an {@link AbstractECNBitsDatagramSocket} associated with this channel
+     */
+    @Override
+    public abstract AbstractECNBitsDatagramSocket socket();
 }
