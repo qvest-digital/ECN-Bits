@@ -515,7 +515,7 @@ public class MainActivity extends AppCompatActivity {
 
         cSendThread = new Thread(() -> {
             long counter = 0;
-            val buf = ByteBuffer.allocate(64);
+            val buf = ByteBuffer.allocateDirect(64);
 
             try {
                 chan.setOption(StandardSocketOptions.IP_TOS, (int) outBits.getBits());
@@ -585,7 +585,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         cRecvThread = new Thread(() -> {
-            val buf = ByteBuffer.allocate(512);
+            val buf = ByteBuffer.allocateDirect(512);
             chan.startMeasurement();
             while (!exiting) {
                 buf.clear();
