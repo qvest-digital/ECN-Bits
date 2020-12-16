@@ -33,6 +33,7 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NoRouteToHostException;
+import java.net.PortUnreachableException;
 import java.net.ProtocolException;
 import java.net.SocketAddress;
 import java.net.SocketException;
@@ -258,6 +259,35 @@ final class JNI {
     }
 
     /**
+     * Represents an error thrown in native code from ECN-Bits {@link JNI}.
+     * This one is a {@link PortUnreachableException}.
+     *
+     * @author mirabilos (t.glaser@tarent.de)
+     */
+    @Getter
+    public static class ErrnoPortUnreachableException extends PortUnreachableException {
+        private static final long serialVersionUID = 83407582898923649L;
+
+        final int errno;
+        final String strerror;
+        final String failureDescription;
+
+        ErrnoPortUnreachableException(final String file, final int line, final String func,
+          final String msg, final int err, final String str, final Throwable cause) {
+            super(renderNativeExceptionMessage(file, line, func, msg, str));
+            if (cause != null) {
+                Log.e("ECN-Bits-JNI", "Due to Android API limitations, " +
+                  ErrnoPortUnreachableException.class.getSimpleName() +
+                  "(" + getMessage() + ") lost cause:", cause);
+            }
+            errno = err;
+            strerror = str;
+            failureDescription = msg;
+            prependNativeStackTrace(this, file, line, func);
+        }
+    }
+
+    /**
      * JNI representation of an IP address and port tuple, address created by
      * {@link #addr(InetSocketAddress)} and port just used as-is in Java™.
      * Use {@link #get()} to get the Java™ representation of this tuple.
@@ -418,11 +448,11 @@ final class JNI {
 
     static native int n_recv(final int fd,
       final ByteBuffer buf, final int bbpos, final int bbsize,
-      final AddrPort aptc) throws ErrnoException;
+      final AddrPort aptc, final boolean connected) throws SocketException;
 
     static native int n_send(final int fd,
       final ByteBuffer buf, final int bbpos, final int bbsize,
-      final byte[] addr, final int port, final int scopeId) throws ErrnoException;
+      final byte[] addr, final int port, final int scopeId) throws SocketException;
 
     static native long n_rd(final int fd,
       final SGIO[] bufs, final int nbufs, final AddrPort tc) throws ErrnoException;

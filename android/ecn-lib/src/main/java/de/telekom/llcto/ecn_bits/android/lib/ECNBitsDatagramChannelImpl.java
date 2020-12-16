@@ -722,7 +722,7 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
             bb = ByteBuffer.allocateDirect(blen);
         }
 
-        final int n = n_recv(fdVal, bb, bpos, blen, ap);
+        final int n = n_recv(fdVal, bb, bpos, blen, ap, isConnected());
         if (n > 0) {
             tcm.received(ap.tcValid, ap.tc);
             bb.position(bpos + n);
