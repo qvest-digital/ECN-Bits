@@ -116,7 +116,7 @@ public class JNIInstrumentedTest {
         Log.i("ECN-Bits-JNITest", String.format("got socket %d", fd));
         val ap = new JNI.AddrPort();
         JNI.n_getsockname(fd, ap);
-        Log.i("ECN-Bits-JNITest", " bound to " + ap.get().toString());
+        Log.i("ECN-Bits-JNITest", " bound to " + ap.get());
         JNI.n_close(fd);
     }
 }
