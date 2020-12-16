@@ -344,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (ECNBitsLibraryException e) {
             addOutputLine("could not initialise ECN-Bits library: " + e.getMessage());
             return;
-        } catch (SocketException e) {
+        } catch (IOException e) {
             addOutputLine("could not create socket: " + e);
             return;
         }
