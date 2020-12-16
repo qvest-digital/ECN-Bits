@@ -403,9 +403,10 @@ public class MainActivity extends AppCompatActivity {
                         final Byte trafficClass = sock.retrieveLastTrafficClass();
                         oneSuccess = true;
                         final String userData = new String(buf, StandardCharsets.UTF_8);
-                        final String logLine = String.format("• %s %s%s%s",
-                          stamp, Bits.print(trafficClass), contentSeparator,
-                          userData.trim());
+                        final String logLine = String.format("• %s %s{%s}%s%s",
+                          stamp, Bits.print(trafficClass),
+                          trafficClass == null ? "??" : String.format("%02X", trafficClass),
+                          contentSeparator, userData.trim());
                         runOnUiThread(() -> addOutputLine(logLine));
                     }
                 }
@@ -602,9 +603,10 @@ public class MainActivity extends AppCompatActivity {
                         buf.flip();
                         final Byte trafficClass = chan.retrieveLastTrafficClass();
                         final String userData = StandardCharsets.UTF_8.decode(buf).toString();
-                        final String logLine = String.format("→ %s %s (%d)%s%s",
-                          stamp, Bits.print(trafficClass), read, contentSeparator,
-                          userData.trim());
+                        final String logLine = String.format("→ %s %s{%s} (%d)%s%s",
+                          stamp, Bits.print(trafficClass),
+                          trafficClass == null ? "??" : String.format("%02X", trafficClass),
+                          read, contentSeparator, userData.trim());
                         runOnUiThread(() -> addOutputLine(logLine));
                         // does not fall through to sleep below
                         continue;
