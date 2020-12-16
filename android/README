@@ -55,8 +55,8 @@ ecn-lib at least.
 
 Test output for the unittests is shown on stdout/stderr or in
 the IDE pane; the instrumented tests output to logcat, so use
-“logcat -s ECN-v2:D ECN-Bits-JNITest:D ECN-Bits-JNI:D” (under
-“adb shell”) to watch it.
+“adb shell” with “logcat -s ECN-Bits-JNI:D ECN-Bits-JNITest:D”
+to watch it.
 
 When testing on the Android emulator note that its network
 emulation removes the ECN bits from packets. Use either a

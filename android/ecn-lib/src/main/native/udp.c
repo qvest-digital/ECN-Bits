@@ -44,7 +44,6 @@
 #include "nh.h"
 #include "UDPnet.h"
 
-#define ECNBITS_ALOG_TAG "ECN-v2"
 #include "alog.h"
 
 #define ECNBITS_CMSGBUFLEN	64

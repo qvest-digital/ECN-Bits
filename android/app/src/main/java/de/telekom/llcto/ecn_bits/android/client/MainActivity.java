@@ -41,7 +41,6 @@ import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import de.telekom.llcto.ecn_bits.android.lib.AbstractECNBitsDatagramSocket;
 import de.telekom.llcto.ecn_bits.android.lib.Bits;
 import de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramChannel;
-import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
 import de.telekom.llcto.ecn_bits.android.lib.ECNStatistics;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -341,9 +340,6 @@ public class MainActivity extends AppCompatActivity {
         try {
             //sock = new ECNBitsDatagramSocket();
             sock = ECNBitsDatagramChannel.open().socket();
-        } catch (ECNBitsLibraryException e) {
-            addOutputLine("could not initialise ECN-Bits library: " + e.getMessage());
-            return;
         } catch (IOException e) {
             addOutputLine("could not create socket: " + e);
             return;

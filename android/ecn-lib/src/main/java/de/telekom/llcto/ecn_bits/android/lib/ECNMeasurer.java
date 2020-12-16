@@ -26,8 +26,7 @@ package de.telekom.llcto.ecn_bits.android.lib;
  *
  * @author mirabilos (t.glaser@tarent.de)
  */
-//XXX TODO: make package-private once ECNBitsDatagramChannelImpl can access that
-public class ECNMeasurer {
+class ECNMeasurer {
     private Byte lastTc = null;
     private byte measuring = 0;
     final private int[] measurement = new int[2];

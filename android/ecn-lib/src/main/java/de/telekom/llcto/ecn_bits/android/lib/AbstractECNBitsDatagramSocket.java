@@ -23,14 +23,13 @@ package de.telekom.llcto.ecn_bits.android.lib;
 
 import java.net.DatagramSocket;
 import java.net.DatagramSocketImpl;
-import java.net.ECNBitsDatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
 
 /**
  * Façade around {@link DatagramSocket} as common parent class of both new
- * {@link ECNBitsDatagramSocket} and {@link ECNBitsDatagramChannel#socket()}
+ * ECNBitsDatagramSocket and {@link ECNBitsDatagramChannel#socket()}
  * results, so they share a common API.
  *
  * This class is basically a stock {@link DatagramSocket} that also offers
