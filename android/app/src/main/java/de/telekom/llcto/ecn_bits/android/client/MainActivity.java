@@ -38,6 +38,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
+import de.telekom.llcto.ecn_bits.android.lib.AbstractECNBitsDatagramSocket;
 import de.telekom.llcto.ecn_bits.android.lib.Bits;
 import de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramChannel;
 import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayoutManager outputListLayoutMgr;
     private InputMethodManager imm;
     private boolean showKbd = false;
-    private ECNBitsDatagramSocket sock;
+    private AbstractECNBitsDatagramSocket sock;
     private Thread netThread = null;
     private volatile boolean exiting = false;
     private boolean channelStarted = false;
