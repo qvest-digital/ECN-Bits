@@ -359,9 +359,12 @@ final class JNI {
         /**
          * Retrieves address/scope/port tuple in a form usable for Java™
          *
-         * @return {@link InetSocketAddress}
+         * @return {@link InetSocketAddress} or null if no sender (channel closed or so)
          */
         InetSocketAddress get() {
+            if (addr == null) {
+                return null;
+            }
             // v4-mapped → Inet4Address, rest Inet6Address
             return new InetSocketAddress(getAddr(), port);
         }

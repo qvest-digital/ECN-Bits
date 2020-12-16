@@ -293,6 +293,9 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
                             return null;
                         }
                         sender = ap.get();
+                        if (sender == null) {
+                            break;
+                        }
                         try {
                             security.checkAccept(sender.getAddress().getHostAddress(), sender.getPort());
                         } catch (SecurityException se) {
