@@ -555,8 +555,14 @@ n_getsockopt(JNIEnv *env, jclass cls __unused, jint fd, jint optenum)
 		level = SOL_SOCKET;
 		optname = SO_SNDBUF;
 		break;
+	case 5: // IPV6_MULTICAST_HOPS
+		isbool = 0;
+		level = IPPROTO_IPV6;
+		optname = IPV6_MULTICAST_HOPS;
+		break;
 	default:
 		/* NOTREACHED */
+		throw(env, eX_S, 0, "unknown optenum %d", optenum);
 		return (-1);
 	}
 
@@ -619,6 +625,12 @@ n_setsockopt(JNIEnv *env, jclass cls __unused, jint fd, jint optenum, jint val)
 			val = 1024;
 		do_setsockopt(env, fd, SOL_SOCKET, SO_SNDBUF, val);
 		break;
+	case 5: // IPV6_MULTICAST_HOPS
+		do_setsockopt(env, fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, val);
+		break;
+	default:
+		/* NOTREACHED */
+		throw(env, eX_S, 0, "unknown optenum %d", optenum);
 	}
 }
 

@@ -62,6 +62,7 @@ final class JNI {
     static final int SO_RCVBUF = 2;
     static final int SO_REUSEADDR = 3;
     static final int SO_SNDBUF = 4;
+    static final int IPV6_MULTICAST_HOPS = 5;
 
     // return values for error codes, keep in sync with C code!
     // -1 = EOF
