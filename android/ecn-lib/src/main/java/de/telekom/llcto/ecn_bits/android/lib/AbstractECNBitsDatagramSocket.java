@@ -29,7 +29,7 @@ import java.net.SocketException;
 
 /**
  * Façade around {@link DatagramSocket} as common parent class of both new
- * ECNBitsDatagramSocket and {@link ECNBitsDatagramChannel#socket()}
+ * {@link ECNBitsDatagramSocket} and {@link ECNBitsDatagramChannel#socket()}
  * results, so they share a common API.
  *
  * This class is basically a stock {@link DatagramSocket} that also offers

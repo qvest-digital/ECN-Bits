@@ -319,12 +319,22 @@ final class JNI {
         /**
          * Converts address part to native addr representation.
          *
-         * @param isa {@link InetSocketAddress}
+         * @param isa {@link InetSocketAddress} or {@link InetAddress}
+         * @return byte[16] isa.getAddress() as IPv6 address or v4-mapped
+         */
+        static byte[] addr(final InetSocketAddress isa) {
+            return addr(isa.getAddress());
+        }
+
+        /**
+         * Converts address part to native addr representation.
+         *
+         * @param ia {@link InetSocketAddress} or {@link InetAddress}
          * @return byte[16] isa.getAddress() as IPv6 address or v4-mapped
          */
         @SneakyThrows(UnknownHostException.class)
-        static byte[] addr(final InetSocketAddress isa) {
-            final byte[] ob = isa.getAddress().getAddress();
+        static byte[] addr(final InetAddress ia) {
+            final byte[] ob = ia.getAddress();
             if (ob.length == 16) {
                 return ob;
             }
@@ -349,17 +359,21 @@ final class JNI {
         /**
          * Retrieves the IPv6 scope ID of an IP address
          *
-         * @param isa {@link InetSocketAddress}
-         * @return scope ID (-1 if not set)
+         * @param isa {@link InetSocketAddress} or {@link InetAddress}
+         * @return scope ID (-1 if not set or null)
          */
         static int scopeId(final SocketAddress isa) {
-            if (isa instanceof InetSocketAddress) {
-                final InetAddress ia = ((InetSocketAddress) isa).getAddress();
-                if (ia instanceof Inet6Address) {
-                    return ((Inet6Address) ia).getScopeId();
-                }
-            }
-            return -1;
+            return isa instanceof InetSocketAddress ? scopeId(((InetSocketAddress) isa).getAddress()) : -1;
+        }
+
+        /**
+         * Retrieves the IPv6 scope ID of an IP address
+         *
+         * @param ia {@link InetSocketAddress} or {@link InetAddress}
+         * @return scope ID (-1 if not set or null)
+         */
+        static int scopeId(final InetAddress ia) {
+            return ia instanceof Inet6Address ? ((Inet6Address) ia).getScopeId() : -1;
         }
 
         /**
@@ -456,6 +470,14 @@ final class JNI {
 
     static native int n_send(final int fd,
       final ByteBuffer buf, final int bbpos, final int bbsize,
+      final byte[] addr, final int port, final int scopeId) throws SocketException;
+
+    static native int n_recvfrom(final int fd,
+      final byte[] buf, final int bufpos, final int len,
+      final AddrPort aptc, final boolean peekOnly, final boolean connected) throws SocketException;
+
+    static native int n_sendto(final int fd,
+      final byte[] buf, final int bufpos, final int len,
       final byte[] addr, final int port, final int scopeId) throws SocketException;
 
     static native long n_rd(final int fd,

@@ -23,7 +23,7 @@ package de.telekom.llcto.ecn_bits.android.lib;
 
 /**
  * Common interface for an API provided to read the IP traffic class octet
- * by ECNBitsDatagramSocket and {@link ECNBitsDatagramChannel}.
+ * by {@link ECNBitsDatagramSocket} and {@link ECNBitsDatagramChannel}.
  *
  * This class offers the method {@link #retrieveLastTrafficClass()} to retrieve
  * the traffic class octet, if any, from the last packet received or peekData’d

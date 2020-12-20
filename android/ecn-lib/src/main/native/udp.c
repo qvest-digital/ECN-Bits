@@ -108,6 +108,8 @@ static JNICALL void n_disconnect(JNIEnv *, jclass, jint);
 static JNICALL jint n_recv(JNIEnv *, jclass, jint, jobject, jint, jint, jobject, jboolean);
 static JNICALL jint n_send(JNIEnv *, jclass, jint, jobject, jint, jint, jbyteArray, jint, jint);
 #if 0
+static JNICALL jint n_recvfrom(JNIEnv *, jclass, jint, jbyteArray, jint, jint, jobject, jboolean, jboolean);
+static JNICALL jint n_sendto(JNIEnv *, jclass, jint, jbyteArray, jint, jint, jbyteArray, jint, jint);
 static JNICALL jlong n_rd(JNIEnv *, jclass, jint, jobjectArray, jint, jobject);
 static JNICALL jlong n_wr(JNIEnv *, jclass, jint, jobjectArray, jbyteArray, jint, jint);
 #endif
@@ -130,6 +132,8 @@ static const JNINativeMethod methods[] = {
 	METH(n_recv, "(ILjava/nio/ByteBuffer;IILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;Z)I"),
 	METH(n_send, "(ILjava/nio/ByteBuffer;II[BII)I"),
 #if 0
+	METH(n_recvfrom, "(I[BIILde/telekom/llcto/ecn_bits/android/lib/JNI/AddrPort;ZZ)I"),
+	METH(n_sendto, "(I[BII[BII)I"),
 	METH(n_rd, "(I[Lde/telekom/llcto/ecn_bits/android/lib/JNI$SGIO;ILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)J"),
 	METH(n_wr, "(I[Lde/telekom/llcto/ecn_bits/android/lib/JNI$SGIO;[BII)J"),
 #endif
@@ -909,6 +913,14 @@ n_send(JNIEnv *env, jclass cls __unused, jint fd,
 }
 
 #if 0
+static JNICALL jint
+n_recvfrom(JNIEnv *env, jclass cls __unused, jint fd,
+    jbyteArray buf, jint bufpos, jint len,
+    jobject aptc, jboolean peekOnly, jboolean connected)
+static JNICALL jint
+n_sendto(JNIEnv *env, jclass cls __unused, jint fd,
+    jbyteArray buf, jint bufpos, jint len,
+    jbyteArray addr, jint port, jint scope)
 static JNICALL jlong
 n_rd(JNIEnv *env, jclass cls __unused, jint fd,
     jobjectArray bufs, jint nbufs, jobject tc)
