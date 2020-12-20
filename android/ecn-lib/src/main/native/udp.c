@@ -810,7 +810,7 @@ n_recv(JNIEnv *env, jclass cls __unused, jint fd,
 
  retry:
 	if ((n = recvmsg(fd, &m, 0)) == (ssize_t)-1) {
-		if (errno == EWOULDBLOCK)
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
 			return (IO_EAVAIL);
 		if (errno == EINTR)
 			return (IO_EINTR);
@@ -896,7 +896,7 @@ n_send(JNIEnv *env, jclass cls __unused, jint fd,
 
 	if ((n = sendto(fd, buf, len, 0, (struct sockaddr *)&sin6,
 	    sizeof(sin6))) == (ssize_t)-1) {
-		if (errno == EAGAIN)
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
 			return (IO_EAVAIL);
 		if (errno == EINTR)
 			return (IO_EINTR);
