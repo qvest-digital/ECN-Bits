@@ -41,6 +41,7 @@ import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import de.telekom.llcto.ecn_bits.android.lib.AbstractECNBitsDatagramSocket;
 import de.telekom.llcto.ecn_bits.android.lib.Bits;
 import de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramChannel;
+import de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramSocket;
 import de.telekom.llcto.ecn_bits.android.lib.ECNStatistics;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -338,8 +339,8 @@ public class MainActivity extends AppCompatActivity {
           BitsAdapter.values, BitsAdapter.values[0]).getBit();
 
         try {
-            //sock = new ECNBitsDatagramSocket();
-            sock = ECNBitsDatagramChannel.open().socket();
+            sock = new ECNBitsDatagramSocket();
+            //sock = ECNBitsDatagramChannel.open().socket();
         } catch (IOException e) {
             addOutputLine("could not create socket: " + e);
             return;
