@@ -65,6 +65,9 @@ final class JNI {
 
     // return values for error codes, keep in sync with C code!
     // -1 = EOF
+    /**
+     * EAGAIN, EWOULDBLOCK
+     */
     static final int EAVAIL = -2;
     static final int EINTR = -3;
     // -4 = exception thrown in native code, never seen in Java™
