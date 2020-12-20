@@ -382,6 +382,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                     final DatagramPacket precv = new DatagramPacket(buf, buf.length);
                     while (true) {
+                        // this is REQUIRED for EACH call if re-using a DatagramPacket for multiple
+                        // receive calls; cf. https://bugs.openjdk.java.net/browse/JDK-4161511
+                        precv.setLength(buf.length);
                         try {
                             sock.receive(precv);
                         } catch (SocketTimeoutException e) {
