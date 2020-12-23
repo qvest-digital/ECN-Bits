@@ -189,8 +189,9 @@ Technical details
  bare file descriptor (Winsock2: SOCKET handle) so the library call to
  prepare it can be used, and the framework’s method of receiving packets
  must be replaced with one of the wrapped calls. (The Android library
- (see below) does something like this, except it’s much more complicated
- because Google.)
+ (see below) initially did something like this, but it eventually had
+ to reimplement the entire network I/O stack creating its own socket
+ file descriptors.)
 
 ‣‣‣The example server
 
@@ -281,14 +282,14 @@ Technical details
 
 	http://www.mirbsd.org/MirOS-Licence.htm
 
-‣‣Java & JNI — DatagramSocket: Android
+‣‣Java & JNI — DatagramSocket, DatagramChannel: Android
 
  This solution for Android is comprised of two modules (the AAR
  library and an APK demo äpp) in a standard IntelliJ (Android Studio)
  project and is shipped in the android/ subdirectory. It is designed for
  Android 8 “Oreo” (the oldest currently supported release) and newer,
- and is known working on Android 9 and 10 as well, requiring adb but
- no root; necessary extra steps are documented below.
+ and is known working on Android 9 and 10 as well, possibly working on
+ Android 11 as of 23ʳᵈ December 2020.
 
  The AAR library is not published to a central Maven repository but
  designed as a component that can be embedded into other projects (with
@@ -309,55 +310,35 @@ Technical details
 
 	https://webrtc.googlesource.com/src/
 
- Unfortunately, anything using DatagramChannel (NIO) is out for now,
- including the NIO channels of Netty (although its OIO channels might
- work). Research to fix this is currently being undertaken.
+ The first approach at integrating ECN-Bits support into the Java™
+ frameworks was minimal-intrusive: subclass the existing implementations
+ and change only what’s necessary. Unfortunately, both OpenJDK and
+ Android threw wrenches into this work: OpenJDK does not allow placing
+ classes into the java.base Jigsaw module, which java.net.* belong to,
+ and Google are hiding functionality from Android SDK users (that is,
+ regular äpps), permitting access only for the Android runtime
+ environment itself. This was successful for DatagramSocket only and
+ unfortunately affected every DatagramSocket created by the äpp, not
+ only those that were explicitly created as ECNBitsDatagramSocket.
 
- DatagramSocket is not declaread as final, and one can even set a
- factory for the underlying DatagramSocketImpl which implements socket
- creation and I/O. From this, we have created an ECNBitsDatagramSocket
- that uses an ECNBitsDatagramSocketImpl to do the heavy lifting and
- proxys calls to retrieve the IP traffic class for the last received
- packet. (We wanted to extend DatagramPacket, adding one field, but
- since that class is also declared as final, that turned out to not be
- possible.)
+ The second approach involves implementing the complete lifecycle of a
+ datagram channel and socket. This is much larger in scope (although we
+ already explicitly excluded IP Multicast) and necessarily cannot mirror
+ completely what the system does (again due to lack of access e.g. to
+ Android’s CloseGuard) but comes very close. (Thankfully, the
+ implementations changed very little between Android 8 and 11, allowing
+ us to use the Android 11 code as a base.) This approach allows the use
+ of DatagramChannel including its socket() adapter, as well as almost
+ drop-in compatible support for DatagramSocket; this should allow both
+ OIO and NIO modes of Netty to work as well.
 
- Unfortunately, Google are attempting to cut down on access to internal
- APIs (such as retrieving the underlying file descriptor for a socket,
- see above). This has several bad implications:
-
-  • Google are hiding entire classes, such as
-    java.net.PlainDatagramSocketImpl (the system DatagramSocketImpl
-    normally used), from the SDK. Not even shadowing it at compile time
-    works any more as of Android 8. We worked around this by using
-    reflection to instantiate an object of the system implementation and
-    proxying most calls to it.
-
-  • Android does not call some overridden methods, instead calling the
-    superclass’ ones. This leads to some functionality that will break
-    system-wide, for any newly created DatagramSocket instances (!),
-    once the first ECNBitsDatagramSocket was initialised. This mostly
-    affects multicast, an obscure extended socket option and “filtering”
-    (AIUI filtering out packets received before the connect() call);
-    see android/README for details.
-
-  • Google are hiding functions, such as the one to get the actual file
-    descriptor integer handle from the FileDescriptor associated with a
-    socket. As of Android 8, reflection can be used to work around this.
-
-  • Android 9 and 10 may require extra measures to re-enable these
-    reflection calls, see below
-
-  • Android 11 and up will probably refuse these reflection calls
+ This approach is currently being finalised and will also be the base of
+ a desktop/server JRE solution. Unfortunately, some methods are still
+ not called or callable, so it’s only close to being a drop-in solution.
 
  The best fix would be a Google-provided API to access the IP traffic
  class, ideally even in stock OpenJDK. No such API exists as of the time
  of this writing.
-
- Unfortunately, the runtime ignores some of the overridden methods
- (see above), making a replacement copying the internal parts just
- as impossible. For extra fun, OpenJDK even prevents user classes
- from being placed in a package under java.* ☹
 
 ‣‣‣Network difficulties
 
@@ -378,10 +359,11 @@ Technical details
   • Send Packet: uses ECNBitsDatagramSocket to send out a packet and
     wait 1 s for answers, like the CLI client does
 
+  • Start Channel: uses ECNBitsDatagramChannel to continously send
+    and receive packets in multiple threads
+
   • Licences: displays what Google’s standard library thinks are the
     licences of the dependencies of the äpp
-
- (The “Start Channel” button an earlier version had no longer exists.)
 
  Below the buttons, textual output (output lines separated with thin
  lines) will be shown; the content is similar to what the C/CLI example
@@ -428,8 +410,25 @@ Technical details
 	https://github.com/tarent/ECN-Bits/blob/019a9770018f17502bdb7f10e23161634818a2e4/android/ecn-lib/src/main/resources/COPYING
 	https://github.com/tarent/ECN-Bits/blob/019a9770018f17502bdb7f10e23161634818a2e4/android/ecn-lib/src/main/resources/LICENCE.ecn-lib
 
- Note that both of these licences apply to the ECN-Bits Android library,
- and in distributing it, both must be adhered to.
+ The Android solution also includes parts of an independent module
+ (Android libnativehelper) under the Apache 2 licence.
+
+	https://github.com/tarent/ECN-Bits/blob/2a05f1a319093d6b6758ea486022412b74d408e0/android/ecn-lib/src/main/resources/LICENSE-2.0
+
+ Note that all three of these licences apply to the ECN-Bits Android
+ library, so all three must be adhered to: the Apache 2 licence for the
+ “nh” module *only*; both MirBSD and GPLv2 with Classpath Exception for
+ the OpenJDK‑/Android-libcore-derived code in this project, and just The
+ MirOS Licence for the rest of this project.
+
+‣‣Java & JNI — DatagramSocket, DatagramChannel: OpenJDK/JRE
+
+ Support for desktop and server Java™ will be implemented based on
+ Android support once finished. This will be limited to some platforms
+ (the Android implementation is limited to Linux with only IPv6 sockets,
+ heavily based on v4-mapped support), and, as no nice solutions for JNI
+ exist, only compilation for the local platform will be supplied as an
+ example, instead of a reusable library.
 
 ‣‣C++ (and C): UWP (Universal Windows Platform)
 
@@ -464,7 +463,8 @@ Technical details
  (Unix), -lecn-bitw (Winsock2 on Unix) or ecn-bitw.lib (Windows). Mind
  that the Unix library is available as static and shared library; use
  the static library (possibly build the library with NOPIC=Yes) if it is
- to not become a run-time dependency. The Winsock2 version deliberately
+ to not become a run-time dependency (or use LDSTATIC=-static to force
+ linking the executables statically). The Winsock2 version deliberately
  does not build a shared library on Unix, and there has not been any
  request for building a DLL on Windows, so the build system has not yet
  been extended to do so.
@@ -508,62 +508,46 @@ Technical details
 
 	https://developer.android.com/studio/projects/android-library#AddDependency
 
- Create an ECNBitsDatagramSocket instead of a simple DatagramSocket and
- use the return value of its retrieveLastTrafficClass() method with the
- de.telekom.llcto.ecn_bits.android.lib.Bits enum’s static methods.
+ Create an ECNBitsDatagramChannel or ECNBitsDatagramSocket instead of a
+ simple DatagramChannel or DatagramSocket and use the return value of
+ its retrieveLastTrafficClass() method with the
+ de.telekom.llcto.ecn_bits.android.lib.Bits enum’s static methods. To
+ automatically collect statistics over received packets, the
+ startMeasurement() and getMeasurement(boolean continue) methods exist.
 
- A means to automatically collect statistics over received packets for
- retrieving in intervals is being worked on.
+‣‣‣DatagramPacket caveat
 
-‣‣‣Android 8
+ With DatagramPacket-using APIs (either an
+ ECNBitsDatagramChannel.socket() or an ECNBitsDatagramSocket), if you
+ wish to reuse the DatagramPacket you must (re‑)set the length before
+ each call as no access to only the “received length” is provided to
+ applications. This is true in general, both for OpenJDK and Android,
+ but at least the latter lets you get away with not doing so for the
+ stock DatagramSocket (although not for DatagramChannel.socket(),
+ interestingly enough).
+
+‣‣‣Missing functionality (as far as known)
+
+  • IP Multicast and all related socket options
+  • extended socket options
+  • Android BlockGuard and CloseGuard
+  • Android socket tagging, to some amount
+    (DatagramChannel-style tagging is attempted)
+  • missing from DatagramSocket only
+      • signalling of blocked threads
+      • some retry handling
+      • peek() — using peekData() instead
+      • proper dataAvailable() — the overridden method would never be
+        called, so it always returns 0
+  • missing from DatagramSocket and adapted DatagramChannel.socket() only
+      • setting (only) the “received length” in DatagramPacket (see above)
+  • some functionality is untested (binding, unconnected operation,
+    disconnecting, peeking, most socket options, unblocked I/O, and exots
+    like TTL, scatter/gather I/O)
+
+‣‣‣Android 8, 9, 10, 11
 
  … should work out of the box
-
-‣‣‣Android 9
-
- … should work out of the box; if not, run the following commands to fix
- the settings via ADB (skip the “adb shell” at the beginning if running
- this in a local terminal or shell session running on the device):
-
-    adb shell settings put global hidden_api_policy_pre_p_apps 1
-    adb shell settings put global hidden_api_policy_p_apps 1
-
- Documentation.
-	https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces#how_can_i_enable_access_to_non-sdk_interfaces
- To undo this change (revert to system defaults) after testing:
-
-    adb shell settings delete global hidden_api_policy_pre_p_apps
-    adb shell settings delete global hidden_api_policy_p_apps
-
-‣‣‣Android 10
-
- … does not work out of the box, so run the following command to change
- the settings via ADB (skip the “adb shell” at the beginning if running
- this in a local terminal or shell session running on the device):
-
-    adb shell settings put global hidden_api_policy 1
-
- Documentation.
-	https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces#how_can_i_enable_access_to_non-sdk_interfaces
- To undo this change (revert to system defaults) after testing:
-
-    adb shell settings delete global hidden_api_policy
-
-‣‣‣Android 11
-
- … will probably not work; testing blocked by
- https://issuetracker.google.com/issues/169650210
- but try the following command:
-
-    adb shell am compat enable HIDE_MAXTARGETSDK_Q_HIDDEN_APIS $PACKAGE_NAME
-
- To undo this change (revert to system defaults) after testing:
-
-    adb shell am compat disable HIDE_MAXTARGETSDK_Q_HIDDEN_APIS $PACKAGE_NAME
-
- In both cases, replace $PACKAGE_NAME with the package attribute on the
- manifest tag in the AndroidManifest.xml file of your application(? or
- the library?).
 
 Download
 
