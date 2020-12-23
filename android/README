@@ -1,8 +1,18 @@
 See ../README for what this is all about.
 
 This library mostly offers the following entry points:
-• java.net.ECNBitsDatagramSocket (extends DatagramSocket)
 • de.telekom.llcto.ecn_bits.android.lib.Bits
+• de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramChannel
+  (extends DatagramChannel) via static open() factory method
+• de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramSocket
+  (extends DatagramSocket) via new and constructors
+
+Both ECNBitsDatagramSocket and the ECNBitsDatagramChannel.socket()
+result derive from AbstractECNBitsDatagramSocket (which itself
+derives from DatagramSocket). Both AbstractECNBitsDatagramSocket
+and ECNBitsDatagramChannel implement AbstractECNBitsDatagramReceiver
+with the methods to inspect the IP traffic class octet of the last
+packet received or to measure congestion in the background:
 
 The user can either retrieve, for each received datagram,
 the IP traffic class byte (using the retrieveLastTrafficClass
@@ -10,21 +20,9 @@ method on the socket), or by using the startMeasurement method
 and then calling the getMeasurement method periodically, e.g.
 every 20 ms, retrieving the congestion factor from its result.
 
-There’s no equivalent function for DatagramChannel yet.
-
-The current implementation tries to reuse as much of the
-system implementation as possible, using reflection and
-proxying to gain access to it. From Android 9 onwards, each
-version reduces this kind of access. This library was written
-targetting Android 8, as oldest currently-supported version,
-and will work on Android 9 and 10 but no later (see Wiki or
-https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces#how_can_i_enable_access_to_non-sdk_interfaces
-if it does not work out of the box). The best option would be
-making Google add API to retrieve the traffic class (or, even
-better, adding that to OpenJDK).
-
-The example äpp shows “could not initialise ECN-Bits library”
-on Android 9 and 10 if the settings need changing.
+For either AbstractECNBitsDatagramSocket implementation, when
+reusing DatagramPacket instances, (re‑)setting their length
+before each receive call is mandatory.
 
 The library is wholly contained in the ecn-lib/ directory.
 It can be added to other projects by importing into your project:
@@ -33,8 +31,7 @@ https://developer.android.com/studio/projects/android-library#AddDependency
 The app/ subdirectory contains an example application. The
 example client talks to a server (for example the one from
 the C/CLI library) using DatagramSocket (“send packet”) or
-DatagramChannel (“start channel”); the latter does not handle
-ECN bits (see above) yet.
+DatagramChannel (“start channel”).
 
 Normal Android build mechanisms (./gradlew build) or building
 in IntelliJ / Android Studio should be used.
@@ -55,8 +52,12 @@ ecn-lib at least.
 
 Test output for the unittests is shown on stdout/stderr or in
 the IDE pane; the instrumented tests output to logcat, so use
-“logcat -s ECN-v2:D ECN-Bits-JNITest:D ECN-Bits-JNI:D” (under
-“adb shell”) to watch it.
+“adb shell” with “logcat -s ECN-Bits-JNI:D ECN-Bits-JNITest:D”
+to watch it.
+
+The output of the tests will show several exceptions complete
+with backtraces; this is expected, the output helps to visually
+inspect for correctness if necessary.
 
 When testing on the Android emulator note that its network
 emulation removes the ECN bits from packets. Use either a
@@ -66,19 +67,5 @@ or test on “bare metal” (real hardware), or connect to a VPN
 from inside the emulator. We could add the server as example
 GUI application, later.
 
-** WARNING **
-
-Use of ECNBitsDatagramSocket changes the implementation used
-to create any and all DatagramSocket"s. The overriding imple‐
-mentation, ECNBitsDatagramSocketImpl, *cannot* support, at all,
-due to Android limitations, the following calls:
-• <T> T getOption(SocketOption<T> name)
-  <T> void setOption(final SocketOption<T> name, final T value)
-• DatagramSocket getDatagramSocket()
-  void setDatagramSocket(final DatagramSocket socket)
-• int dataAvailable()
-
-This breaks the following functionality for *ALL* DatagramSocket"s:
-• setting and getting ExtendedSocketOptions.SO_FLOW_SLA
-• setting and getting Multicast socket options
-• filtering, although dataAvailable() just returns 0 by default
+The best option would be making Google add API to retrieve the
+traffic class (or, even better, adding that to OpenJDK).

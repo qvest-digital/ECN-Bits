@@ -23,7 +23,7 @@
 #define ECNBITS_ALOG_H
 
 #ifndef ECNBITS_ALOG_TAG
-#define ECNBITS_ALOG_TAG "ECN-JNI"
+#define ECNBITS_ALOG_TAG "ECN-Bits-JNI"
 #endif
 
 #if defined(ECNBITS_ALOG_TYPE) && (ECNBITS_ALOG_TYPE == 1)

@@ -25,17 +25,11 @@ add_library(ecnbits-native SHARED
 	nh_cxx.cc
 	)
 
-add_library(ecnbits-ndk SHARED
-	alog.h
-	ecn-jni.c
-	)
-
 if (UNDER_NDK)
 	add_definitions(-DECNBITS_ALOG_TYPE=1)
 
 	find_library(log-lib log)
 	target_link_libraries(ecnbits-native ${log-lib})
-	target_link_libraries(ecnbits-ndk ${log-lib})
 
 	execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE cxx_version_full)
 	string(REGEX REPLACE "^Android [^\n]* clang version ([0-9]+)\\.[0-9].*$" "\\1" cxx_version_major ${cxx_version_full})

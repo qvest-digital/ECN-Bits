@@ -23,7 +23,6 @@ package de.telekom.llcto.ecn_bits.android.lib;
 
 import java.net.DatagramSocket;
 import java.net.DatagramSocketImpl;
-import java.net.ECNBitsDatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;

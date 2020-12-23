@@ -1,4 +1,3 @@
-• android/ecn-lib/src/main/java/de/telekom/llcto/ecn_bits/android/lib/DatagramSocketAdaptor.java
-• ByteBuffer
 • scatter/gather I/O mit ByteBuffer[]
-• JNI C-Teil
+• API-Level hochziehen, wie durch Google vorgeschrieben
+• strict mode 11 prüfen, falls möglich

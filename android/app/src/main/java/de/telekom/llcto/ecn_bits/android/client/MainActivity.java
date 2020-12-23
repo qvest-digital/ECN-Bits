@@ -41,7 +41,7 @@ import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import de.telekom.llcto.ecn_bits.android.lib.AbstractECNBitsDatagramSocket;
 import de.telekom.llcto.ecn_bits.android.lib.Bits;
 import de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramChannel;
-import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
+import de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramSocket;
 import de.telekom.llcto.ecn_bits.android.lib.ECNStatistics;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -339,11 +339,8 @@ public class MainActivity extends AppCompatActivity {
           BitsAdapter.values, BitsAdapter.values[0]).getBit();
 
         try {
-            //sock = new ECNBitsDatagramSocket();
-            sock = ECNBitsDatagramChannel.open().socket();
-        } catch (ECNBitsLibraryException e) {
-            addOutputLine("could not initialise ECN-Bits library: " + e.getMessage());
-            return;
+            sock = new ECNBitsDatagramSocket();
+            //sock = ECNBitsDatagramChannel.open().socket();
         } catch (IOException e) {
             addOutputLine("could not create socket: " + e);
             return;
@@ -386,6 +383,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                     final DatagramPacket precv = new DatagramPacket(buf, buf.length);
                     while (true) {
+                        // this is REQUIRED for EACH call if re-using a DatagramPacket for multiple
+                        // receive calls; cf. https://bugs.openjdk.java.net/browse/JDK-4161511
+                        precv.setLength(buf.length);
                         try {
                             sock.receive(precv);
                         } catch (SocketTimeoutException e) {

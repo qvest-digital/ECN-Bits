@@ -26,7 +26,7 @@ Parts of the library are additionally published under these terms:
  * Copyright © 2014, 2016
  *      The Android Open Source Project
  * Copyright © 1996, 2000, 2001, 2002, 2006, 2007, 2011, 2012, 2013,
- *             2018
+ *             2015, 2018
  *      Oracle and/or its affiliates
  * Licensor: Deutsche Telekom
  *
@@ -57,7 +57,7 @@ Parts of the library are additionally published under these terms:
  * library, but you are not obligated to do so.  If you do not wish
  * to do so, delete this exception statement from your version.
 
-The native code additionally contains a nativehelper module:
+The native code additionally contains a nativehelper module “nh”:
 
  * Copyright © 2020
  *      mirabilos <t.glaser@tarent.de>
@@ -75,6 +75,11 @@ The native code additionally contains a nativehelper module:
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+
+The NOTICE file of libnativehelper contains the copyright notice with
+“(c) 2005–2008 The Android Open Source Project”, the licence header,
+and a copy of the terms and conditions, which are identical to these
+in the full text (see above) of the licence.
 
 All three licences must be adhered to: the Apache 2 licence for the
 “nh” module *only*; both MirBSD and GPLv2 with Classpath Exception

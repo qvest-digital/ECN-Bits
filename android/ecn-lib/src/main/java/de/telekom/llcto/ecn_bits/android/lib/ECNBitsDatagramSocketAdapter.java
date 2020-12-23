@@ -229,6 +229,11 @@ class ECNBitsDatagramSocketAdapter extends AbstractECNBitsDatagramSocket {
                     final ByteBuffer bb = ByteBuffer.wrap(p.getData(), p.getOffset(), p.getLength());
                     final SocketAddress sender = receive(bb);
                     p.setSocketAddress(sender);
+                    // this is wrong but what the JDK does; p.setReceivedLength()
+                    // should be used, but it’s package-private and äpp-hidden so
+                    // we can’t and the stock Android DatagramSocketAdapter does
+                    // the same; the JDK requires users to reset length each use,
+                    // as https://bugs.openjdk.java.net/browse/JDK-4161511 states
                     p.setLength(bb.position() - p.getOffset());
                 }
             } catch (IOException x) {

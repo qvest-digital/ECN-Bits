@@ -21,8 +21,6 @@ package de.telekom.llcto.ecn_bits.android.lib;
  * of said person’s immediate fault when using the work as intended.
  */
 
-import java.net.ECNBitsDatagramSocket;
-
 /**
  * Common interface for an API provided to read the IP traffic class octet
  * by {@link ECNBitsDatagramSocket} and {@link ECNBitsDatagramChannel}.
