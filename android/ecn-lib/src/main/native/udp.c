@@ -70,6 +70,8 @@
 
 #define rgetnaminfo(e,s,S) \
 			int e = errno; \
+			rrgetnaminfo(s,S)
+#define rrgetnaminfo(s,S) \
 			char s[64]; \
 			if (getnameinfo((struct sockaddr *)(S), \
 			    sizeof(struct sockaddr_in6), \
@@ -107,9 +109,9 @@ static JNICALL void n_connect(JNIEnv *, jclass, jint, jbyteArray, jint, jint);
 static JNICALL void n_disconnect(JNIEnv *, jclass, jint);
 static JNICALL jint n_recv(JNIEnv *, jclass, jint, jobject, jint, jint, jobject, jboolean);
 static JNICALL jint n_send(JNIEnv *, jclass, jint, jobject, jint, jint, jbyteArray, jint, jint);
-#if 0
 static JNICALL jint n_recvfrom(JNIEnv *, jclass, jint, jbyteArray, jint, jint, jobject, jboolean, jboolean);
 static JNICALL jint n_sendto(JNIEnv *, jclass, jint, jbyteArray, jint, jint, jbyteArray, jint, jint);
+#if 0
 static JNICALL jlong n_rd(JNIEnv *, jclass, jint, jobjectArray, jint, jobject);
 static JNICALL jlong n_wr(JNIEnv *, jclass, jint, jobjectArray, jbyteArray, jint, jint);
 #endif
@@ -131,9 +133,9 @@ static const JNINativeMethod methods[] = {
 	METH(n_disconnect, "(I)V"),
 	METH(n_recv, "(ILjava/nio/ByteBuffer;IILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;Z)I"),
 	METH(n_send, "(ILjava/nio/ByteBuffer;II[BII)I"),
-#if 0
-	METH(n_recvfrom, "(I[BIILde/telekom/llcto/ecn_bits/android/lib/JNI/AddrPort;ZZ)I"),
+	METH(n_recvfrom, "(I[BIILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;ZZ)I"),
 	METH(n_sendto, "(I[BII[BII)I"),
+#if 0
 	METH(n_rd, "(I[Lde/telekom/llcto/ecn_bits/android/lib/JNI$SGIO;ILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)J"),
 	METH(n_wr, "(I[Lde/telekom/llcto/ecn_bits/android/lib/JNI$SGIO;[BII)J"),
 #endif
@@ -781,6 +783,33 @@ recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
 	*e = (unsigned short)(b1 & 0xFFU) | ECNBITS_ISVALID_BIT;
 }
 
+static void
+trycmsg(struct msghdr *msgh, unsigned short *e)
+{
+	struct cmsghdr *cmsg = CMSG_FIRSTHDR(msgh);
+
+	while (cmsg) {
+		switch (cmsg->cmsg_level) {
+		case IPPROTO_IP:
+			switch (cmsg->cmsg_type) {
+			case IP_TOS:
+			case IP_RECVTOS:
+				recvtos_cmsg(cmsg, e);
+				break;
+			}
+			break;
+		case IPPROTO_IPV6:
+			switch (cmsg->cmsg_type) {
+			case IPV6_TCLASS:
+				recvtos_cmsg(cmsg, e);
+				break;
+			}
+			break;
+		}
+		cmsg = CMSG_NXTHDR(msgh, cmsg);
+	}
+}
+
 static JNICALL jint
 n_recv(JNIEnv *env, jclass cls __unused, jint fd,
     jobject bbuf, jint bbpos, jint bbsize, jobject aptc, jboolean connected)
@@ -789,7 +818,6 @@ n_recv(JNIEnv *env, jclass cls __unused, jint fd,
 	unsigned short e;
 	struct msghdr m;
 	struct iovec io;
-	struct cmsghdr *cmsg;
 	char cmsgbuf[ECNBITS_CMSGBUFLEN];
 	struct sockaddr_in6 sin6;
 
@@ -801,8 +829,8 @@ n_recv(JNIEnv *env, jclass cls __unused, jint fd,
 		return (IO_THROWN);
 	io.iov_base += (unsigned int)bbpos;
 	io.iov_len = (unsigned int)bbsize;
-	if (io.iov_len > /* MAX_PACKET_LEN */ 65536)
-		io.iov_len = 65536;
+	if (io.iov_len > /* MAX_PACKET_LEN */ 65536U)
+		io.iov_len = 65536U;
 
 	memset(&m, '\0', sizeof(m));
 	m.msg_iov = &io;
@@ -827,28 +855,7 @@ n_recv(JNIEnv *env, jclass cls __unused, jint fd,
 		return (ethrow(env, eX_S_auto, "recv(%d, %u)", fd,
 		    (unsigned int)io.iov_len));
 	}
-
-	cmsg = CMSG_FIRSTHDR(&m);
-	while (cmsg) {
-		switch (cmsg->cmsg_level) {
-		case IPPROTO_IP:
-			switch (cmsg->cmsg_type) {
-			case IP_TOS:
-			case IP_RECVTOS:
-				recvtos_cmsg(cmsg, &e);
-				break;
-			}
-			break;
-		case IPPROTO_IPV6:
-			switch (cmsg->cmsg_type) {
-			case IPV6_TCLASS:
-				recvtos_cmsg(cmsg, &e);
-				break;
-			}
-			break;
-		}
-		cmsg = CMSG_NXTHDR(&m, cmsg);
-	}
+	trycmsg(&m, &e);
 
 	if (n == 0 && sin6.sin6_family == 0) {
 		/*
@@ -905,22 +912,148 @@ n_send(JNIEnv *env, jclass cls __unused, jint fd,
 		if (errno == EINTR)
 			return (IO_EINTR);
 		rgetnaminfo(r_errno, r_host, &sin6);
-		return (throw(env, errno == ECONNREFUSED ? eX_PORTUNR : eX_S_auto,
+		return (throw(env, r_errno == ECONNREFUSED ? eX_PORTUNR : eX_S_auto,
 		    r_errno, "send(%d, %u, [%s]:%u)", fd, (unsigned int)len,
 		    r_host, (int)port));
 	}
 	return (n);
 }
 
-#if 0
 static JNICALL jint
 n_recvfrom(JNIEnv *env, jclass cls __unused, jint fd,
     jbyteArray buf, jint bufpos, jint len,
     jobject aptc, jboolean peekOnly, jboolean connected)
+{
+	ssize_t n;
+	unsigned short e;
+	struct msghdr m;
+	struct iovec io;
+	char cmsgbuf[ECNBITS_CMSGBUFLEN];
+	struct sockaddr_in6 sin6;
+	jbyte *buf_elts;
+
+	e = ECNBITS_INVALID_BIT;
+	memset(&sin6, '\0', sizeof(sin6));
+
+	buf_elts = (*env)->GetByteArrayElements(env, buf, NULL);
+	if (!buf_elts)
+		return (IO_THROWN);
+	/* releasing buf_elts needed */
+
+	io.iov_base = (char *)buf_elts + (unsigned int)bufpos;
+	io.iov_len = (unsigned int)len;
+	if (io.iov_len > /* MAX_PACKET_LEN */ 65536U)
+		io.iov_len = 65536U;
+
+	memset(&m, '\0', sizeof(m));
+	m.msg_iov = &io;
+	m.msg_iovlen = 1;
+	m.msg_name = &sin6;
+	m.msg_namelen = sizeof(sin6);
+	m.msg_control = cmsgbuf;
+	m.msg_controllen = sizeof(cmsgbuf);
+
+ retry:
+	if ((n = recvmsg(fd, &m, peekOnly ? MSG_PEEK : 0)) == (ssize_t)-1) {
+		int ec = errno;
+
+		if (ec == ECONNREFUSED && connected == JNI_FALSE)
+			goto retry;
+		(*env)->ReleaseByteArrayElements(env, buf, buf_elts, JNI_ABORT);
+		if (ec == EAGAIN || ec == EWOULDBLOCK)
+			return (IO_EAVAIL);
+		if (ec == EINTR)
+			return (IO_EINTR);
+		if (ec == ECONNREFUSED)
+			return (throw(env, eX_PORTUNR, ec, "recv(%d, %u)",
+			    fd, (unsigned int)io.iov_len));
+		return (throw(env, eX_S_auto, ec, "recv(%d, %u)", fd,
+		    (unsigned int)io.iov_len));
+	}
+	(*env)->ReleaseByteArrayElements(env, buf, buf_elts, 0);
+	/* releasing buf_elts done */
+	trycmsg(&m, &e);
+
+	if (n == 0 && sin6.sin6_family == 0) {
+		/*
+		 * set sender to nil:
+		 * peer or another thread shut down the socket
+		 */
+		(*env)->SetObjectField(env, aptc, o_AP_addr, NULL);
+	} else if (sin6.sin6_family != AF_INET6) {
+		return (throw(env, eX_S, EAFNOSUPPORT,
+		    "AF %d after recv(%d, %u)", (int)sin6.sin6_family,
+		    fd, (unsigned int)n));
+	} else {
+		jbyteArray addr;
+
+		if (!(addr = (*env)->NewByteArray(env, 16)))
+			return (IO_THROWN);
+		(*env)->SetByteArrayRegion(env, addr, 0, 16,
+		    (const void *)&sin6.sin6_addr.s6_addr);
+		(*env)->SetObjectField(env, aptc, o_AP_addr, addr);
+		(*env)->SetIntField(env, aptc, o_AP_port, ntohs(sin6.sin6_port));
+		(*env)->SetIntField(env, aptc, o_AP_scopeId,
+		    sin6.sin6_scope_id > 0 ? (int)sin6.sin6_scope_id : -1);
+	}
+	(*env)->SetByteField(env, aptc, o_AP_tc, e & 0xFF);
+	(*env)->SetBooleanField(env, aptc, o_AP_tcValid,
+	    ECNBITS_VALID(e) ? JNI_TRUE : JNI_FALSE);
+
+	return (n);
+}
+
 static JNICALL jint
 n_sendto(JNIEnv *env, jclass cls __unused, jint fd,
-    jbyteArray buf, jint bufpos, jint len,
+    jbyteArray bufarr, jint bufpos, jint buflen,
     jbyteArray addr, jint port, jint scope)
+{
+	ssize_t n;
+	char *buf;
+	size_t len;
+	struct sockaddr_in6 sin6;
+	jbyte *buf_elts;
+	int ec;
+
+	if (addr != NULL &&
+	    mksockaddr(env, &sin6, addr, port, scope) /* threw an exception */)
+		return (IO_THROWN);
+
+	buf_elts = (*env)->GetByteArrayElements(env, bufarr, NULL);
+	if (!buf_elts)
+		return (IO_THROWN);
+	/* releasing buf_elts needed */
+
+	buf = (char *)buf_elts + (unsigned int)bufpos;
+	len = (unsigned int)buflen;
+	if (len > /* MAX_PACKET_LEN */ 65536U)
+		len = 65536U;
+
+	n = sendto(fd, buf, len, 0,
+	    addr ? (struct sockaddr *)&sin6 : NULL,
+	    addr ? sizeof(sin6) : 0);
+	ec = errno;
+
+	(*env)->ReleaseByteArrayElements(env, bufarr, buf_elts, JNI_ABORT);
+	/* releasing buf_elts done */
+
+	if (n != (ssize_t)-1)
+		return (n);
+
+	if (ec == EAGAIN || ec == EWOULDBLOCK)
+		return (IO_EAVAIL);
+	if (ec == EINTR)
+		return (IO_EINTR);
+	if (!addr)
+		return (throw(env, ec == ECONNREFUSED ? eX_PORTUNR : eX_S_auto,
+		    ec, "send(%d, %u)", fd, (unsigned int)len));
+	rrgetnaminfo(r_host, &sin6);
+	return (throw(env, ec == ECONNREFUSED ? eX_PORTUNR : eX_S_auto,
+	    ec, "send(%d, %u, [%s]:%u)", fd, (unsigned int)len,
+	    r_host, (int)port));
+}
+
+#if 0
 static JNICALL jlong
 n_rd(JNIEnv *env, jclass cls __unused, jint fd,
     jobjectArray bufs, jint nbufs, jobject tc)
