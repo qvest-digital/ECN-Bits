@@ -481,11 +481,11 @@ final class JNI {
       final byte[] addr, final int port, final int scopeId) throws SocketException;
 
     static native long n_rd(final int fd,
-      final SGIO[] bufs, final int nbufs, final AddrPort tc) throws ErrnoException;
+      final SGIO[] bufs, final int nbufs, final AddrPort tc) throws SocketException;
 
     static native long n_wr(final int fd,
       final SGIO[] bufs,
-      final byte[] addr, final int port, final int scopeId) throws ErrnoException;
+      final byte[] addr, final int port, final int scopeId) throws SocketException;
 
     // 1 (ok), 0 (timeout or POLLERR/POLLHUP/POLLNVAL), EINTR or THROWN
     static native int n_pollin(final int fd,

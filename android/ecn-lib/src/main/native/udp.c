@@ -163,11 +163,15 @@ static jmethodID i_EX_UNREACH_c;
 static jmethodID i_EX_BIND_c;
 static jmethodID i_EX_PORTUNR_c;
 
-static jfieldID o_AP_addr;
-static jfieldID o_AP_port;
-static jfieldID o_AP_scopeId;
-static jfieldID o_AP_tc;
-static jfieldID o_AP_tcValid;
+static jfieldID o_AP_addr;	// byte[]
+static jfieldID o_AP_port;	// int
+static jfieldID o_AP_scopeId;	// int
+static jfieldID o_AP_tc;	// byte
+static jfieldID o_AP_tcValid;	// boolean
+
+static jfieldID o_SG_buf;	// ByteBuffer
+static jfieldID o_SG_pos;	// int
+static jfieldID o_SG_len;	// int
 
 static void
 free_grefs(JNIEnv *env)
@@ -272,6 +276,9 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 	getfield(AP, scopeId, "I");
 	getfield(AP, tc, "B");
 	getfield(AP, tcValid, "Z");
+	getfield(SG, buf, "Ljava/nio/ByteBuffer;");
+	getfield(SG, pos, "I");
+	getfield(SG, len, "I");
 #ifndef ECNBITS_SKIP_DALVIK
 	/* for nh library */
 	getfield(FD, descriptor, "I");
@@ -280,14 +287,14 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 	rc = (*env)->RegisterNatives(env, cls_JNI, methods, NELEM(methods));
 	if (rc != JNI_OK) {
 		ecnlog_err("failed to attach methods to class");
-		goto unwind2;
+		goto unwind_rc_set;
 	}
 
 	ecnlog_info("load successful");
 	return (JNI_VERSION_1_6);
  unwind:
 	rc = JNI_ERR;
- unwind2:
+ unwind_rc_set:
 	free_grefs(env);
 	return (rc);
 }
