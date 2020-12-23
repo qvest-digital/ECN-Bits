@@ -29,10 +29,11 @@ Development funded by Deutsche Telekom.
     ! tested on Android 8 and 9 (no change needed) and 10 (see docs)
     : Status: done for DatagramSocket
       testing Android 11
-    - no equivalent for DatagramChannel
+    : Status: DatagramChannel works without the need to access internal APIs
+      including DatagramSocketAdapter but with a performance penalty
   • demo client GUI application
 
-  Support for DatagramChannel, as well as getting DatagramSocket to
+  Support for for getting DatagramSocket to
   work without needing access to internals, is currently being
   undertaken in a separate development branch and work in progress.
 

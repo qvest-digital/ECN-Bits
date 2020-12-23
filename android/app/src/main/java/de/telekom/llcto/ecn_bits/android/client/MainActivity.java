@@ -38,7 +38,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
+import de.telekom.llcto.ecn_bits.android.lib.AbstractECNBitsDatagramSocket;
 import de.telekom.llcto.ecn_bits.android.lib.Bits;
+import de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramChannel;
 import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
 import de.telekom.llcto.ecn_bits.android.lib.ECNStatistics;
 import lombok.AllArgsConstructor;
@@ -50,11 +52,14 @@ import org.evolvis.tartools.rfc822.IPAddress;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.ECNBitsDatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.net.StandardSocketOptions;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -78,14 +83,19 @@ public class MainActivity extends AppCompatActivity {
     private EditText portText;
     private Spinner bitsDropdown;
     private Button sendButton;
+    private Button startStopButton;
     private RecyclerView outputListView;
     private OutputListAdapter outputListAdapter;
     private LinearLayoutManager outputListLayoutMgr;
     private InputMethodManager imm;
     private boolean showKbd = false;
-    private ECNBitsDatagramSocket sock;
+    private AbstractECNBitsDatagramSocket sock;
     private Thread netThread = null;
     private volatile boolean exiting = false;
+    private boolean channelStarted = false;
+    private ECNBitsDatagramChannel chan = null;
+    private Thread cSendThread = null;
+    private Thread cRecvThread = null;
 
     /**
      * Adapts a {@link Bits} enum for use with an {@link ArrayAdapter}: the
@@ -146,6 +156,10 @@ public class MainActivity extends AppCompatActivity {
         bitsDropdown.setAdapter(bitsAdapter);
         sendButton = findViewById(R.id.sendButton);
         sendButton.setSaveEnabled(false);
+        startStopButton = findViewById(R.id.channelButton);
+        channelStarted = false;
+        startStopButton.setText(R.string.startLabel);
+        startStopButton.setSaveEnabled(false);
         uiEnabled(true);
     }
 
@@ -154,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
         portText.setEnabled(status);
         bitsDropdown.setEnabled(status);
         sendButton.setEnabled(status);
+        startStopButton.setEnabled(status);
     }
 
     @Override
@@ -164,6 +179,14 @@ public class MainActivity extends AppCompatActivity {
                 sock.close();
                 netThread.interrupt();
                 netThread = null;
+            }
+            if (cSendThread != null) {
+                cSendThread.interrupt();
+                cSendThread = null;
+            }
+            if (cRecvThread != null) {
+                cRecvThread.interrupt();
+                cRecvThread = null;
             }
         }
         super.onDestroy();
@@ -316,11 +339,12 @@ public class MainActivity extends AppCompatActivity {
           BitsAdapter.values, BitsAdapter.values[0]).getBit();
 
         try {
-            sock = new ECNBitsDatagramSocket();
+            //sock = new ECNBitsDatagramSocket();
+            sock = ECNBitsDatagramChannel.open().socket();
         } catch (ECNBitsLibraryException e) {
             addOutputLine("could not initialise ECN-Bits library: " + e.getMessage());
             return;
-        } catch (SocketException e) {
+        } catch (IOException e) {
             addOutputLine("could not create socket: " + e);
             return;
         }
@@ -379,9 +403,10 @@ public class MainActivity extends AppCompatActivity {
                         final Byte trafficClass = sock.retrieveLastTrafficClass();
                         oneSuccess = true;
                         final String userData = new String(buf, StandardCharsets.UTF_8);
-                        final String logLine = String.format("• %s %s%s%s",
-                          stamp, Bits.print(trafficClass), contentSeparator,
-                          userData.trim());
+                        final String logLine = String.format("• %s %s{%s}%s%s",
+                          stamp, Bits.print(trafficClass),
+                          trafficClass == null ? "??" : String.format("%02X", trafficClass),
+                          contentSeparator, userData.trim());
                         runOnUiThread(() -> addOutputLine(logLine));
                     }
                 }
@@ -422,6 +447,195 @@ public class MainActivity extends AppCompatActivity {
             return defaultValue;
         }
         return values[pos];
+    }
+
+    public void clkStartStop(final View v) {
+        if (channelStarted) {
+            uiEnabled(false);
+            addOutputLine("stopping channel");
+            exiting = true;
+            cSendThread.interrupt();
+            cRecvThread.interrupt();
+            try {
+                final ECNStatistics stats = chan.getMeasurement(false);
+                addOutputLine(stats == null ?
+                  "!! no congestion measurement" :
+                  String.format("ℹ %.2f%% of %d packets received over %.3f s were congested",
+                    stats.getCongestionFactor() * 100.0, stats.getReceivedPackets(),
+                    (double) stats.getLengthOfMeasuringPeriod() / 1000000000.0));
+            } catch (ArithmeticException e) {
+                addOutputLine("!! ECNStatistics: " + e);
+            }
+            try {
+                if (chan != null) {
+                    chan.close();
+                }
+            } catch (IOException e) {
+                addOutputLine("could not close channel");
+            }
+            try {
+                cSendThread.join(200);
+            } catch (InterruptedException e) {
+                // restore interrupted flag
+                Thread.currentThread().interrupt();
+                addOutputLine("could not join send thread");
+            }
+            try {
+                cRecvThread.join(200);
+            } catch (InterruptedException e) {
+                // restore interrupted flag
+                Thread.currentThread().interrupt();
+                addOutputLine("could not join recv thread");
+            }
+            chan = null;
+            cSendThread = null;
+            cRecvThread = null;
+            exiting = false;
+            channelStarted = false;
+            startStopButton.setText(R.string.startLabel);
+            uiEnabled(true);
+            return;
+        }
+
+        final IPorFQDN hostname = getFieldValue(true, hostnameText, this::fqdnOrIPExtractor, "hostname");
+        final Integer port = getFieldValue(false, portText, this::uintExtractor,
+          new UIntExtractorBounds(1, 65535, "port"));
+        final Bits outBits = getDropdownSelectedValueOr(bitsDropdown,
+          BitsAdapter.values, BitsAdapter.values[0]).getBit();
+        if (hostname == null || port == null) {
+            return;
+        }
+        addOutputLine(String.format("connect to [%s]:%d with %s", hostname.resolved ?
+          hostname.a[0].getHostAddress() : hostname.s, port, outBits.getShortname()));
+
+        try {
+            chan = ECNBitsDatagramChannel.open();
+        } catch (IOException e) {
+            addOutputLine("could not create channel: " + e);
+            return;
+        }
+
+        cSendThread = new Thread(() -> {
+            long counter = 0;
+            val buf = ByteBuffer.allocateDirect(64);
+
+            try {
+                chan.setOption(StandardSocketOptions.IP_TOS, (int) outBits.getBits());
+            } catch (IOException e) {
+                runOnUiThread(() -> addOutputLine("!! setsockopt: " + e));
+                return;
+            }
+            final SocketAddress dst = hostname.resolved ?
+              new InetSocketAddress(hostname.a[0], port) :
+              new InetSocketAddress(hostname.s, port);
+            try {
+                chan.connect(dst);
+            } catch (IOException e) {
+                runOnUiThread(() -> addOutputLine("!! connect: " + e));
+                return;
+            }
+            val hdr = String.format("sent(%s)/received packets ↔ [%s]:%d <%s>",
+              outBits.getShortname(), hostname.resolved ?
+                hostname.a[0].getHostAddress() : hostname.s,
+              port, dst.toString());
+            try {
+                // initialisation done, reset output and start the recv thread
+                runOnUiThread(() -> resetOutputLine(hdr));
+                Thread.sleep(50);
+                cRecvThread.start();
+                Thread.sleep(50);
+                // waited until recv thread is probably online
+            } catch (InterruptedException e) {
+                // restore interrupted flag
+                Thread.currentThread().interrupt();
+                return;
+            }
+            // send thread main
+            while (!exiting) {
+                final String stamp = ZonedDateTime.now(ZoneOffset.UTC)
+                  .truncatedTo(ChronoUnit.MILLIS)
+                  .format(DateTimeFormatter.ISO_INSTANT);
+                final String payload = String.format("%s #%d", stamp, ++counter);
+                buf.clear();
+                val payloadBytes = payload.getBytes(StandardCharsets.UTF_8);
+                buf.put(payloadBytes);
+                buf.flip();
+                try {
+                    final int written = chan.write(buf);
+                    if (written == payloadBytes.length) {
+                        runOnUiThread(() -> addOutputLine("← " + payload));
+                    } else {
+                        runOnUiThread(() -> addOutputLine(String.format("!! send (%s): short write (%d of %d)",
+                          payload, written, payloadBytes.length)));
+                    }
+                } catch (IOException e) {
+                    if (exiting || Thread.interrupted()) {
+                        return;
+                    }
+                    runOnUiThread(() -> addOutputLine(String.format("!! send (%s): %s",
+                      payload, e)));
+                }
+                try {
+                    //noinspection BusyWait
+                    Thread.sleep(666);
+                } catch (InterruptedException e) {
+                    // restore interrupted flag
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        });
+
+        cRecvThread = new Thread(() -> {
+            val buf = ByteBuffer.allocateDirect(512);
+            chan.startMeasurement();
+            while (!exiting) {
+                buf.clear();
+                try {
+                    final int read = chan.read(buf);
+                    final String stamp = ZonedDateTime.now(ZoneOffset.UTC)
+                      .truncatedTo(ChronoUnit.MILLIS)
+                      .format(DateTimeFormatter.ISO_INSTANT);
+                    if (read < 0) {
+                        runOnUiThread(() -> addOutputLine("!! recv: EOF @ " + stamp));
+                        // falls through to sleep to not repeat too fast
+                    } else {
+                        buf.flip();
+                        final Byte trafficClass = chan.retrieveLastTrafficClass();
+                        final String userData = StandardCharsets.UTF_8.decode(buf).toString();
+                        final String logLine = String.format("→ %s %s{%s} (%d)%s%s",
+                          stamp, Bits.print(trafficClass),
+                          trafficClass == null ? "??" : String.format("%02X", trafficClass),
+                          read, contentSeparator, userData.trim());
+                        runOnUiThread(() -> addOutputLine(logLine));
+                        // does not fall through to sleep below
+                        continue;
+                    }
+                } catch (IOException e) {
+                    if (exiting || Thread.interrupted()) {
+                        return;
+                    }
+                    runOnUiThread(() -> addOutputLine("!! recv: " + e));
+                    // falls through to sleep to not repeat too fast
+                }
+                // do not repeat errors too fast
+                try {
+                    //noinspection BusyWait
+                    Thread.sleep(250);
+                } catch (InterruptedException e) {
+                    // restore interrupted flag
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        });
+
+        uiEnabled(false);
+        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        channelStarted = true;
+        startStopButton.setText(R.string.stopLabel);
+        startStopButton.setEnabled(true);
+        cSendThread.start();
     }
 
     public void clkLicence(final View v) {

@@ -22,7 +22,10 @@ package java.net;
  */
 
 import android.util.Log;
+import de.telekom.llcto.ecn_bits.android.lib.AbstractECNBitsDatagramReceiver;
+import de.telekom.llcto.ecn_bits.android.lib.AbstractECNBitsDatagramSocket;
 import de.telekom.llcto.ecn_bits.android.lib.ECNBitsLibraryException;
+import de.telekom.llcto.ecn_bits.android.lib.ECNMeasurer;
 import de.telekom.llcto.ecn_bits.android.lib.ECNStatistics;
 
 import java.io.IOException;
@@ -32,16 +35,14 @@ import java.lang.reflect.Method;
 /**
  * {@link DatagramSocket} equivalent capable of returning and
  * collecting ECN bits and the traffic class octet from received packets.
+ * Not suitable for use with IP Multicast.
  *
- * This class offers the method {@link #retrieveLastTrafficClass()} to retrieve
- * the traffic class octet, if any, from the last packet received or peekData’d
- * or null if it could not be determined or no packet was processed yet, and
- * {@link #startMeasurement()} and {@link #getMeasurement(boolean)} to analyse
- * the percentage of packets that were congested over a period.
+ * This class offers the methods from {@link AbstractECNBitsDatagramReceiver}
+ * to determine the IP traffic class and thus the ECN bits.
  *
  * @author mirabilos (t.glaser@tarent.de)
  */
-public class ECNBitsDatagramSocket extends DatagramSocket {
+public class ECNBitsDatagramSocket extends AbstractECNBitsDatagramSocket {
     static {
         try {
             DatagramSocket.setDatagramSocketImplFactory(new ECNBitsDatagramSocketImplFactory());
@@ -51,6 +52,7 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
     }
 
     private ECNBitsDatagramSocketImpl eimpl;
+    private final ECNMeasurer tcm;
 
     /**
      * Constructs an ECN-capable datagram socket, wildcard bound to a free port
@@ -85,7 +87,7 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
         }
         if (impl instanceof ECNBitsDatagramSocketImpl) {
             eimpl = (ECNBitsDatagramSocketImpl) impl;
-            eimpl.setUpRecvTclass();
+            tcm = eimpl.setUpRecvTclass();
             return;
         }
         close();
@@ -131,44 +133,18 @@ public class ECNBitsDatagramSocket extends DatagramSocket {
         super.close();
     }
 
-    /**
-     * Retrieves the traffic class the last packet that was peekData’d or received had
-     *
-     * @return byte tc; null if the tc could not be determined or there was no packet
-     */
+    @Override
     public Byte retrieveLastTrafficClass() {
-        return eimpl.retrieveLastTrafficClass();
+        return tcm.last();
     }
 
-    /**
-     * Starts (or restarts, resetting) measurement of the percentage of received
-     * packets that had the ECN CE mark set, i.e. that were congested.
-     *
-     * @see #getMeasurement(boolean)
-     */
+    @Override
     public void startMeasurement() {
-        try {
-            eimpl.doMeasuring(true);
-        } catch (ArithmeticException e) {
-            /* ignore, this is about the past period */
-        }
+        tcm.doMeasuring(true, false);
     }
 
-    /**
-     * Retrieves the measurement data regarding the percentage of received
-     * packets that had the ECN CE mark set, i.e. that were congested, for
-     * the period between the previous call to {@link #startMeasurement()}
-     * or this function with {@code doContinue} set to true, and this call.
-     *
-     * If {@code doContinue} is true, also starts a new measurement cycle;
-     * otherwise, stops measuring for the current socket;to save CPU, doing
-     * measurements is not enabled unless explicitly requested.
-     *
-     * @param doContinue whether to continue measuring
-     * @return {@link ECNStatistics}, or null if not measuring before
-     * @throws ArithmeticException if too many packets were received in the last period
-     */
+    @Override
     public ECNStatistics getMeasurement(final boolean doContinue) {
-        return eimpl.doMeasuring(doContinue);
+        return tcm.doMeasuring(doContinue, true);
     }
 }

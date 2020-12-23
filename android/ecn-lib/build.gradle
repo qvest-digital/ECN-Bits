@@ -1,7 +1,12 @@
 apply plugin: 'com.android.library'
+apply plugin: 'de.mannodermaus.android-junit5'
 
-// project licence: The MirOS Licence AND GPLv2 with Classpath Exception
+def dirToplev = project.layout.projectDirectory.asFile.absolutePath
+
+// project licence: The MirOS Licence AND GPLv2 with Classpath Exception AND Apache 2.0
 // see src/main/resources/LICENCE.ecn-lib and src/main/resources/COPYING
+//
+// “nh” module under Apache 2, see src/main/resources/LICENSE-2.0 for that
 //
 // apparently, there’s no standardised way to declare the project licence in Gradle:
 // https://discuss.gradle.org/t/how-to-declare-a-license-for-a-gradle-project/26114
@@ -20,6 +25,15 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+
+        externalNativeBuild {
+            cmake {
+                //noinspection GroovyAssignabilityCheck because Gradle and the IDE have different world views…
+                arguments "-DTOPLEV=" + dirToplev
+            }
+            return void // WTF‽
+        }
+
         return void // WTF‽
     }
 
@@ -52,9 +66,52 @@ dependencies {
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
     compileOnly 'org.projectlombok:lombok:1.18.16'
 
-    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+    //noinspection AnnotationProcessorOnCompilePath because both are needed :/
+    testCompileOnly 'org.projectlombok:lombok:1.18.16'
+
     //noinspection GradleDependency
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     //noinspection GradleDependency
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    //noinspection GradleDependency
+    androidTestImplementation 'junit:junit:4.12'
+
+    androidTestAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+    //noinspection AnnotationProcessorOnCompilePath because both are needed :/
+    androidTestCompileOnly 'org.projectlombok:lombok:1.18.16'
+}
+
+def dirForNativeNoNDK = project.layout.buildDirectory.get().dir("native-noNDK")
+def srcForNativeNoNDK = project.layout.projectDirectory.dir("src/main/native").asFile
+
+task createNativeNoNDK() {
+    def dstdir = dirForNativeNoNDK.asFile
+    if (!dstdir.exists()) dstdir.mkdirs()
+}
+task buildCMakeNativeNoNDK(type: Exec) {
+    dependsOn createNativeNoNDK
+    workingDir dirForNativeNoNDK
+    commandLine "/usr/bin/env", "cmake", "-DTOPLEV=" + dirToplev, "-DUNDER_NDK=OFF", srcForNativeNoNDK.absolutePath
+}
+task buildGMakeNativeNoNDK(type: Exec) {
+    dependsOn buildCMakeNativeNoNDK
+    workingDir dirForNativeNoNDK
+    commandLine "/usr/bin/env", "make"
+}
+
+project.afterEvaluate {
+    if (org.gradle.internal.os.OperatingSystem.current().isLinux()) {
+        testDebugUnitTest {
+            dependsOn buildGMakeNativeNoNDK
+            systemProperty "java.library.path", dirForNativeNoNDK.asFile.absolutePath + ":" + System.getProperty("java.library.path")
+        }
+        testReleaseUnitTest {
+            dependsOn buildGMakeNativeNoNDK
+            systemProperty "java.library.path", dirForNativeNoNDK.asFile.absolutePath + ":" + System.getProperty("java.library.path")
+        }
+    }
 }
