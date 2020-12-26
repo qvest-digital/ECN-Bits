@@ -111,10 +111,8 @@ static JNICALL jint n_recv(JNIEnv *, jclass, jint, jobject, jint, jint, jobject,
 static JNICALL jint n_send(JNIEnv *, jclass, jint, jobject, jint, jint, jbyteArray, jint, jint);
 static JNICALL jint n_recvfrom(JNIEnv *, jclass, jint, jbyteArray, jint, jint, jobject, jboolean, jboolean);
 static JNICALL jint n_sendto(JNIEnv *, jclass, jint, jbyteArray, jint, jint, jbyteArray, jint, jint);
-#if 0
 static JNICALL jlong n_rd(JNIEnv *, jclass, jint, jobjectArray, jint, jobject);
 static JNICALL jlong n_wr(JNIEnv *, jclass, jint, jobjectArray, jbyteArray, jint, jint);
-#endif
 static JNICALL jint n_pollin(JNIEnv *, jclass, jint, jint);
 
 #define METH(name,signature) \
@@ -135,10 +133,8 @@ static const JNINativeMethod methods[] = {
 	METH(n_send, "(ILjava/nio/ByteBuffer;II[BII)I"),
 	METH(n_recvfrom, "(I[BIILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;ZZ)I"),
 	METH(n_sendto, "(I[BII[BII)I"),
-#if 0
 	METH(n_rd, "(I[Lde/telekom/llcto/ecn_bits/android/lib/JNI$SGIO;ILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)J"),
 	METH(n_wr, "(I[Lde/telekom/llcto/ecn_bits/android/lib/JNI$SGIO;[BII)J"),
-#endif
 	METH(n_pollin, "(II)I")
 };
 #undef METH
@@ -903,15 +899,15 @@ n_send(JNIEnv *env, jclass cls __unused, jint fd,
 	size_t len;
 	struct sockaddr_in6 sin6;
 
+	if (mksockaddr(env, &sin6, addr, port, scope) /* threw an exception */)
+		return (IO_THROWN);
+
 	if (!(buf = (*env)->GetDirectBufferAddress(env, bbuf)))
 		return (IO_THROWN);
 	buf += (unsigned int)bbpos;
 	len = (unsigned int)bbsize;
 	if (len > /* MAX_PACKET_LEN */ 65536U)
 		len = 65536U;
-
-	if (mksockaddr(env, &sin6, addr, port, scope) /* threw an exception */)
-		return (IO_THROWN);
 
 	if ((n = sendto(fd, buf, len, 0, (struct sockaddr *)&sin6,
 	    sizeof(sin6))) == (ssize_t)-1) {
@@ -1061,14 +1057,111 @@ n_sendto(JNIEnv *env, jclass cls __unused, jint fd,
 	    r_host, (int)port));
 }
 
-#if 0
+static int
+sgio_unpack(JNIEnv *env, struct iovec *iop, jobjectArray bufs, jsize nbufs)
+{
+	jsize i = (jsize)-1;
+
+	while (++i < nbufs) {
+		jobject sgiop;
+		jobject bbuf;
+		jint bbpos;
+		jint bbsize;
+
+		if (!(sgiop = (*env)->GetObjectArrayElement(env, bufs, i)))
+			return (IO_THROWN);
+		bbuf = (*env)->GetObjectField(env, sgiop, o_SG_buf);
+		bbpos = (*env)->GetIntField(env, sgiop, o_SG_pos);
+		bbsize = (*env)->GetIntField(env, sgiop, o_SG_len);
+
+		iop[i].iov_base = (*env)->GetDirectBufferAddress(env, bbuf);
+		if (!iop[i].iov_base)
+			return (IO_THROWN);
+		iop[i].iov_base += (unsigned int)bbpos;
+		iop[i].iov_len = (unsigned int)bbsize;
+
+		(*env)->DeleteLocalRef(env, bbuf);
+		(*env)->DeleteLocalRef(env, sgiop);
+	}
+	return (0);
+}
+
 static JNICALL jlong
 n_rd(JNIEnv *env, jclass cls __unused, jint fd,
     jobjectArray bufs, jint nbufs, jobject tc)
+{
+	ssize_t n;
+	unsigned short e;
+	struct msghdr m;
+	struct iovec iop[nbufs];
+	char cmsgbuf[ECNBITS_CMSGBUFLEN];
+	struct sockaddr_in6 sin6;
+
+	e = ECNBITS_INVALID_BIT;
+	memset(&sin6, '\0', sizeof(sin6));
+
+	if (sgio_unpack(env, iop, bufs, nbufs))
+		return (IO_THROWN);
+
+	memset(&m, '\0', sizeof(m));
+	m.msg_iov = iop;
+	m.msg_iovlen = nbufs;
+	m.msg_name = &sin6;
+	m.msg_namelen = sizeof(sin6);
+	m.msg_control = cmsgbuf;
+	m.msg_controllen = sizeof(cmsgbuf);
+
+	if ((n = recvmsg(fd, &m, 0)) == (ssize_t)-1) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+			return (IO_EAVAIL);
+		if (errno == EINTR)
+			return (IO_EINTR);
+		return (ethrow(env, errno == ECONNREFUSED ? eX_PORTUNR : eX_S_auto,
+		    "recvv(%d, [%d])", fd, (int)nbufs));
+	}
+	trycmsg(&m, &e);
+
+	(*env)->SetByteField(env, tc, o_AP_tc, e & 0xFF);
+	(*env)->SetBooleanField(env, tc, o_AP_tcValid,
+	    ECNBITS_VALID(e) ? JNI_TRUE : JNI_FALSE);
+
+	return (n);
+}
+
 static JNICALL jlong
 n_wr(JNIEnv *env, jclass cls __unused, jint fd,
     jobjectArray bufs, jbyteArray addr, jint port, jint scope)
-#endif
+{
+	ssize_t n;
+	struct msghdr m;
+	jsize nbufs = (*env)->GetArrayLength(env, bufs);
+	struct iovec iop[nbufs];
+	struct sockaddr_in6 sin6;
+
+	if (mksockaddr(env, &sin6, addr, port, scope) /* threw an exception */)
+		return (IO_THROWN);
+
+	if (sgio_unpack(env, iop, bufs, nbufs))
+		return (IO_THROWN);
+
+	memset(&m, '\0', sizeof(m));
+	m.msg_iov = iop;
+	m.msg_iovlen = nbufs;
+	m.msg_name = &sin6;
+	m.msg_namelen = sizeof(sin6);
+
+	if ((n = sendmsg(fd, &m, 0)) == (ssize_t)-1) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+			return (IO_EAVAIL);
+		if (errno == EINTR)
+			return (IO_EINTR);
+		rgetnaminfo(r_errno, r_host, &sin6);
+		return (throw(env, r_errno == ECONNREFUSED ? eX_PORTUNR : eX_S_auto,
+		    r_errno, "sendv(%d, [%d], [%s]:%u)", fd, (int)nbufs,
+		    r_host, (int)port));
+	}
+	return (n);
+}
 
 static JNICALL jint
 n_pollin(JNIEnv *env, jclass cls __unused, jint fd, jint timeout)

@@ -812,10 +812,10 @@ class ECNBitsDatagramChannelImpl extends ECNBitsDatagramChannel {
             return 0L;
         }
 
-        final JNI.AddrPort ap = new JNI.AddrPort();
-        final long n = n_rd(fdVal, bbs, nbbs, ap);
+        final JNI.AddrPort tc = new JNI.AddrPort();
+        final long n = n_rd(fdVal, bbs, nbbs, tc);
         if (n > 0) {
-            tcm.received(ap.tcValid, ap.tc);
+            tcm.received(tc.tcValid, tc.tc);
 
             long rest = n;
             for (int i = 0; i < bufn; ++i) {

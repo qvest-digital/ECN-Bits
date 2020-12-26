@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -55,8 +54,8 @@ public class ECNBitsDatagramChannelImplTest {
     public void testSGIO() throws IOException, InterruptedException {
         Log.i("ECN-Bits-JNITest", "SGIO test: begin");
         try {
-            val rchan = DatagramChannel.open();
-            val schan = DatagramChannel.open();
+            val rchan = ECNBitsDatagramChannel.open();
+            val schan = ECNBitsDatagramChannel.open();
             val rbound = new CountDownLatch(1);
             val sbound = new CountDownLatch(1);
             val rconnected = new CountDownLatch(1);
