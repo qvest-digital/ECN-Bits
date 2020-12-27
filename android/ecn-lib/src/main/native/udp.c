@@ -491,7 +491,8 @@ n_socket(JNIEnv *env, jclass cls __unused)
 	tagSocket(env, fd);
 	if ((*env)->ExceptionCheck(env) == JNI_TRUE) {
 		/* OOM in jniCreateFileDescriptor or failure to tag */
-		ecnlog_warn("could not tag newly created socket");
+		ecnlog_warn("could not tag newly created socket %d", fd);
+		(*env)->ExceptionDescribe(env);
 		/* don’t care */
 		(*env)->ExceptionClear(env);
 	}
