@@ -1,3 +1,1 @@
-• scatter/gather I/O mit ByteBuffer[]
-• API-Level hochziehen, wie durch Google vorgeschrieben
 • strict mode 11 prüfen, falls möglich
