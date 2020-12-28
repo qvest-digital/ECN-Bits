@@ -13,7 +13,7 @@
   ‣ https://youtrack.jetbrains.com/issue/IDEA-252775
   benötigt IDEA 2021.1, kein Backport auf 2020.x vorgesehen
 • com.android.tools.build:gradle:4.0.2 unbrauchbar:
-  siehe oben, Kommentar im Issue, alles unterpunktet oder gelb hinterlegt
+  ‣ https://youtrack.jetbrains.com/issue/IDEA-258598
 
 • CodeQL vs. NDK
   https://stackoverflow.com/q/65480083/2171120
