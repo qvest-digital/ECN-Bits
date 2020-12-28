@@ -21,8 +21,8 @@ package de.telekom.llcto.ecn_bits.android.lib;
  * of said person’s immediate fault when using the work as intended.
  */
 
-import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import lombok.val;
 import org.junit.Test;
 import org.junit.runner.RunWith;

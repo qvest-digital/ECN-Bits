@@ -1,9 +1,10 @@
 package de.telekom.llcto.ecn_bits.android.client;
 
-import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class OutputListAdapter extends RecyclerView.Adapter<OutputListAdapter.Vi
         }
     }
 
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
         final TextView v = new TextView(parent.getContext());

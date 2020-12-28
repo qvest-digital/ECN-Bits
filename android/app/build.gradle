@@ -8,20 +8,18 @@ apply plugin: 'com.google.android.gms.oss-licenses-plugin'
 // https://discuss.gradle.org/t/how-to-declare-a-license-for-a-gradle-project/26114
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 30
 
     defaultConfig {
         minSdkVersion 26
-        //noinspection OldTargetApi
-        targetSdkVersion 26
-        ndkVersion "21.3.6528147"
+        targetSdkVersion 30
+        ndkVersion "22.0.7026061"
 
         applicationId "de.telekom.llcto.ecn_bits.android.client"
-        versionCode 1
-        versionName "0.1.1"
+        versionCode 4
+        versionName "1.0"
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        return void // WTF‽
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
     buildTypes {
@@ -35,8 +33,11 @@ android {
         sourceCompatibility = 1.8
         targetCompatibility = 1.8
     }
-    //noinspection GradleDependency
-    buildToolsVersion = '28.0.3'
+    //dependenciesInfo {
+    //    includeInApk true
+    //    includeInBundle true
+    //}
+    buildToolsVersion = '30.0.3'
 
     lintOptions {
         disable 'DefaultLocale'
@@ -47,12 +48,10 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'com.android.support:appcompat-v7:26.1.0'
-    //noinspection GradleDependency
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    implementation 'com.android.support:recyclerview-v7:26.1.0'
-    //noinspection GradleDependency
-    implementation 'com.google.android.gms:play-services-oss-licenses:16.0.2'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'com.google.android.gms:play-services-oss-licenses:17.0.0'
 
     annotationProcessor 'org.projectlombok:lombok:1.18.16'
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
@@ -63,8 +62,6 @@ dependencies {
 
     testImplementation 'junit:junit:4.13.1'
 
-    //noinspection GradleDependency
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    //noinspection GradleDependency
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 }

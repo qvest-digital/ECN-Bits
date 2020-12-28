@@ -23,12 +23,7 @@ package de.telekom.llcto.ecn_bits.android.client;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Point;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -37,6 +32,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity;
 import de.telekom.llcto.ecn_bits.android.lib.AbstractECNBitsDatagramSocket;
 import de.telekom.llcto.ecn_bits.android.lib.Bits;
@@ -117,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
 
         private final Bits bit;
 
+        @NonNull
         @Override
         public String toString() {
             return bit.getShortname();
@@ -132,9 +133,8 @@ public class MainActivity extends AppCompatActivity {
         //  deepcode ignore ApiMigration~getSystemService: false positive (IME not inflater)
         imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
 
-        final Point appSize = new Point();
-        getWindowManager().getDefaultDisplay().getSize(appSize);
-        contentSeparator = appSize.x > appSize.y ? "│" : "\n";
+        val metrics = getResources().getDisplayMetrics();
+        contentSeparator = metrics.widthPixels > metrics.heightPixels ? "│" : "\n";
 
         outputLines.clear();
         outputListView = findViewById(R.id.outputList);
@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onSaveInstanceState(final Bundle outState) {
+    protected void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putStringArrayList(OUTPUT_LINES, outputLines);
         outState.putInt(OUTPUT_POS, outputListLayoutMgr.findFirstVisibleItemPosition());
