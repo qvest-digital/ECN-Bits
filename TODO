@@ -1,1 +1,15 @@
 • strict mode 11 prüfen, falls möglich
+
+• Warnungen:
+  – oss-licences-plugin in Gradle:
+    https://github.com/google/play-services-plugins/issues/166
+  – restlichen Gradle-6-Warnungen:
+    https://stackoverflow.com/q/65479693/2171120
+  – Obsolete custom lint check:
+    https://stackoverflow.com/q/65479506/2171120
+
+• com.android.tools.build:gradle:4.1.1 unbrauchbar:
+  ‣ https://youtrack.jetbrains.com/issue/IDEA-252823
+  ‣ https://youtrack.jetbrains.com/issue/IDEA-252775
+• com.android.tools.build:gradle:4.0.2 unbrauchbar:
+  siehe oben, Kommentar im Issue, alles unterpunktet oder gelb hinterlegt
