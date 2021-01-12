@@ -57,7 +57,7 @@ dependencies {
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
     compileOnly 'org.projectlombok:lombok:1.18.16'
 
-    implementation 'org.evolvis.tartools:rfc822:0.4-SNAPSHOT'
+    implementation 'org.evolvis.tartools:rfc822:0.3'
     implementation project(":ecn-lib")
 
     testImplementation 'junit:junit:4.13.1'
