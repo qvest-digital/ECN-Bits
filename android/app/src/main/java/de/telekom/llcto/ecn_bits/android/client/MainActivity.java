@@ -1,7 +1,7 @@
 package de.telekom.llcto.ecn_bits.android.client;
 
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *      mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -289,13 +289,9 @@ public class MainActivity extends AppCompatActivity {
         if (FQDN.isDomain(s)) {
             return new AbstractMap.SimpleEntry<>(null, new IPorFQDN(s));
         }
-        final InetAddress i6 = IPAddress.v6(s);
-        if (i6 != null) {
-            return new AbstractMap.SimpleEntry<>(null, new IPorFQDN(s, i6));
-        }
-        final InetAddress i4 = IPAddress.v4(s);
-        if (i4 != null) {
-            return new AbstractMap.SimpleEntry<>(null, new IPorFQDN(s, i4));
+        final InetAddress ip = IPAddress.from(s);
+        if (ip != null) {
+            return new AbstractMap.SimpleEntry<>(null, new IPorFQDN(s, ip));
         }
         return new AbstractMap.SimpleEntry<>("not an IP or FQDN: " + what, null);
     }

@@ -12,6 +12,7 @@ buildscript {
         // and https://youtrack.jetbrains.com/issue/IDEA-252775
         //classpath 'com.android.tools.build:gradle:4.1.1'
         // 4.0.2 is also utterly unusable with IntelliJ IDEA ☹
+        // cf. https://youtrack.jetbrains.com/issue/IDEA-258598
         //classpath 'com.android.tools.build:gradle:4.0.2'
         classpath 'com.android.tools.build:gradle:3.6.4'
         classpath 'com.google.android.gms:oss-licenses-plugin:0.10.2'
