@@ -19,7 +19,7 @@ package de.telekom.llcto.ecn_bits.android.lib;
  * GNU General Public License for more details.
  *
  * The full text of that licence can be found in the following file:
- * ‣ android/ecn-lib/src/main/resources/COPYING
+ * ‣ android/ecn-lib/src/legal/COPYING
  *
  * As a special exception, the copyright holders of this library give
  * you permission to link this library with independent modules to

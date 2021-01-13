@@ -4,9 +4,9 @@ apply plugin: 'de.mannodermaus.android-junit5'
 def dirToplev = project.layout.projectDirectory.asFile.absolutePath
 
 // project licence: The MirOS Licence AND GPLv2 with Classpath Exception AND Apache 2.0
-// see src/main/resources/LICENCE.ecn-lib and src/main/resources/COPYING
+// see src/legal/LICENCE.ecn-lib and src/legal/COPYING
 //
-// “nh” module under Apache 2, see src/main/resources/LICENSE-2.0 for that
+// “nh” module under Apache 2, see src/legal/LICENSE-2.0 for that
 //
 // apparently, there’s no standardised way to declare the project licence in Gradle:
 // https://discuss.gradle.org/t/how-to-declare-a-license-for-a-gradle-project/26114
