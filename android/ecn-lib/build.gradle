@@ -83,9 +83,8 @@ dependencies {
 def dirForNativeNoNDK = project.layout.buildDirectory.get().dir("native-noNDK")
 def srcForNativeNoNDK = project.layout.projectDirectory.dir("src/main/native").asFile
 
-task createNativeNoNDK() {
-    def dstdir = dirForNativeNoNDK.asFile
-    if (!dstdir.exists()) dstdir.mkdirs()
+task createNativeNoNDK(type: Exec) {
+    commandLine "/usr/bin/env", "mkdir", "-p", dirForNativeNoNDK.asFile.absolutePath
 }
 task buildCMakeNativeNoNDK(type: Exec) {
     dependsOn createNativeNoNDK
