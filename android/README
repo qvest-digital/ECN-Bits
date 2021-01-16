@@ -50,6 +50,8 @@ as well. Again, the unit tests require a Linux host to have
 even some coverage at all, since they test a JNI library, for
 ecn-lib at least.
 
+Dependency check: ./gradlew depCAn (or depCAg)
+
 Test output for the unittests is shown on stdout/stderr or in
 the IDE pane; the instrumented tests output to logcat, so use
 “adb shell” with “logcat -s ECN-Bits-JNI:D ECN-Bits-JNITest:D”

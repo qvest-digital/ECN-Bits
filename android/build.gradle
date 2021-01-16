@@ -6,6 +6,7 @@ buildscript {
     repositories {
         google()
         jcenter()
+        mavenCentral()
     }
     dependencies {
         // cf. https://youtrack.jetbrains.com/issue/IDEA-252823
@@ -17,6 +18,7 @@ buildscript {
         classpath 'com.android.tools.build:gradle:3.6.4'
         classpath 'com.google.android.gms:oss-licenses-plugin:0.10.2'
         classpath 'de.mannodermaus.gradle.plugins:android-junit5:1.7.0.0'
+        classpath 'org.owasp:dependency-check-gradle:6.0.3'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -29,6 +31,14 @@ allprojects {
         jcenter()
         mavenCentral()
     }
+
+    apply plugin: 'org.owasp.dependencycheck'
+    dependencyCheck {
+        failBuildOnCVSS = 8
+        scanSet = [project.layout.projectDirectory.dir("src").asFile]
+        skipConfigurations += 'lintClassPath'
+    }
+    // doesn’t work: tasks.findByName("check")?.dependsOn(dependencyCheckAnalyze)
 
     tasks.withType(JavaCompile) {
         options.compilerArgs << "-Xlint:all"

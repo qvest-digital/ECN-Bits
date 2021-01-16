@@ -17,3 +17,6 @@
 
 • CodeQL vs. NDK
   https://stackoverflow.com/q/65480083/2171120
+
+• OWASP plugin for Gradle
+  https://github.com/jeremylong/dependency-check-gradle/issues/206
