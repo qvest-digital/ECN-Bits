@@ -16,7 +16,7 @@ android {
         ndkVersion "22.0.7026061"
 
         applicationId "de.telekom.llcto.ecn_bits.android.client"
-        versionCode 4
+        versionCode 5
         versionName "1.0"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
