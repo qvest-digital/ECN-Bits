@@ -34,9 +34,8 @@ Development funded by Deutsche Telekom.
       factor as an ECNStatistics object
     ! targetting Android 8 (Oreo, API 26/27) and up
     ! tested on Android 8/9/10
-    : Status: working but finishing needed
-      testing on Android 11 needed
-      updating to comply with latest Google requirements needed
+    : Status: working, minor nitpicking waiting on external projects’ bugfixes
+      testing on Android 11 needed (including “strict mode”)
   • demo client GUI application
 
 – BSD/Linux/MacOSX/WSL: C/CLI (libecn-bits.a/so)
