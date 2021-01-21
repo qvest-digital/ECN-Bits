@@ -17,6 +17,8 @@
 
 • CodeQL vs. NDK
   https://stackoverflow.com/q/65480083/2171120
+  git revert 859505538c0a928127c17cb5fc6543267314ded9
+  https://github.com/actions/virtual-environments/issues/2365
 
 • OWASP plugin for Gradle
   https://github.com/jeremylong/dependency-check-gradle/issues/206
