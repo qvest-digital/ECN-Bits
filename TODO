@@ -1,4 +1,4 @@
-• strict mode 11 prüfen, falls möglich
+• Android 11 strict mode prüfen, falls möglich
 
 • Warnungen:
   – oss-licences-plugin in Gradle:
