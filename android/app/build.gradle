@@ -53,9 +53,9 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'com.google.android.gms:play-services-oss-licenses:17.0.0'
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.16'
+    annotationProcessor 'org.projectlombok:lombok:1.18.18'
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
-    compileOnly 'org.projectlombok:lombok:1.18.16'
+    compileOnly 'org.projectlombok:lombok:1.18.18'
 
     implementation 'org.evolvis.tartools:rfc822:0.4'
     implementation project(":ecn-lib")

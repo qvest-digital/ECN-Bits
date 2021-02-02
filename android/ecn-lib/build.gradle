@@ -60,24 +60,24 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.16'
+    annotationProcessor 'org.projectlombok:lombok:1.18.18'
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
-    compileOnly 'org.projectlombok:lombok:1.18.16'
+    compileOnly 'org.projectlombok:lombok:1.18.18'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.18'
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
-    testCompileOnly 'org.projectlombok:lombok:1.18.16'
+    testCompileOnly 'org.projectlombok:lombok:1.18.18'
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     androidTestImplementation 'junit:junit:4.13.1'
 
-    androidTestAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+    androidTestAnnotationProcessor 'org.projectlombok:lombok:1.18.18'
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
-    androidTestCompileOnly 'org.projectlombok:lombok:1.18.16'
+    androidTestCompileOnly 'org.projectlombok:lombok:1.18.18'
 }
 
 def dirForNativeNoNDK = project.layout.buildDirectory.get().dir("native-noNDK")
