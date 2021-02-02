@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.evolvis.tartools</groupId>
+		<artifactId>maven-parent</artifactId>
+		<version>1.28</version>
+	</parent>
+	<groupId>de.telekom.llcto.ecn_bits.jdk</groupId>
+	<artifactId>client</artifactId>
+	<version>0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+	<name>${project.groupId}:${project.artifactId}</name>
+	<description>UDP client (WIP)</description>
+	<url>https://github.com/tarent/ECN-Bits/tree/master/jdk</url>
+	<licenses>
+		<license>
+			<!-- short name: MirBSD -->
+			<name>The MirOS Licence</name>
+			<url>http://www.mirbsd.org/MirOS-Licence.htm</url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>mirabilos</name>
+			<email>t.glaser@tarent.de</email>
+			<organization>⮡ tarent</organization>
+			<organizationUrl>http://www.tarent.de/</organizationUrl>
+		</developer>
+	</developers>
+	<organization>
+		<name>Deutsche Telekom</name>
+	</organization>
+	<properties>
+		<archiver.copyright.firstyear>2020</archiver.copyright.firstyear>
+		<archiver.copyright.lastyear>2020</archiver.copyright.lastyear>
+		<archiver.copyright>Copyright © ${archiver.copyright.firstyear}; Licensor: $version_vendor</archiver.copyright>
+		<!-- dependency management -->
+		<lombok.version>1.18.14</lombok.version>
+		<rfc822.version>0.3</rfc822.version>
+		<!-- maven plugins -->
+		<maven.owasp.dependency-check.version>6.0.2</maven.owasp.dependency-check.version>
+	</properties>
+	<scm>
+		<connection>scm:git:https://github.com/tarent/ECN-Bits.git</connection>
+		<!-- https://issues.apache.org/jira/browse/MRELEASE-885 -->
+		<url>https://github.com/tarent/ECN-Bits/tree/master/jdk</url>
+	</scm>
+	<profiles>
+		<profile>
+			<id>with-implicit-dependencies</id>
+			<activation>
+				<property>
+					<name>!without-implicit-dependencies</name>
+				</property>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>org.evolvis.tartools</groupId>
+					<artifactId>rfc822</artifactId>
+				</dependency>
+				<dependency>
+					<groupId>org.projectlombok</groupId>
+					<artifactId>lombok</artifactId>
+					<scope>provided</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
+	<build>
+		<plugins>
+			<plugin>
+				<!-- mvn -Ddependency-check.skip … -->
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>${maven.owasp.dependency-check.version}</version>
+				<executions>
+					<execution>
+						<id>owasp-check</id>
+						<phase>install</phase>
+						<goals>
+							<goal>aggregate</goal>
+						</goals>
+						<configuration>
+							<failBuildOnCVSS>8</failBuildOnCVSS>
+							<scanSet>
+								<fileSet>
+									<directory>src</directory>
+								</fileSet>
+							</scanSet>
+							<skipArtifactType>pom</skipArtifactType>
+							<!-- suppressionFiles>
+								<suppressionFile>src/main/ancillary/dependency-check-suppressions.xml</suppressionFile>
+							</suppressionFiles -->
+						</configuration>
+					</execution>
+				</executions>
+				<inherited>false</inherited>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>dist-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/ancillary/assembly.xml</descriptor>
+							</descriptors>
+							<archive>
+								<manifest>
+									<mainClass>de.telekom.llcto.ecn_bits.jdk.client.Main</mainClass>
+								</manifest>
+							</archive>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.evolvis.tartools</groupId>
+				<artifactId>rfc822</artifactId>
+				<version>${rfc822.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>${lombok.version}</version>
+				<scope>provided</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+</project>
