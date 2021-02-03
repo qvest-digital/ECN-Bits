@@ -111,7 +111,7 @@ public final class ClientMain {
 
     private static void client(String[] argv) {
         final Bits outBits;
-        final byte outTc;
+        final /*byte*/int outTc;
         if (argv.length == 3) {
             if ("NO".equals(argv[2])) {
                 outBits = Bits.NO;
@@ -127,12 +127,11 @@ public final class ClientMain {
                 outTc = outBits.getBits();
             } else {
                 try {
-                    final int v = Integer.decode(argv[2]);
-                    if (v < 0 || v > 255) {
+                    outBits = null;
+                    outTc = Integer.decode(argv[2]);
+                    if (outTc < 0 || outTc > 255) {
                         throw usage("invalid traffic class: " + argv[2]);
                     }
-                    outBits = null;
-                    outTc = (byte) (v & 0xFF);
                 } catch (NumberFormatException e) {
                     throw usage("invalid traffic class number: " + argv[2] + ": " + e);
                 }
