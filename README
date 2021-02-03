@@ -38,6 +38,12 @@ Development funded by Deutsche Telekom.
       testing on Android 11 needed (including “strict mode”)
   • demo client GUI application
 
+– OpenJDK/Linux: Java/JNI/CLI
+  ‣ see jdk-linux/README
+  • work in progress
+  • PoC (Linux-specific and only for the buildhost architecture) first,
+    possibly extended to other CPUs and OSes later, perhaps using JNA
+
 – BSD/Linux/MacOSX/WSL: C/CLI (libecn-bits.a/so)
   ‣ see c/README
   • library, manpages
@@ -76,9 +82,6 @@ Development funded by Deutsche Telekom.
 
 – iOS (Apple)
   • pre-planning
-
-– Linux JDK: Java/JNI/CLI
-  • pre-WIP (PoC, maybe extended to BSD/Winsock later)
 
 ┌────────────────┐
 │ About ECN bits │
