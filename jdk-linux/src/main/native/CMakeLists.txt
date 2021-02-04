@@ -18,7 +18,6 @@ add_library(ecnbits-jdkjni SHARED
 	nh_cxx.cc
 	)
 
-add_definitions(-DECNBITS_ALOG_TYPE=2)
 include(FindJNI)
 include_directories(${JNI_INCLUDE_DIRS})
 

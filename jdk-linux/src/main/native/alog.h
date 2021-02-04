@@ -26,19 +26,6 @@
 #define ECNBITS_ALOG_TAG "ECN-Bits-JNI"
 #endif
 
-#if defined(ECNBITS_ALOG_TYPE) && (ECNBITS_ALOG_TYPE == 1)
-
-#include <android/log.h>
-
-#define ecnlog_err(msg, ...)	__android_log_print(ANDROID_LOG_ERROR, \
-	    ECNBITS_ALOG_TAG, msg, ##__VA_ARGS__)
-#define ecnlog_warn(msg, ...)	__android_log_print(ANDROID_LOG_WARN, \
-	    ECNBITS_ALOG_TAG, msg, ##__VA_ARGS__)
-#define ecnlog_info(msg, ...)	__android_log_print(ANDROID_LOG_INFO, \
-	    ECNBITS_ALOG_TAG, msg, ##__VA_ARGS__)
-
-#elif defined(ECNBITS_ALOG_TYPE) && (ECNBITS_ALOG_TYPE == 2)
-
 #include <stdio.h>
 
 #define ecnlog_err(msg, ...)	fprintf(stderr, \
@@ -47,9 +34,5 @@
 	    "W: [" ECNBITS_ALOG_TAG "] " msg "\n", ##__VA_ARGS__)
 #define ecnlog_info(msg, ...)	fprintf(stderr, \
 	    "I: [" ECNBITS_ALOG_TAG "] " msg "\n", ##__VA_ARGS__)
-
-#else
-# error What logging system to use?
-#endif
 
 #endif
