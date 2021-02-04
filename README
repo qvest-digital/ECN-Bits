@@ -40,7 +40,15 @@ Development funded by Deutsche Telekom.
 
 – OpenJDK/Linux: Java/JNI/CLI
   ‣ see jdk-linux/README
-  • work in progress
+  • library with Main class as example, with JNI component written in C;
+    can easily be added as Maven dependency but requires to be locally
+    compiled for the target CPU architecture (e.g. i386 or ARMv8)
+  • reuses the Android/Linux library (see above)
+    ⇒ offers the exact same API (functions)
+    ⇒ uses the exact same JNI library ⇒ Linux-specific
+  ⚠ work in progress!
+  : Status: tests pass; example client for DatagramSocket works;
+    tbd: example clients for DatagramChannel, Netty to fully test it
   • PoC (Linux-specific and only for the buildhost architecture) first,
     possibly extended to other CPUs and OSes later, perhaps using JNA
 

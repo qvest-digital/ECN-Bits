@@ -1,3 +1,77 @@
 See ../README for what this is all about.
 
-WIP, consider this unpublished please.
+Welcome to the OpenJDK/Linux implementation! This library is
+specific to the Linux kernel, including WSL 2, because it’s
+been written for Android originally, but should also work on
+WSL 1, with the usual caveat of setting outgoing bits there.
+
+This library mostly offers the following entry points:
+• de.telekom.llcto.ecn_bits.android.lib.Bits
+• de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramChannel
+  (extends DatagramChannel) via static open() factory method
+• de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramSocket
+  (extends DatagramSocket) via new and constructors
+
+Both ECNBitsDatagramSocket and the ECNBitsDatagramChannel.socket()
+result derive from AbstractECNBitsDatagramSocket (which itself
+derives from DatagramSocket). Both AbstractECNBitsDatagramSocket
+and ECNBitsDatagramChannel implement AbstractECNBitsDatagramReceiver
+with the methods to inspect the IP traffic class octet of the last
+packet received or to measure congestion in the background:
+
+The user can either retrieve, for each received datagram,
+the IP traffic class byte (using the retrieveLastTrafficClass
+method on the socket), or by using the startMeasurement method
+and then calling the getMeasurement method periodically, e.g.
+every 20 ms, retrieving the congestion factor from its result.
+
+For either AbstractECNBitsDatagramSocket implementation, when
+reusing DatagramPacket instances, (re‑)setting their length
+before each receive call is mandatory.
+
+This library contains Main classes to demonstrate how it can
+be used; these don’t disturb normal operation. The library can
+just be added as Maven dependency and be used within arbitrary
+libraries or programs but, because the JNI dependency must be
+compiled targetting the correct CPU architecture, it must be
+(re‑)compiled suiting the system eventually running it.
+
+Normal Maven invocations are used to compile this, that is:
+
+	$ mvn clean package #[install]
+
+Maven shells out compilation of the JNI library; for this,
+mksh and cmake as well as a C and C++ compiler and headers
+for the JDK and the system libc must be made available.
+
+It’d probably be best if API for retrieving the traffic class
+could be added to OpenJDK directly.
+
+┌──────────┐
+│ Examples │
+└──────────┘
+
+These examples require having built the library first, as they
+depend on tools used to compile, and the JNI search path is set
+to where the compiled DLL is placed by CMake.
+
+Run the DatagramSocket client: ./client.sh host post [tc]
+
+Arguments are:
+• host: IP address or hostname (DNS-resolved) of server to send to
+  (multiple results are attempted in order)
+• port: (server) port to send to
+• tc: traffic class for sent packets, default: ECT0
+  valid: NO, ECT0, ECT1, CE or a decimal, octal (leading 0) or
+  hexadecimal (leading 0x) integer between 0 and 255, inclusive
+  optionally prefixed with an exclamation mark to force using
+  ecnbits_mkcmsg and sendmsg instead of ecnbits_tc and send/write
+  (needed for DSCP bits on MacOSX with v4-mapped addresses)
+
+The client will send a “hello” packet to the server. After that
+it waits for up to a second for responses, which it displays as
+the packet data received together with their ECN bits and local
+timestamps. (Timestamps are in UTC.) This was modelled after the
+C/CLI example (see ../c/README) and can run against its server,
+or any UDP echo server (e.g. inetd daytime), although *those*
+won’t set varying ECN bits on the response packaget.

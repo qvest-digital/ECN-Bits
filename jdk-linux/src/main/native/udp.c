@@ -54,13 +54,8 @@
 #define __unused	__attribute__((__unused__))
 #define ecnbool		uint8_t
 
-#ifdef __ANDROID__
-#define rstrerrinit()	/* nothing */
-#define rstrerror(e)	strerror(e)	/* thread-safe in Bionic since 4.2 */
-#else
 #define rstrerrinit()	char rstrerrstr[1024]	/* size from glibc manpage */
 #define rstrerror(e)	jniStrError((e), rstrerrstr, sizeof(rstrerrstr))
-#endif
 
 #define IO_THROWN	(-4)
 #define IO_EINTR	(-3)
@@ -124,16 +119,16 @@ static const JNINativeMethod methods[] = {
 	METH(n_setnonblock, "(IZ)V"),
 	METH(n_getsockopt, "(II)I"),
 	METH(n_setsockopt, "(III)V"),
-	METH(n_getsockname, "(ILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)V"),
+	METH(n_getsockname, "(ILde/telekom/llcto/ecn_bits/jdk/jni/JNI$AddrPort;)V"),
 	METH(n_bind, "(I[BII)V"),
 	METH(n_connect, "(I[BII)V"),
 	METH(n_disconnect, "(I)V"),
-	METH(n_recv, "(ILjava/nio/ByteBuffer;IILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;Z)I"),
+	METH(n_recv, "(ILjava/nio/ByteBuffer;IILde/telekom/llcto/ecn_bits/jdk/jni/JNI$AddrPort;Z)I"),
 	METH(n_send, "(ILjava/nio/ByteBuffer;II[BII)I"),
-	METH(n_recvfrom, "(I[BIILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;ZZ)I"),
+	METH(n_recvfrom, "(I[BIILde/telekom/llcto/ecn_bits/jdk/jni/JNI$AddrPort;ZZ)I"),
 	METH(n_sendto, "(I[BII[BII)I"),
-	METH(n_rd, "(I[Lde/telekom/llcto/ecn_bits/android/lib/JNI$SGIO;ILde/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort;)J"),
-	METH(n_wr, "(I[Lde/telekom/llcto/ecn_bits/android/lib/JNI$SGIO;[BII)J"),
+	METH(n_rd, "(I[Lde/telekom/llcto/ecn_bits/jdk/jni/JNI$SGIO;ILde/telekom/llcto/ecn_bits/jdk/jni/JNI$AddrPort;)J"),
+	METH(n_wr, "(I[Lde/telekom/llcto/ecn_bits/jdk/jni/JNI$SGIO;[BII)J"),
 	METH(n_pollin, "(II)I")
 };
 #undef METH
@@ -227,16 +222,16 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 #define getsmeth(cls,name,sig)	_getid("method", M, cls, name, #name, sig, "::", GetStaticMethodID)
 #define getcons(cls,vn,sig)	_getid("constructor", i, cls, vn, "<init>", sig, "", GetMethodID)
 
-	getclass(JNI, "de/telekom/llcto/ecn_bits/android/lib/JNI");
-	getclass(EX, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoException");
-	getclass(EX_S, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoSocketException");
-	getclass(EX_PROTO, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoProtocolException");
-	getclass(EX_CONNECT, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoConnectException");
-	getclass(EX_UNREACH, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoNoRouteToHostException");
-	getclass(EX_BIND, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoBindException");
-	getclass(EX_PORTUNR, "de/telekom/llcto/ecn_bits/android/lib/JNI$ErrnoPortUnreachableException");
-	getclass(AP, "de/telekom/llcto/ecn_bits/android/lib/JNI$AddrPort");
-	getclass(SG, "de/telekom/llcto/ecn_bits/android/lib/JNI$SGIO");
+	getclass(JNI, "de/telekom/llcto/ecn_bits/jdk/jni/JNI");
+	getclass(EX, "de/telekom/llcto/ecn_bits/jdk/jni/JNI$ErrnoException");
+	getclass(EX_S, "de/telekom/llcto/ecn_bits/jdk/jni/JNI$ErrnoSocketException");
+	getclass(EX_PROTO, "de/telekom/llcto/ecn_bits/jdk/jni/JNI$ErrnoProtocolException");
+	getclass(EX_CONNECT, "de/telekom/llcto/ecn_bits/jdk/jni/JNI$ErrnoConnectException");
+	getclass(EX_UNREACH, "de/telekom/llcto/ecn_bits/jdk/jni/JNI$ErrnoNoRouteToHostException");
+	getclass(EX_BIND, "de/telekom/llcto/ecn_bits/jdk/jni/JNI$ErrnoBindException");
+	getclass(EX_PORTUNR, "de/telekom/llcto/ecn_bits/jdk/jni/JNI$ErrnoPortUnreachableException");
+	getclass(AP, "de/telekom/llcto/ecn_bits/jdk/jni/JNI$AddrPort");
+	getclass(SG, "de/telekom/llcto/ecn_bits/jdk/jni/JNI$SGIO");
 
 	getcons(EX, c, "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Throwable;)V");
 	getcons(EX_S, c, "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/Throwable;)V");

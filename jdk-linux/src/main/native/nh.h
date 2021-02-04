@@ -12,7 +12,7 @@
  * you may not use this file except in compliance with the License.
  *
  * The full text of that licence can be found in the following file:
- * ‣ android/ecn-lib/src/legal/LICENSE-2.0
+ * ‣ jdk-linux/src/legal/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,

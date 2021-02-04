@@ -19,7 +19,7 @@
 # damage or existence of a defect, except proven that it results out
 # of said person’s immediate fault when using the work as intended.
 #-
-# Run client executable.
+# Run OpenJDK/JNI example socket client.
 
 top=$(realpath "$0/..")
 exe=

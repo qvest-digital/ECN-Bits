@@ -72,16 +72,25 @@ public final class ClientMain {
     }
 
     private static RuntimeException usage(final String err) {
+        return usage(err, null);
+    }
+
+    private static RuntimeException usage(final String err, final Throwable t) {
         if (err != null) {
-            LOG.severe(err);
+            LOG.log(Level.SEVERE, err, t);
         }
         LOG.severe("Usage: ./run.sh hostname port [tc]");
         System.exit(1);
         return new RuntimeException();
     }
 
+    @SuppressWarnings("unused")
     private static RuntimeException die(final String err) {
-        LOG.severe(err);
+        return die(err, null);
+    }
+
+    private static RuntimeException die(final String err, final Throwable t) {
+        LOG.log(Level.SEVERE, err, t);
         System.exit(1);
         return new RuntimeException();
     }
@@ -111,7 +120,7 @@ public final class ClientMain {
 
     private static void client(String[] argv) {
         final Bits outBits;
-        final /*byte*/int outTc;
+        final /*byte*/ int outTc;
         if (argv.length == 3) {
             if ("NO".equals(argv[2])) {
                 outBits = Bits.NO;
@@ -133,7 +142,7 @@ public final class ClientMain {
                         throw usage("invalid traffic class: " + argv[2]);
                     }
                 } catch (NumberFormatException e) {
-                    throw usage("invalid traffic class number: " + argv[2] + ": " + e);
+                    throw usage("invalid traffic class number: " + argv[2], e);
                 }
             }
         } else if (argv.length == 2) {
@@ -152,7 +161,7 @@ public final class ClientMain {
         try {
             port = Integer.parseUnsignedInt(argv[1]);
         } catch (NumberFormatException e) {
-            throw usage("bad port: " + argv[1] + ": " + e);
+            throw usage("bad port: " + argv[1], e);
         }
         if (port < 1) {
             throw usage("port too small: " + port);
@@ -165,7 +174,7 @@ public final class ClientMain {
         try {
             sock = new ECNBitsDatagramSocket();
         } catch (SocketException e) {
-            throw die("could not create socket: " + e);
+            throw die("create socket", e);
         }
         sock.startMeasurement();
 
@@ -189,17 +198,20 @@ public final class ClientMain {
                 try {
                     sock.send(psend);
                 } catch (IOException e) {
-                    System.out.println("!! send: " + e);
+                    LOG.log(Level.WARNING, "send", e);
                     continue;
                 }
                 final DatagramPacket precv = new DatagramPacket(buf, buf.length);
                 while (true) {
+                    // this is REQUIRED for EACH call if re-using a DatagramPacket for multiple
+                    // receive calls; cf. https://bugs.openjdk.java.net/browse/JDK-4161511
+                    precv.setLength(buf.length);
                     try {
                         sock.receive(precv);
                     } catch (SocketTimeoutException e) {
                         break;
                     } catch (IOException e) {
-                        System.out.println("!! recv: " + e);
+                        LOG.log(Level.WARNING, "recv", e);
                         break;
                     }
                     final String stamp = ZonedDateTime.now(ZoneOffset.UTC)
@@ -208,7 +220,12 @@ public final class ClientMain {
                     final Byte trafficClass = sock.retrieveLastTrafficClass();
                     oneSuccess = true;
                     final String userData = new String(buf, StandardCharsets.UTF_8);
-                    System.out.printf("• %s %s%n%s%n", stamp, Bits.print(trafficClass), userData.trim());
+                    System.out.printf(/* what other client would you like it to look like? */
+                      /* Android */ /* "• %s %s{%s}%n%s%n" */
+                      /* C / CLI */ "%s %s{%s}<%s>%n",
+                      stamp, Bits.print(trafficClass),
+                      trafficClass == null ? "??" : String.format("%02X", trafficClass),
+                      userData.trim());
                 }
             }
             if (oneSuccess) {
@@ -217,9 +234,9 @@ public final class ClientMain {
                 System.out.println("!! failed !!");
             }
         } catch (UnknownHostException e) {
-            System.out.println("!! resolve: " + e);
+            LOG.log(Level.WARNING, "resolve", e);
         } catch (SocketException e) {
-            System.out.println("!! setsockopt: " + e);
+            LOG.log(Level.WARNING, "setsockopt", e);
         } finally {
             try {
                 final ECNStatistics stats = sock.getMeasurement(false);
@@ -229,7 +246,7 @@ public final class ClientMain {
                     stats.getCongestionFactor() * 100.0, stats.getReceivedPackets(),
                     stats.getLengthOfMeasuringPeriod() / 1000000L));
             } catch (ArithmeticException e) {
-                System.out.println("!! ECNStatistics: " + e);
+                LOG.log(Level.WARNING, "ECNStatistics", e);
             }
             if (!sock.isClosed()) {
                 sock.close();

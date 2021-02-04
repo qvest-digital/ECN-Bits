@@ -12,7 +12,7 @@
  * you may not use this file except in compliance with the License.
  *
  * The full text of that licence can be found in the following file:
- * ‣ android/ecn-lib/src/legal/LICENSE-2.0
+ * ‣ jdk-linux/src/legal/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,9 +27,6 @@
 #include <jni.h>
 
 #include "nh.h"
-
-#ifndef __ANDROID__
-/* not needed on Android: Bionic libc strerror is thread-safe since 4.2 */
 
 namespace {
 
@@ -79,4 +76,3 @@ jniStrError(int errnum, char *buf, size_t buflen)
 	// inline will ensure that we don't have any indirect calls.
 	return realJniStrError(strerror_r, errnum, buf, buflen);
 }
-#endif /* !__ANDROID__ */

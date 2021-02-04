@@ -54,7 +54,7 @@ final class JNI {
     }
 
     static {
-        System.loadLibrary("ecnbits-native");
+        System.loadLibrary("ecnbits-jdkjni");
     }
 
     // socket options enum for native code, keep in sync with C code!
