@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.evolvis.tartools</groupId>
 		<artifactId>maven-parent</artifactId>
-	<version>1.30-SNAPSHOT</version>
+		<version>1.904-SNAPSHOT</version>
 	</parent>
 	<groupId>de.telekom.llcto.ecn_bits.jdk</groupId>
 	<artifactId>jni</artifactId>

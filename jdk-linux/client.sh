@@ -22,13 +22,35 @@
 #-
 # Run OpenJDK/JNI example socket client.
 
-function makecmdline {
-	# configure this to match the POM
-	local mainclass=de.telekom.llcto.ecn_bits.jdk.jni.ClientMain
+function config {
+	# make sure this matches the POM
+	mainclass=de.telekom.llcto.ecn_bits.jdk.jni.ClientMain
+}
+function frobenv {
+	# extra environment setup, only export commands allowed, for example:
+	export LD_LIBRARY_PATH=$top/target/native${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+}
 
+# this must, indeed, use a here document
+jarinfo11() { java --source 11 /dev/stdin "$@" <<\EOF
+	class JEP330Extractor {
+		public static void main(String[] args) throws Exception {
+			System.out.println(new java.util.jar.JarFile(args[1])
+			    .getManifest().getMainAttributes()
+			    .getValue(args[0]));
+			System.exit(0);
+		}
+	}
+EOF
+}
+
+function makecmdline {
+	local mainclass
+	config
+	typeset -ft frobenv
 	# define local variables first
+	local top exe cp x m2repo=~/.m2/repository
 	set +U
-	local top exe cp m2repo=~/.m2/repository x
 
 	# check mainclass begins with package or class
 	if [[ -z $1 || $mainclass != [a-zA-Z]* ]]; then
@@ -42,40 +64,81 @@ function makecmdline {
 		exit 255
 	fi
 	shift
-	# determine executable by finding classpath metadata
-	exe=
-	for x in "$top"/target/*-classpath.jar; do
+	# determine Maven repository path
+	[[ -n $M2_REPO && -d $M2_REPO/. ]] && m2repo=$M2_REPO
+
+	# figure out whether Maven resource filtering has gifted us with info
+	cp=<<'	end-of-cp'
+${runtime.classpath}
+	end-of-cp
+	exe=<<'	end-of-exe'
+${runtime.jarname}
+	end-of-exe
+
+	# determine executable, either from above or by finding marker file
+	exe=${exe%%*($'\n'|$'\r')}
+	[[ $exe = [!\$]* ]] || exe=
+	if [[ -n $exe && ! -e $exe ]]; then
+		print -ru2 -- "[WARNING] $exe not found, looking around..."
+		exe=
+	fi
+	[[ -n $exe ]] || for x in "$top"/target/*.cp; do
 		if [[ -n $exe ]]; then
 			print -ru2 -- '[ERROR] Found more than one JAR to run.'
 			exit 255
 		fi
-		[[ -f $x ]] || break
-		exe=$x
+		[[ -s $x ]] || break
+		exe=${x%.cp}.jar
 	done
 	if [[ -z $exe ]]; then
 		print -ru2 -- '[ERROR] Found no JAR to run.'
 		exit 255
 	fi
-	# determine Maven repository path
-	[[ -n $M2_REPO && -d $M2_REPO/. ]] && m2repo=$M2_REPO
-	# determine JAR classpath
-	if ! cp=$(<"$exe"); then
-		print -ru2 -- '[ERROR] Could not read classpath metadata.'
-		exit 255
-	fi
-	cp=${cp//'${M2_REPO}'/$m2repo}
-	# determine JAR to run
-	exe=${exe%-classpath.jar}.jar
 	if [[ ! -s $exe ]]; then
 		print -ru2 -- "[ERROR] $exe not found."
 		exit 255
 	fi
+
+	# determine JAR classpath, either from above or a .cp file or JAR manifest
+	set -U
+	if [[ $cp = '$'* && -s ${exe%.jar}.cp ]]; then
+		cp=$(<"${exe%.jar}.cp")
+		# use only if content or “end” marker is present
+		[[ $cp = *[$'\u0095\u0086']* ]] || cp='$'
+	fi
+	if [[ $cp = '$'* ]]; then
+		if java --source 11 /dev/stdin \
+		    <<<'class x { public static void main(String[] args) { System.exit(0); } }' \
+		    >/dev/null 2>&1; then
+			cp=$(jarinfo11 x-tartools-cp "$exe") || cp=
+		elif ! whence jjs >/dev/null 2>&1; then
+			print -ru2 -- '[ERROR] jjs (from JRE) not installed.'
+			exit 255
+		elif ! cp=$(jjs -scripting - -- \
+		    <<<'echo(new java.util.jar.JarFile($ARG[1]).getManifest().getMainAttributes().getValue($ARG[0]));' \
+		    x-tartools-cp "$exe" 2>/dev/null) || \
+		    [[ $cp = *'jjs>'* ]]; then
+			print -ru2 -- '[ERROR] Neither JEP 330 nor jjs work.'
+			exit 255
+		fi
+		if [[ $cp != $'\u0086'* ]]; then
+			print -ru2 -- '[ERROR] Could not retrieve classpath' \
+			    "from $exe manifest."
+			exit 255
+		fi
+		cp=${cp#$'\u0086'}
+	fi
+	cp=${cp%%*($'\n'|$'\r'|$'\u0087')}
+	cp=${cp//$'\u0095'/"/"}
+	cp=${cp//$'\u009C'/":"}
+	cp=${cp//$'\u0096'M2REPO$'\u0097'/"$m2repo"}
+	set +U
 	# determine run CLASSPATH
 	cp=$exe${cp:+:$cp}${CLASSPATH:+:$CLASSPATH}
 	# put together command line
-	set -x -A _ java -cp "$cp" "$mainclass" "$@"
+	set -A _ java -cp "$cp" "$mainclass" "$@"
 	# additional environment setup
-	export LD_LIBRARY_PATH=$top/target/native${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
+	frobenv
 }
 makecmdline "$0" "$@"
 set -x
