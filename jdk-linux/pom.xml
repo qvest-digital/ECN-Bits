@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.evolvis.tartools</groupId>
 		<artifactId>maven-parent</artifactId>
-		<version>1.29</version>
+	<version>1.30-SNAPSHOT</version>
 	</parent>
 	<groupId>de.telekom.llcto.ecn_bits.jdk</groupId>
 	<artifactId>jni</artifactId>
@@ -35,7 +35,7 @@
 		<archiver.copyright.firstyear>2020</archiver.copyright.firstyear>
 		<archiver.copyright.lastyear>2021</archiver.copyright.lastyear>
 		<!-- ‣ maven plugins -->
-		<maven.owasp.dependency-check.version>6.0.5</maven.owasp.dependency-check.version>
+		<maven.owasp.dependency-check.version>6.1.0</maven.owasp.dependency-check.version>
 		<!-- ‣ dependency management -->
 		<junit.version>5.7.0</junit.version>
 		<lombok.version>1.18.18</lombok.version>
@@ -128,30 +128,6 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>dist-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<attach>false</attach>
-							<descriptors>
-								<descriptor>src/main/ancillary/assembly.xml</descriptor>
-							</descriptors>
-							<archive>
-								<manifest>
-									<mainClass>de.telekom.llcto.ecn_bits.jdk.jni.ClientMain</mainClass>
-								</manifest>
-							</archive>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
 					<execution>
@@ -169,7 +145,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>-Djava.library.path=${project.build.directory}/cmake</argLine>
+					<argLine>-Djava.library.path=${project.build.directory}/native</argLine>
 				</configuration>
 			</plugin>
 		</plugins>

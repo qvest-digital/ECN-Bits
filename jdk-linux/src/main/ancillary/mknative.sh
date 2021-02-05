@@ -28,8 +28,8 @@ set -e
 set -o pipefail
 
 top=$(realpath "$0/../../../..")
-mkdir -p "$top/target/cmake"
+mkdir -p "$top/target/native"
 set -x
-cd "$top/target/cmake"
+cd "$top/target/native"
 cmake -DTOPLEV="$top" "$top/src/main/native/"
 exec make
