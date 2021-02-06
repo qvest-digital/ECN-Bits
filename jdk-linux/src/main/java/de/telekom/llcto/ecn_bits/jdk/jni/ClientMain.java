@@ -79,7 +79,7 @@ public final class ClientMain {
         if (err != null) {
             LOG.log(Level.SEVERE, err, t);
         }
-        LOG.severe("Usage: ./run.sh hostname port [tc]");
+        LOG.severe("Usage: ./client.sh hostname port [tc]");
         System.exit(1);
         return new RuntimeException();
     }
