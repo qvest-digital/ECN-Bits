@@ -78,7 +78,9 @@ ${runtime.jarname}
 	# determine executable, either from above or by finding marker file
 	exe=${exe%%*($'\n'|$'\r')}
 	[[ $exe = [!\$]* ]] || exe=
-	if [[ -n $exe && ! -e $exe ]]; then
+	[[ -z $exe ]] || if [[ -s $top/$exe ]]; then
+		exe=$top/$exe
+	else
 		print -ru2 -- "[WARNING] $exe not found, looking around..."
 		exe=
 	fi
@@ -103,8 +105,8 @@ ${runtime.jarname}
 	set -U
 	if [[ $cp = '$'* && -s ${exe%.jar}.cp ]]; then
 		cp=$(<"${exe%.jar}.cp")
-		# use only if content or “end” marker is present
-		[[ $cp = *[$'\u0095\u0086']* ]] || cp='$'
+		# use only if content is present
+		[[ $cp = 'classpath='* ]] || cp='$'
 	fi
 	if [[ $cp = '$'* ]]; then
 		if java --source 11 /dev/stdin \
@@ -121,13 +123,13 @@ ${runtime.jarname}
 			print -ru2 -- '[ERROR] Neither JEP 330 nor jjs work.'
 			exit 255
 		fi
-		if [[ $cp != $'\u0086'* ]]; then
+		if [[ $cp != $'\u0086classpath='* ]]; then
 			print -ru2 -- '[ERROR] Could not retrieve classpath' \
 			    "from $exe manifest."
 			exit 255
 		fi
-		cp=${cp#$'\u0086'}
 	fi
+	cp=${cp#?($'\u0086')classpath=}
 	cp=${cp%%*($'\n'|$'\r'|$'\u0087')}
 	cp=${cp//$'\u0095'/"/"}
 	cp=${cp//$'\u009C'/":"}
