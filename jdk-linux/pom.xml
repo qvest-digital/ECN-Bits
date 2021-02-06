@@ -37,7 +37,7 @@
 		<!-- ‣ maven plugins -->
 		<maven.owasp.dependency-check.version>6.1.0</maven.owasp.dependency-check.version>
 		<!-- ‣ dependency management -->
-		<junit.version>5.7.0</junit.version>
+		<junit.version>5.7.1</junit.version>
 		<lombok.version>1.18.18</lombok.version>
 		<rfc822.version>0.4</rfc822.version>
 	</properties>
