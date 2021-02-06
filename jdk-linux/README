@@ -75,3 +75,7 @@ timestamps. (Timestamps are in UTC.) This was modelled after the
 C/CLI example (see ../c/README) and can run against its server,
 or any UDP echo server (e.g. inetd daytime), although *those*
 won’t set varying ECN bits on the response packaget.
+
+When downloading the JAR extract the scripts (client.sh, etc.)
+using jar or unzip and put them together into the same directory
+and ensure your local Maven repository cache has all dependencies.
