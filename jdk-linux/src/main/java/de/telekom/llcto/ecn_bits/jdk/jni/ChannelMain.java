@@ -21,6 +21,8 @@ package de.telekom.llcto.ecn_bits.jdk.jni;
  * of said person’s immediate fault when using the work as intended.
  */
 
+import java.io.*;
+import java.util.*;
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.border.EtchedBorder;
@@ -41,6 +43,7 @@ private ChannelMain(String[] argv) {
 
 private JFrame frame;
 private JPanel contentPane;
+private Font outAreaFont;
 private JTextArea outArea;
 // dropdown
 private JTextField tcField;
@@ -52,6 +55,19 @@ private JLabel tgtLabel;
 private JButton nextBtn;
 
 private void init() {
+	final File fontFile = new File("Inconsolatazi4varlquAH.ttf");
+	try (final InputStream is = new FileInputStream(fontFile)) {
+		final Font fileFont = Font.createFont(Font.TRUETYPE_FONT, is);
+		outAreaFont = fileFont.deriveFont((float)16);
+	} catch (Exception e) {
+		System.out.println("could not load font: " + e);
+		outAreaFont = new Font(Font.MONOSPACED, Font.PLAIN, 16);
+	}
+
+	System.setProperty("awt.useSystemAAFontSettings", "on");
+	System.setProperty("prism.lcdtext", "false");
+	System.setProperty("swing.aatext", "true");
+
 	try {
 		UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
 		return;
@@ -77,12 +93,6 @@ private void bindKey(final Action action, final int where, final KeyStroke key) 
 
 private void run() {
 	init();
-
-	/*XXX f1 is Dialog (apparently it auto-fallbacks badly) */
-	final Font f1 = new Font("foo", Font.PLAIN, 20);
-	final Font f2 = new Font("Inconsolatazi4varl_qu", Font.PLAIN, 20);
-	System.out.println(f1);
-	System.out.println(f2);
 
 	frame = new JFrame("ECN-Bits Channel Example");
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -151,7 +161,16 @@ private void run() {
 
 	contentPane.add(BorderLayout.NORTH, controlArea);
 
-	outArea = new JTextArea("0 packets received will be shown here");
+	//outArea = new JTextArea("0 packets received will be shown here");
+	outArea = new JTextArea("0 packets received will be shown here") {
+		@Override
+		protected void paintComponent(final Graphics g) {
+			((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			((Graphics2D)g).setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+			((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+			super.paintComponent(g);
+		}
+	};//*/
 	outArea.setToolTipText("Received UDP packets are shown here");
 	outArea.setBorder(BorderFactory.createCompoundBorder(
 	    BorderFactory.createEmptyBorder(6, 6, 6, 6),
@@ -159,6 +178,7 @@ private void run() {
 	    BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
 	    BorderFactory.createEmptyBorder(3, 3, 3, 3))));
 	outArea.setEditable(false);
+	outArea.setFont(outAreaFont);
 	contentPane.add(BorderLayout.CENTER, new JScrollPane(outArea));
 
 	frame.getRootPane().setDefaultButton(sendBtn);
