@@ -46,8 +46,7 @@ private JFrame frame;
 private JPanel contentPane;
 private JTextArea outArea;
 // dropdown
-//private JTextField tcField;
-private MyField tcField;
+private JTextField tcField;
 private JButton sendBtn;
 private JButton quitBtn;
 private JButton prevBtn;
@@ -147,34 +146,22 @@ private void run() {
 
 	//actionarea.add( …dropdown…
 
-	tcField = new MyField();/* JTextField("02", 2) {
-/*
+	tcField = new JTextField("02", 2 + /* offset Swing bugs */ 1) {
 		@Override
 		public Dimension getMinimumSize() {
-System.out.println("col: " + getColumnWidth());
 			return getPreferredSize();
 		}
 		@Override
 		public Dimension getMaximumSize() {
 			return getPreferredSize();
 		}
-* /
 		@Override
 		protected void paintComponent(final Graphics g) {
-d("pnt");
 			super.paintComponent(drawAA(g));
 		}
-	};*/
-tcField.d("ini");
-System.out.println("min: " + tcField.getMinimumSize());
-System.out.println("prf: " + tcField.getPreferredSize());
-System.out.println("max: " + tcField.getMaximumSize());
+	};
 	tcField.setToolTipText("Traffic Class octet to use when sending");
 	tcField.setFont(monoFont);
-tcField.d("fnt");
-System.out.println("min: " + tcField.getMinimumSize());
-System.out.println("prf: " + tcField.getPreferredSize());
-System.out.println("max: " + tcField.getMaximumSize());
 	controlArea.add(tcField);
 
 	sendBtn = new JButton("Send");
@@ -186,9 +173,6 @@ System.out.println("max: " + tcField.getMaximumSize());
 	final Action quitBtnAction = new AbstractAction("Quit") {
 		@Override
 		public void actionPerformed(final ActionEvent e) {
-System.out.println("min: " + tcField.getMinimumSize());
-System.out.println("prf: " + tcField.getPreferredSize());
-System.out.println("max: " + tcField.getMaximumSize());
 			System.exit(0);
 		}
 	};
@@ -222,66 +206,6 @@ System.out.println("max: " + tcField.getMaximumSize());
 	frame.getRootPane().setDefaultButton(sendBtn);
 	frame.setContentPane(contentPane);
 	frame.setVisible(true);
-}
-
-class MyField extends JTextField {
-	MyField() {
-		super("02", 2);
-		d("cns");
-	}
-		public void d(final String s) {
-Insets insets = getInsets();
-final int cw = getColumnWidth();
-System.out.printf("%s: col=%02d insets=%02d,%02d tot=%d dim=%s\n vis=%s\n act=%s\n",
-s,cw,insets.left,insets.right,2*cw+insets.left + insets.right,getPreferredSize(),
-getHorizontalVisibility(),
-getSize());
-		}
-		@Override
-		protected void paintComponent(final Graphics g) {
-d("pnt");
-			super.paintComponent(drawAA(g));
-		}
-	@Override
-	public Dimension getPreferredSize() {
-		final Dimension d = new Dimension(super.getPreferredSize());
-		final BoundedRangeModel vis = getHorizontalVisibility();
-		final Insets i = getInsets();
-		d.setSize(Math.max(1 + d.getWidth() + 1,
-		    vis == null ? 0 : vis.getMaximum() + i.left + i.right),
-		    1 + d.getHeight() + 1);
-		return d;
-	}
-	@Override
-	public Dimension getMinimumSize() {
-		return getPreferredSize();
-	}
-	@Override
-	public Dimension getMaximumSize() {
-		return getPreferredSize();
-	}
-
-	@Override
-    public void scrollRectToVisible(Rectangle r) {
-final BoundedRangeModel visibility = getHorizontalVisibility();
-        // convert to coordinate system of the bounded range
-        Insets i = getInsets();
-        int x0 = r.x + visibility.getValue() - i.left;
-        int x1 = x0 + r.width;
-System.out.printf("scrollRectToVisible(%s)\n vis=%s\n x0=%d x1=%d ins=%s",
-r,visibility,x0,x1,i);
-        if (x0 < visibility.getValue()) {
-            // Scroll to the left
-            visibility.setValue(x0);
-System.out.printf(" ←");
-        } else if(x1 > visibility.getValue() + visibility.getExtent()) {
-            // Scroll to the right
-            visibility.setValue(x1 - visibility.getExtent());
-System.out.printf(" →");
-        }
-System.out.printf(" .\n");
-    }
-
 }
 
 }
