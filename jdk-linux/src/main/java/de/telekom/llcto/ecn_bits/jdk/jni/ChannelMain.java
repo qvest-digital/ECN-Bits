@@ -26,7 +26,9 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
+import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -194,6 +196,12 @@ private void run() {
 	tcField.setToolTipText("Traffic Class octet to use when sending");
 	tcField.setFont(monoFont);
 	((AbstractDocument)tcField.getDocument()).setDocumentFilter(new HexDocumentFilter(2));
+	final Border tcFieldBorderOK = tcField.getBorder();
+	final Border tcFieldBorderERR = BorderFactory.createLineBorder(Color.red);
+	tcField.getDocument().addDocumentListener((DocumentListenerLambda) (e) -> {
+		final int len = e.getDocument().getLength();
+		tcField.setBorder(len == 2 ? tcFieldBorderOK : tcFieldBorderERR);
+	});
 	controlArea.add(tcField);
 
 	sendBtn = new JButton("Send");
@@ -287,6 +295,26 @@ static class HexDocumentFilter extends DocumentFilter {
 			      ((c >= 'a') && (c <= 'f'))))
 				return false;
 		return true;
+	}
+}
+
+@FunctionalInterface
+public interface DocumentListenerLambda extends DocumentListener {
+	void hook(final DocumentEvent e);
+
+	@Override
+	default void insertUpdate(final DocumentEvent e) {
+		hook(e);
+	}
+
+	@Override
+	default void removeUpdate(final DocumentEvent e) {
+		hook(e);
+	}
+
+	@Override
+	default void changedUpdate(final DocumentEvent e) {
+		hook(e);
 	}
 }
 
