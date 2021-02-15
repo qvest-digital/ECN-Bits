@@ -173,10 +173,7 @@ private void run() {
 			super.paintComponent(drawAA(g));
 		}
 	});
-	for (final BitsAdapter bit : BitsAdapter.values) {
-		if (bit.getBit() == Bits.ECT0)
-			ecnBox.setSelectedItem(bit);
-	}
+	setDropdown(Bits.ECT0);
 	ecnBox.addActionListener((e) -> {
 		// we want this, it apparently was forgotten during Swing genericisation… ☹
 		//final byte el = ecnBox.getSelectedItem().getBit().getBits();
@@ -189,7 +186,7 @@ private void run() {
 
 	controlArea.add(Box.createRigidArea(new Dimension(4, 0)));
 
-	tcField = new JTextField("FF", 2 + /* offset Swing bugs */ 1) {
+	tcField = new JTextField("00", 2 + /* offset Swing bugs */ 1) {
 		@Override
 		public Dimension getMinimumSize() {
 			return getPreferredSize();
@@ -231,7 +228,11 @@ private void run() {
 	final Border tcFieldBorderERR = BorderFactory.createLineBorder(Color.red);
 	tcField.getDocument().addDocumentListener((DocumentListenerLambda) (e) -> {
 		final int len = e.getDocument().getLength();
-		tcField.setBorder(len == 2 ? tcFieldBorderOK : tcFieldBorderERR);
+		if (len == 2) {
+			setDropdown(Bits.valueOf(retrieveTC()));
+			tcField.setBorder(tcFieldBorderOK);
+		} else
+			tcField.setBorder(tcFieldBorderERR);
 	});
 	controlArea.add(tcField);
 
@@ -280,6 +281,13 @@ private void run() {
 	frame.getRootPane().setDefaultButton(sendBtn);
 	frame.setContentPane(contentPane);
 	frame.setVisible(true);
+}
+
+private void setDropdown(final Bits toset) {
+	for (final BitsAdapter bit : BitsAdapter.values) {
+		if (bit.getBit() == toset)
+			SwingUtilities.invokeLater(() -> { ecnBox.setSelectedItem(bit); });
+	}
 }
 
 private byte retrieveTC() {
