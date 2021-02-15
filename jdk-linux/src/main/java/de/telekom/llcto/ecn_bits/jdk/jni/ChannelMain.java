@@ -24,6 +24,7 @@ package de.telekom.llcto.ecn_bits.jdk.jni;
 import java.io.*;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.text.*;
 import java.awt.*;
 import javax.swing.border.EtchedBorder;
 import java.awt.event.ActionEvent;
@@ -162,6 +163,7 @@ private void run() {
 	};
 	tcField.setToolTipText("Traffic Class octet to use when sending");
 	tcField.setFont(monoFont);
+	((AbstractDocument)tcField.getDocument()).setDocumentFilter(new HexDocumentFilter(2));
 	controlArea.add(tcField);
 
 	sendBtn = new JButton("Send");
@@ -206,6 +208,55 @@ private void run() {
 	frame.getRootPane().setDefaultButton(sendBtn);
 	frame.setContentPane(contentPane);
 	frame.setVisible(true);
+}
+
+static class HexDocumentFilter extends DocumentFilter {
+	private final int sz;
+
+	HexDocumentFilter(final int maxlen) {
+		super();
+		sz = maxlen;
+	}
+
+	@Override
+	public void insertString(final DocumentFilter.FilterBypass fb,
+	    final int offset, final String string, final AttributeSet attr)
+	throws BadLocationException {
+		replace(fb, offset, 0, string, attr);
+	}
+
+	@Override
+	public void replace(final DocumentFilter.FilterBypass fb,
+	    final int offset, final int length, final String text,
+	    final AttributeSet attrs) throws BadLocationException {
+		int oldlen = fb.getDocument().getLength();
+		if (oldlen > sz) {
+			super.remove(fb, sz, oldlen - sz);
+			oldlen = fb.getDocument().getLength();
+		}
+		if (offset < 0 || length < 0)
+			throw new BadLocationException("negative len/ofs",
+			    Math.min(offset, length));
+		if ((offset + length) > oldlen)
+			throw new BadLocationException("outside of document",
+			    offset + length);
+		final int oldbef = offset;
+		final int oldaft = oldlen - (offset + length);
+		int totlen = oldbef + text.length() + oldaft;
+		final String ins = (totlen > sz) ? text.substring(0,
+		    text.length() - (totlen - sz)) : text;
+		if (allowed(ins))
+			super.replace(fb, offset, length, ins, attrs);
+	}
+
+	static boolean allowed(final String s) {
+		for (final char c : s.toCharArray())
+			if (!(((c >= '0') && (c <= '9')) ||
+			      ((c >= 'A') && (c <= 'F')) ||
+			      ((c >= 'a') && (c <= 'f'))))
+				return false;
+		return true;
+	}
 }
 
 }
