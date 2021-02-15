@@ -29,6 +29,7 @@ import java.awt.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.*;
+import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -48,7 +49,7 @@ private Font monoFont;
 private JFrame frame;
 private JPanel contentPane;
 private JTextArea outArea;
-// dropdown
+private JComboBox<BitsAdapter> ecnBox;
 private JTextField tcField;
 private JButton sendBtn;
 private JButton quitBtn;
@@ -156,9 +157,39 @@ private void run() {
 	});
 	controlArea.add(Box.createRigidArea(new Dimension(5, 0)));
 
-	//actionarea.add( …dropdown…
+	ecnBox = new JComboBox<BitsAdapter>(BitsAdapter.values) {
+		@Override
+		public Dimension getMaximumSize() {
+			return getPreferredSize();
+		}
+		@Override
+		protected void paintComponent(final Graphics g) {
+			super.paintComponent(drawAA(g));
+		}
+	};
+	ecnBox.setRenderer(new BasicComboBoxRenderer() {
+		@Override
+		protected void paintComponent(final Graphics g) {
+			super.paintComponent(drawAA(g));
+		}
+	});
+	for (final BitsAdapter bit : BitsAdapter.values) {
+		if (bit.getBit() == Bits.ECT0)
+			ecnBox.setSelectedItem(bit);
+	}
+	ecnBox.addActionListener((e) -> {
+		// we want this, it apparently was forgotten during Swing genericisation… ☹
+		//final byte el = ecnBox.getSelectedItem().getBit().getBits();
+		final byte el = BitsAdapter.values[ecnBox.getSelectedIndex()].getBit().getBits();
+		final byte tc = retrieveTC();
+		setTC((tc & 0xFC) | (el & 0x03));
+	});
+	ecnBox.setFont(monoFont);
+	controlArea.add(ecnBox);
 
-	tcField = new JTextField("02", 2 + /* offset Swing bugs */ 1) {
+	controlArea.add(Box.createRigidArea(new Dimension(4, 0)));
+
+	tcField = new JTextField("FF", 2 + /* offset Swing bugs */ 1) {
 		@Override
 		public Dimension getMinimumSize() {
 			return getPreferredSize();
@@ -204,6 +235,8 @@ private void run() {
 	});
 	controlArea.add(tcField);
 
+	controlArea.add(Box.createRigidArea(new Dimension(8, 0)));
+
 	sendBtn = new JButton("Send");
 	sendBtn.setToolTipText("Send a single UDP packet with the chosen traffic class to the currently active IP");
 	sendBtn.addActionListener((e) -> { outArea.setText("boo!"); });
@@ -247,6 +280,22 @@ private void run() {
 	frame.getRootPane().setDefaultButton(sendBtn);
 	frame.setContentPane(contentPane);
 	frame.setVisible(true);
+}
+
+private byte retrieveTC() {
+	final String t = tcField.getText();
+	final byte v;
+	if (t.length() == 2) {
+		v = (byte)Integer.parseInt(t, 16);
+	} else {
+		setTC(0);
+		v = (byte)0x00;
+	}
+	return v;
+}
+
+private void setTC(final int tc) {
+	tcField.setText(String.format("%02X", tc & 0xFF));
 }
 
 static class HexDocumentFilter extends DocumentFilter {
@@ -318,4 +367,112 @@ public interface DocumentListenerLambda extends DocumentListener {
 	}
 }
 
+
+
+
+    private static class BitsAdapter {
+        static final BitsAdapter[] values;
+
+        static {
+            /*val*/final Bits[] bits = Bits.values();
+            values = new BitsAdapter[bits.length];
+            for (int i = 0; i < bits.length; ++i) {
+                values[i] = new BitsAdapter(bits[i]);
+            }
+        }
+
+        private final Bits bit;
+
+        @Override
+        public String toString() {
+            return bit.getShortname();
+        }
+
+	Bits getBit() { return bit; }
+	BitsAdapter(final Bits thisBit) { bit = thisBit; }
+    }
+
+
+private static enum Bits {
+    NO(0, "no ECN", "nōn-ECN-capable transport"),
+    ECT0(2, "ECT(0)", "ECN-capable; L4S: legacy transport"),
+    ECT1(1, "ECT(1)", "ECN-capable; L4S: L4S-aware transport"),
+    CE(3, "ECN CE", "congestion experienced");
+
+    /**
+     * Short name corresponding to “ECN bits unknown”, cf. {@link #getShortname()}
+     */
+    public static final String UNKNOWN = "??ECN?";
+
+    private final byte bits;
+    private final String shortname;
+    private final String meaning;
+
+    Bits(final int b, final String s, final String m) {
+        bits = (byte) b;
+        shortname = s;
+        meaning = m;
+    }
+
+    /**
+     * Returns the bits corresponding to this ECN flag
+     *
+     * @return bits suitable for use in IP traffic class
+     */
+    public byte getBits() {
+        return bits;
+    }
+
+    /**
+     * Returns the short name of this ECN flag, cf. {@link #UNKNOWN}
+     *
+     * @return String comprised of 6 ASCII characters
+     */
+    public String getShortname() {
+        return shortname;
+    }
+
+    /**
+     * Returns a long English description of this ECN flag
+     *
+     * @return Unicode String describing this flag in English
+     */
+    @SuppressWarnings({ "unused", /* UnIntelliJ bug */ "RedundantSuppression" })
+    public String getMeaning() {
+        return meaning;
+    }
+
+    /**
+     * Returns the enum value for the supplied traffic class’ lowest two bits
+     *
+     * @param tc traffic class octet
+     * @return matching {@link Bits}
+     */
+    public static Bits valueOf(final byte tc) {
+        final byte bits = (byte) (tc & 0x03);
+
+        for (final Bits bit : values()) {
+            if (bit.bits == bits) {
+                return bit;
+            }
+        }
+        /* NOTREACHED */
+        throw new NullPointerException("unreachable code");
+    }
+
+    /**
+     * Returns the short description of the ECN bits for the supplied
+     * traffic class, or the {@link #UNKNOWN} description if it is null.
+     *
+     * @param tc traffic class octet
+     * @return String comprised of 6 ASCII characters
+     * @see #getShortname()
+     */
+    public static String print(final Byte tc) {
+        if (tc == null) {
+            return UNKNOWN;
+        }
+        return valueOf(tc).getShortname();
+    }
+}
 }
