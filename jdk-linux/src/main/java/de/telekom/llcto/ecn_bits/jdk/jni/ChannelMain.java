@@ -297,8 +297,11 @@ private byte retrieveTC() {
 private void setTC(final int tc) {
 	final String by = String.format("%02X", tc & 0xFF);
 
-	if (!by.equals(tcField.getText()))
+	if (!by.equals(tcField.getText())) {
+		final int pos = tcField.getCaretPosition();
 		tcField.setText(by);
+		tcField.setCaretPosition(pos);
+	}
 }
 
 static class HexDocumentFilter extends DocumentFilter {
