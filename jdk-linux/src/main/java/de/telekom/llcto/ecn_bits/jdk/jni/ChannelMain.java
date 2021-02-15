@@ -142,7 +142,16 @@ private void run() {
 	controlArea.add(nextBtn);
 
 	controlArea.add(Box.createRigidArea(new Dimension(5, 0)));
-	controlArea.add(new JSeparator(SwingConstants.VERTICAL));
+	controlArea.add(new JSeparator(SwingConstants.VERTICAL) {
+		/* ARRRRRRRRRGH! */
+		@Override
+		public Dimension getMaximumSize() {
+			final Dimension d = new Dimension();
+			d.setSize(getPreferredSize().getWidth(),
+			    super.getMaximumSize().getHeight());
+			return d;
+		}
+	});
 	controlArea.add(Box.createRigidArea(new Dimension(5, 0)));
 
 	//actionarea.add( …dropdown…
@@ -160,6 +169,27 @@ private void run() {
 		protected void paintComponent(final Graphics g) {
 			super.paintComponent(drawAA(g));
 		}
+		@Override
+		public void replaceSelection(final String content) {
+			final AbstractDocument doc = (AbstractDocument)getDocument();
+			/* overwrite by default */
+			if (doc != null && getSelectionStart() == getSelectionEnd()) {
+				final boolean composedTextSaved = saveComposedText(getCaretPosition());
+				final int pos = getCaretPosition();
+				final int inslen = content.length();
+				final int txtlen = doc.getLength();
+				final int dellen = Math.min(txtlen - pos, inslen);
+				try {
+					doc.replace(pos, dellen, content, null);
+				} catch (BadLocationException e) {
+					// shouldn’t happen
+					UIManager.getLookAndFeel().provideErrorFeedback(this);
+				}
+				return;
+			}
+			super.replaceSelection(content);
+		}
+
 	};
 	tcField.setToolTipText("Traffic Class octet to use when sending");
 	tcField.setFont(monoFont);
@@ -168,6 +198,7 @@ private void run() {
 
 	sendBtn = new JButton("Send");
 	sendBtn.setToolTipText("Send a single UDP packet with the chosen traffic class to the currently active IP");
+	sendBtn.addActionListener((e) -> { outArea.setText("boo!"); });
 	controlArea.add(sendBtn);
 
 	controlArea.add(Box.createHorizontalGlue());
@@ -189,7 +220,7 @@ private void run() {
 
 	contentPane.add(BorderLayout.NORTH, controlArea);
 
-	outArea = new JTextArea("0 packets received will be shown here") {
+	outArea = new JTextArea("packets received will be shown here") {
 		@Override
 		protected void paintComponent(final Graphics g) {
 			super.paintComponent(drawAA(g));
