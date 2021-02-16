@@ -4,7 +4,7 @@ package de.telekom.llcto.ecn_bits.jdk.jni;
  * Copyright © 2020
  *      mirabilos <t.glaser@tarent.de>
  * Copyright © 2014
- *	The Android Open Source Project
+ *      The Android Open Source Project
  * Copyright © 2000, 2001, 2012, 2013
  *      Oracle and/or its affiliates
  * Licensor: Deutsche Telekom
