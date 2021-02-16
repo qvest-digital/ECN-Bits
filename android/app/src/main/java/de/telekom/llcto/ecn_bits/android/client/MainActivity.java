@@ -101,6 +101,9 @@ public class MainActivity extends AppCompatActivity {
      * Adapts a {@link Bits} enum for use with an {@link ArrayAdapter}: the
      * latter is supremely inflexible and insists on using {@link #toString()}
      * to determine the dropdown value, which isn’t overridable…
+     *
+     * Shared between jdk-linux/src/main/java/…/jdk/jni/ChannelMain and
+     * android/app/src/main/java/…/android/client/MainActivity so take care.
      */
     @RequiredArgsConstructor
     @Getter

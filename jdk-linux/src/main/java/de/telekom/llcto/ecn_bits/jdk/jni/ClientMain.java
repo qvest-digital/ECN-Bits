@@ -27,6 +27,7 @@ import org.evolvis.tartools.rfc822.IPAddress;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -40,7 +41,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Example ECN-Bits client program
+ * Example ECN-Bits client program for {@link DatagramSocket} replacement
  *
  * @author mirabilos (t.glaser@tarent.de)
  */
