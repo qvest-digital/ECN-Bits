@@ -60,9 +60,12 @@ jobs:
     #    uses a compiled language
 
     - run: |
-       (cd c && make clean && make)
-       (cd ws2 && make clean && make)
-       (cd android && ./gradlew clean && ./gradlew build)
+       rv=0
+       set +e
+       (cd c && make clean && make) || rv=1
+       (cd ws2 && make clean && make) || rv=1
+       (cd android && ./gradlew clean && ./gradlew build) || rv=1
+       exit $rv
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
