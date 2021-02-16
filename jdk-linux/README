@@ -55,6 +55,8 @@ These examples require having built the library first, as they
 depend on tools used to compile, and the JNI search path is set
 to where the compiled DLL is placed by CMake.
 
+‣ CHANNEL
+
 Run the DatagramChannel client: ./channel.sh host port
 
 This will start an interactive GUI in which the user can send
@@ -62,6 +64,12 @@ packets (by pressing Enter, Alt-S or clicking the S̲end button),
 switch between the host’s IP addresses, and change what traffic
 class is set on outgoing packets.
 ⚠ WIP: not yet finished ⚠
+
+Should GUI issues occur use --metal to avoid the Motif theme or
+--theme=<theme> to set one (use --theme to list the installed
+themes) or --theme=system to not set the look and feel.
+
+‣ SOCKET
 
 Run the DatagramSocket client: ./client.sh host post [tc]
 
