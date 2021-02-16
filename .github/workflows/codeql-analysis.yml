@@ -60,8 +60,9 @@ jobs:
     #    uses a compiled language
 
     - run: |
+       : build jobs
+       set -x +e
        rv=0
-       set +e
        (cd c && make clean && make) || rv=1
        (cd ws2 && make clean && make) || rv=1
        (cd android && ./gradlew clean && ./gradlew build) || rv=1
