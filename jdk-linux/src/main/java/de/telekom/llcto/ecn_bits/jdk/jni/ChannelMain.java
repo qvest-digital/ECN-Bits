@@ -196,6 +196,21 @@ public final class ChannelMain {
     }
 
     /**
+     * Assigns a {@link BasicComboBoxRenderer} instance to be the renderer of
+     * a parametrised {@link JComboBox}. This workaround is necessary because
+     * during the genericisation of Swing, the former was apparently forgotten
+     * or assigned {@link Object} hard deliberately.
+     *
+     * @param box      parametrised {@link JComboBox} instance to assign to
+     * @param renderer {@link BasicComboBoxRenderer} instance to use
+     */
+    @SuppressWarnings({ "unchecked", /* IntelliJ sees less than javac here */ "RedundantSuppression" })
+    private static void setComboBoxRenderer(final JComboBox<?> box,
+      final BasicComboBoxRenderer renderer) {
+        box.setRenderer(renderer);
+    }
+
+    /**
      * Tries to convince the renderer to draw fonts anti-aliased.
      *
      * @param g hopefully a {@link Graphics2D} instance
@@ -305,7 +320,7 @@ public final class ChannelMain {
                 super.paintComponent(drawAA(g));
             }
         };
-        ecnBox.setRenderer(new BasicComboBoxRenderer() {
+        setComboBoxRenderer(ecnBox, new BasicComboBoxRenderer() {
             /**
              * Requests the opened box to be drawn with anti-aliased text.
              *
