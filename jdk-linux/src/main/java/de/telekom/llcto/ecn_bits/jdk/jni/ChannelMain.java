@@ -118,6 +118,7 @@ private void run() {
 	controlArea.setLayout(new BoxLayout(controlArea, BoxLayout.X_AXIS));
 
 	prevBtn = new JButton("Prev");
+	prevBtn.setMnemonic(KeyEvent.VK_P);
 	prevBtn.setToolTipText("Switch to previous IP for this hostname");
 	prevBtn.addActionListener((e) -> { tgtLabel.setText("prev ip"); });
 	controlArea.add(prevBtn);
@@ -140,6 +141,7 @@ private void run() {
 	controlArea.add(Box.createRigidArea(new Dimension(5, 0)));
 
 	nextBtn = new JButton("Next");
+	nextBtn.setMnemonic(KeyEvent.VK_N);
 	nextBtn.setToolTipText("Switch to next IP for this hostname");
 	nextBtn.addActionListener((e) -> { tgtLabel.setText("next ip"); });
 	controlArea.add(nextBtn);
@@ -156,6 +158,19 @@ private void run() {
 		}
 	});
 	controlArea.add(Box.createRigidArea(new Dimension(5, 0)));
+
+	final JPanel labelArea = new JPanel();
+	labelArea.setLayout(new BoxLayout(labelArea, BoxLayout.Y_AXIS));
+	final JLabel ecnLabel = new JLabel("ECN Bits:");
+	ecnLabel.setDisplayedMnemonic('E');
+	ecnLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+	labelArea.add(ecnLabel);
+	final JLabel tcLabel = new JLabel("Traffic Class:");
+	tcLabel.setDisplayedMnemonic('T');
+	tcLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+	labelArea.add(tcLabel);
+	controlArea.add(labelArea);
+	controlArea.add(Box.createRigidArea(new Dimension(3, 0)));
 
 	ecnBox = new JComboBox<BitsAdapter>(BitsAdapter.values) {
 		@Override
@@ -183,6 +198,7 @@ private void run() {
 	});
 	ecnBox.setFont(monoFont);
 	controlArea.add(ecnBox);
+	ecnLabel.setLabelFor(ecnBox);
 
 	controlArea.add(Box.createRigidArea(new Dimension(4, 0)));
 
@@ -234,11 +250,14 @@ private void run() {
 		} else
 			tcField.setBorder(tcFieldBorderERR);
 	});
+	tcField.setCaretPosition(0);
 	controlArea.add(tcField);
+	tcLabel.setLabelFor(tcField);
 
 	controlArea.add(Box.createRigidArea(new Dimension(8, 0)));
 
 	sendBtn = new JButton("Send");
+	sendBtn.setMnemonic(KeyEvent.VK_S);
 	sendBtn.setToolTipText("Send a single UDP packet with the chosen traffic class to the currently active IP");
 	sendBtn.addActionListener((e) -> { outArea.setText("boo!"); });
 	controlArea.add(sendBtn);
@@ -281,6 +300,7 @@ private void run() {
 	frame.getRootPane().setDefaultButton(sendBtn);
 	frame.setContentPane(contentPane);
 	frame.setVisible(true);
+	sendBtn.requestFocusInWindow();
 }
 
 private void setDropdown(final Bits toset) {
