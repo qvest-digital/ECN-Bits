@@ -32,6 +32,7 @@ import javax.swing.event.*;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import org.evolvis.tartools.mvnparent.InitialiseLogging;
 
 public final class ChannelMain {
 
@@ -59,8 +60,7 @@ private JLabel tgtLabel;
 private JButton nextBtn;
 
 private void init() {
-	final File fontFile = new File("Inconsolatazi4varlquAH.ttf");
-	try (final InputStream is = new FileInputStream(fontFile)) {
+	try (final InputStream is = InitialiseLogging.getResourceAsStream("Inconsolatazi4varlquAH.ttf")) {
 		final Font fileFont = Font.createFont(Font.TRUETYPE_FONT, is);
 		monoFont = fileFont.deriveFont((float)16);
 	} catch (Exception e) {
@@ -425,88 +425,4 @@ public interface DocumentListenerLambda extends DocumentListener {
 	Bits getBit() { return bit; }
 	BitsAdapter(final Bits thisBit) { bit = thisBit; }
     }
-
-
-private static enum Bits {
-    NO(0, "no ECN", "nōn-ECN-capable transport"),
-    ECT0(2, "ECT(0)", "ECN-capable; L4S: legacy transport"),
-    ECT1(1, "ECT(1)", "ECN-capable; L4S: L4S-aware transport"),
-    CE(3, "ECN CE", "congestion experienced");
-
-    /**
-     * Short name corresponding to “ECN bits unknown”, cf. {@link #getShortname()}
-     */
-    public static final String UNKNOWN = "??ECN?";
-
-    private final byte bits;
-    private final String shortname;
-    private final String meaning;
-
-    Bits(final int b, final String s, final String m) {
-        bits = (byte) b;
-        shortname = s;
-        meaning = m;
-    }
-
-    /**
-     * Returns the bits corresponding to this ECN flag
-     *
-     * @return bits suitable for use in IP traffic class
-     */
-    public byte getBits() {
-        return bits;
-    }
-
-    /**
-     * Returns the short name of this ECN flag, cf. {@link #UNKNOWN}
-     *
-     * @return String comprised of 6 ASCII characters
-     */
-    public String getShortname() {
-        return shortname;
-    }
-
-    /**
-     * Returns a long English description of this ECN flag
-     *
-     * @return Unicode String describing this flag in English
-     */
-    @SuppressWarnings({ "unused", /* UnIntelliJ bug */ "RedundantSuppression" })
-    public String getMeaning() {
-        return meaning;
-    }
-
-    /**
-     * Returns the enum value for the supplied traffic class’ lowest two bits
-     *
-     * @param tc traffic class octet
-     * @return matching {@link Bits}
-     */
-    public static Bits valueOf(final byte tc) {
-        final byte bits = (byte) (tc & 0x03);
-
-        for (final Bits bit : values()) {
-            if (bit.bits == bits) {
-                return bit;
-            }
-        }
-        /* NOTREACHED */
-        throw new NullPointerException("unreachable code");
-    }
-
-    /**
-     * Returns the short description of the ECN bits for the supplied
-     * traffic class, or the {@link #UNKNOWN} description if it is null.
-     *
-     * @param tc traffic class octet
-     * @return String comprised of 6 ASCII characters
-     * @see #getShortname()
-     */
-    public static String print(final Byte tc) {
-        if (tc == null) {
-            return UNKNOWN;
-        }
-        return valueOf(tc).getShortname();
-    }
-}
 }
