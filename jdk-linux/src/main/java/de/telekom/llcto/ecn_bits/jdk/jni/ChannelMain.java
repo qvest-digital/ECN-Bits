@@ -277,19 +277,31 @@ public final class ChannelMain {
     }
 
     private void switchIP(final int dir) {
+        LOG.info("before cancel");
         if (worker != null) {
+            LOG.info("will cancel");
             worker.cancel(true);
+            LOG.info("did cancel");
             worker = null;
+            LOG.info("worker is now nil");
         }
+        LOG.info("after cancel");
         final int pos = currentIP + dir;
         currentIP = (pos < 0) ? 0 : (pos >= ips.length) ? ips.length - 1 : pos;
         prevBtn.setEnabled(pos > 0);
         nextBtn.setEnabled(pos < (ips.length - 1));
         tgtLabel.setText(ipS[pos]);
         sendBtn.requestFocusInWindow();
-        if ((worker = new Receiver().init()) != null) {
+        LOG.info("before new worker");
+        worker = new Receiver();
+        LOG.info("new worker: " + worker);
+        if (worker != null) {
+            worker.init();
+            LOG.info("worker initialised");
             worker.execute();
+            LOG.info("executed new worker");
         }
+        LOG.info("after new worker");
     }
 
     private void log(final String s) {
