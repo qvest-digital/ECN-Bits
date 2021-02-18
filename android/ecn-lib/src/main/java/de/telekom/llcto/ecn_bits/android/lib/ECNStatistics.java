@@ -1,7 +1,7 @@
 package de.telekom.llcto.ecn_bits.android.lib;
 
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *      mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -117,6 +117,9 @@ public class ECNStatistics {
      * @return 0 ≤ factor ≤ 1
      */
     public double getCongestionFactor() {
+        if (packets == 0) {
+            return 0;
+        }
         return (double) congested / (double) packets;
     }
 }
