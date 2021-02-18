@@ -39,6 +39,7 @@ import javax.swing.plaf.metal.OceanTheme;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultCaret;
 import javax.swing.text.DocumentFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -272,6 +273,10 @@ public final class ChannelMain {
         sendBtn.requestFocusInWindow();
     }
 
+    private void log(final String s) {
+        outArea.append(s + "\n");
+    }
+
     private void run() {
         init();
 
@@ -497,13 +502,13 @@ public final class ChannelMain {
         sendBtn = new JButton("Send");
         sendBtn.setMnemonic(KeyEvent.VK_S);
         sendBtn.setToolTipText("Send a single UDP packet with the chosen traffic class to the currently active IP");
-        sendBtn.addActionListener(e -> outArea.setText("boo!"));
+        sendBtn.addActionListener(e -> log("boo!"));
         controlArea.add(sendBtn);
 
         measureBtn = new JButton("Measure");
         measureBtn.setMnemonic(KeyEvent.VK_M);
         measureBtn.setToolTipText("Display and reset ECN congestion measurement statistics");
-        measureBtn.addActionListener(e -> outArea.setText("moo!"));
+        measureBtn.addActionListener(e -> log("moo!"));
         controlArea.add(measureBtn);
 
         controlArea.add(Box.createHorizontalGlue());
@@ -526,7 +531,7 @@ public final class ChannelMain {
 
         contentPane.add(BorderLayout.NORTH, controlArea);
 
-        outArea = new JTextArea("packets received will be shown here") {
+        outArea = new JTextArea("↓↓↓ Output will show here ↓↓↓\n\n") {
             /**
              * Convinces the renderer to draw the font anti-aliased.
              *
@@ -544,6 +549,8 @@ public final class ChannelMain {
             BorderFactory.createEtchedBorder(EtchedBorder.RAISED),
             BorderFactory.createEmptyBorder(3, 3, 3, 3))));
         outArea.setEditable(false);
+        ((DefaultCaret) outArea.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+        outArea.setCaretPosition( outArea.getText().length());
         outArea.setFont(monoFont);
         contentPane.add(BorderLayout.CENTER, new JScrollPane(outArea));
 
