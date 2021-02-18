@@ -55,7 +55,7 @@ public final class ClientMain {
         LOG = Logger.getLogger(ClientMain.class.getName());
     }
 
-    private static class IPorFQDN {
+    static class IPorFQDN {
         final boolean resolved;
         final String s;
         final InetAddress[] a = new InetAddress[1];
@@ -72,31 +72,34 @@ public final class ClientMain {
         }
     }
 
-    private static RuntimeException usage(final String err) {
+    static RuntimeException usage(final String err) {
         return usage(err, null);
     }
 
-    private static RuntimeException usage(final String err, final Throwable t) {
+    // must be an array so ChannelMain can mutate it
+    static String[] USAGE = new String[] { "Usage: ./client.sh hostname port [tc]" };
+
+    static RuntimeException usage(final String err, final Throwable t) {
         if (err != null) {
             LOG.log(Level.SEVERE, err, t);
         }
-        LOG.severe("Usage: ./client.sh hostname port [tc]");
+        LOG.severe(USAGE[0]);
         System.exit(1);
         return new RuntimeException();
     }
 
     @SuppressWarnings("unused")
-    private static RuntimeException die(final String err) {
+    static RuntimeException die(final String err) {
         return die(err, null);
     }
 
-    private static RuntimeException die(final String err, final Throwable t) {
+    static RuntimeException die(final String err, final Throwable t) {
         LOG.log(Level.SEVERE, err, t);
         System.exit(1);
         return new RuntimeException();
     }
 
-    private static IPorFQDN parseHostname(final String s) {
+    static IPorFQDN parseHostname(final String s) {
         if ("".equals(s)) {
             throw usage("empty hostname");
         }
@@ -108,6 +111,25 @@ public final class ClientMain {
             return new IPorFQDN(s, ip);
         }
         throw usage("invalid hostname: " + s);
+    }
+
+    static int parsePort(final String arg) {
+        if ("".equals(arg)) {
+            throw usage("empty port");
+        }
+        final int port;
+        try {
+            port = Integer.parseUnsignedInt(arg);
+        } catch (NumberFormatException e) {
+            throw usage("bad port: " + arg, e);
+        }
+        if (port < 1) {
+            throw usage("port too small: " + port);
+        }
+        if (port > 65535) {
+            throw usage("port too large: " + port);
+        }
+        return port;
     }
 
     public static void main(String[] argv) {
@@ -154,22 +176,7 @@ public final class ClientMain {
         }
 
         final IPorFQDN hostname = parseHostname(argv[0]);
-
-        if ("".equals(argv[1])) {
-            throw usage("empty port");
-        }
-        final int port;
-        try {
-            port = Integer.parseUnsignedInt(argv[1]);
-        } catch (NumberFormatException e) {
-            throw usage("bad port: " + argv[1], e);
-        }
-        if (port < 1) {
-            throw usage("port too small: " + port);
-        }
-        if (port > 65535) {
-            throw usage("port too large: " + port);
-        }
+        final int port = parsePort(argv[1]);
 
         final ECNBitsDatagramSocket sock;
         try {

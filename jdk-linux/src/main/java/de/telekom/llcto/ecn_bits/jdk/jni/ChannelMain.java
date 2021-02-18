@@ -43,10 +43,18 @@ import javax.swing.text.DocumentFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.channels.DatagramChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static de.telekom.llcto.ecn_bits.jdk.jni.ClientMain.die;
+import static de.telekom.llcto.ecn_bits.jdk.jni.ClientMain.parseHostname;
+import static de.telekom.llcto.ecn_bits.jdk.jni.ClientMain.parsePort;
+import static de.telekom.llcto.ecn_bits.jdk.jni.ClientMain.usage;
 
 /**
  * Example ECN-Bits client program for {@link DatagramChannel} replacement
@@ -65,6 +73,7 @@ public final class ChannelMain {
     }
 
     public static void main(final String[] argv) {
+        ClientMain.USAGE[0] = "Usage: ./channel.sh [--theme=…] hostname port";
         INSTANCE = new ChannelMain(argv);
         SwingUtilities.invokeLater(() -> INSTANCE.run());
     }
@@ -109,26 +118,52 @@ public final class ChannelMain {
             } else if ("theme".equals(optstr)) {
                 SwingTheme.themesToTry[0] = new SwingTheme("User", optarg);
             } else {
-                LOG.severe("unknown option: " + argv[argp]);
-                System.exit(1);
+                throw usage("unknown option: " + argv[argp]);
             }
             ++argp;
             --argc;
         }
+
+        if (argc != 2) {
+            throw usage(null);
+        }
+        hostname = parseHostname(argv[argp]);
+        port = parsePort(argv[argp + 1]);
+        try {
+            ips = hostname.resolved ? hostname.a : InetAddress.getAllByName(hostname.s);
+            if (ips.length < 1) {
+                throw die("no IP for hostname " + argv[argp]);
+            }
+        } catch (UnknownHostException e) {
+            throw die("resolve hostname " + hostname.s, e);
+        }
+
+        try {
+            chan = ECNBitsDatagramChannel.open();
+        } catch (IOException e) {
+            throw die("create channel", e);
+        }
+        chan.startMeasurement();
     }
+
+    private final ClientMain.IPorFQDN hostname;
+    private final int port;
+    private final InetAddress[] ips;
+    private int currentIP = 0;
+    private final ECNBitsDatagramChannel chan;
 
     private Font monoFont;
     private JFrame frame;
     private JPanel contentPane;
-    private JTextArea outArea;
+    private JButton prevBtn;
+    private JLabel tgtLabel;
+    private JButton nextBtn;
     private JComboBox<BitsAdapter> ecnBox;
     private JTextField tcField;
     private JButton sendBtn;
+    private JButton measureBtn;
     private JButton quitBtn;
-    private JButton prevBtn;
-    private JLabel hostLabel;
-    private JLabel tgtLabel;
-    private JButton nextBtn;
+    private JTextArea outArea;
 
     /**
      * Tries to enable a Swing theme, with an ordered list of preferences.
@@ -228,6 +263,15 @@ public final class ChannelMain {
         return g;
     }
 
+    private void switchIP(final int dir) {
+        final int pos = currentIP + dir;
+        currentIP = (pos < 0) ? 0 : (pos >= ips.length) ? ips.length - 1 : pos;
+        prevBtn.setEnabled(pos > 0);
+        nextBtn.setEnabled(pos < (ips.length - 1));
+        tgtLabel.setText(ips[pos].getHostAddress());
+        sendBtn.requestFocusInWindow();
+    }
+
     private void run() {
         init();
 
@@ -242,17 +286,39 @@ public final class ChannelMain {
         prevBtn = new JButton("Prev");
         prevBtn.setMnemonic(KeyEvent.VK_P);
         prevBtn.setToolTipText("Switch to previous IP for this hostname");
-        prevBtn.addActionListener(e -> tgtLabel.setText("prev ip"));
+        prevBtn.addActionListener(e -> switchIP(-1));
         controlArea.add(prevBtn);
 
         controlArea.add(Box.createRigidArea(new Dimension(5, 0)));
         final JPanel hostnameArea = new JPanel();
         hostnameArea.setLayout(new BoxLayout(hostnameArea, BoxLayout.Y_AXIS));
-        hostLabel = new JLabel("hostname:port");
+        final JLabel hostLabel = new JLabel(getHostLabel());
         hostLabel.setToolTipText("Selected hostname (target) and port");
         hostLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         hostnameArea.add(hostLabel);
-        tgtLabel = new JLabel("target IP");
+        tgtLabel = new JLabel("target IP") {
+            /**
+             * Ensures we always return the preferred size for the widest content.
+             *
+             * @return Dimension
+             */
+            @Override
+            public Dimension getPreferredSize() {
+                final String otext = getText();
+                double w = 0;
+                double h = 0;
+                for (final InetAddress ip : ips) {
+                    setText(ip.getHostAddress());
+                    final Dimension d = super.getPreferredSize();
+                    w = Math.max(w, d.getWidth());
+                    h = Math.max(h, d.getHeight());
+                }
+                setText(otext);
+                final Dimension d = new Dimension();
+                d.setSize(w, h);
+                return d;
+            }
+        };
         tgtLabel.setToolTipText("Currently selected IP address of the target hostname");
         tgtLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         tgtLabel.setBorder(BorderFactory.createCompoundBorder(
@@ -265,7 +331,7 @@ public final class ChannelMain {
         nextBtn = new JButton("Next");
         nextBtn.setMnemonic(KeyEvent.VK_N);
         nextBtn.setToolTipText("Switch to next IP for this hostname");
-        nextBtn.addActionListener(e -> tgtLabel.setText("next ip"));
+        nextBtn.addActionListener(e -> switchIP(1));
         controlArea.add(nextBtn);
 
         controlArea.add(Box.createRigidArea(new Dimension(5, 0)));
@@ -434,6 +500,12 @@ public final class ChannelMain {
         sendBtn.addActionListener(e -> outArea.setText("boo!"));
         controlArea.add(sendBtn);
 
+        measureBtn = new JButton("Measure");
+        measureBtn.setMnemonic(KeyEvent.VK_M);
+        measureBtn.setToolTipText("Display and reset ECN congestion measurement statistics");
+        measureBtn.addActionListener(e -> outArea.setText("moo!"));
+        controlArea.add(measureBtn);
+
         controlArea.add(Box.createHorizontalGlue());
 
         // this gunk is necessary so it can be bound to the Escape key as well
@@ -478,7 +550,14 @@ public final class ChannelMain {
         frame.getRootPane().setDefaultButton(sendBtn);
         frame.setContentPane(contentPane);
         frame.setVisible(true);
-        sendBtn.requestFocusInWindow();
+        switchIP(0);
+    }
+
+    private String getHostLabel() {
+        final String host = hostname.resolved ?
+          hostname.a[0].getHostAddress() : hostname.s;
+        return String.format(host.indexOf(':') == -1 ? "%s:%d" : "[%s]:%d",
+          host, port);
     }
 
     /**
