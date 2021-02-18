@@ -806,7 +806,7 @@ public final class ChannelMain {
                 return;
             }
             log(stats == null ? "!! no congestion measurement" :
-              String.format("ℹ %.2f%% of %d packets received over %d ms were congested",
+              String.format("‡ %.2f%% of %d packets received over %d ms were congested",
                 stats.getCongestionFactor() * 100.0, stats.getReceivedPackets(),
                 stats.getLengthOfMeasuringPeriod() / 1000000L));
         } catch (ArithmeticException e) {
@@ -832,7 +832,7 @@ public final class ChannelMain {
                 log("!! connect: " + e);
                 return null;
             }
-            log("‣‣ connected to " + ipstr);
+            log("» connected to " + ipstr);
             measureClk(true);
             return this;
         }
