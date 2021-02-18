@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -58,9 +58,11 @@
 #ifdef __ANDROID__
 #define rstrerrinit()	/* nothing */
 #define rstrerror(e)	strerror(e)	/* thread-safe in Bionic since 4.2 */
+#define SIGTID_SIGNO	(__SIGRTMIN + 2)	/* Android and Bionic */
 #else
 #define rstrerrinit()	char rstrerrstr[1024]	/* size from glibc manpage */
 #define rstrerror(e)	jniStrError((e), rstrerrstr, sizeof(rstrerrstr))
+#define SIGTID_SIGNO	(__SIGRTMAX - 2)	/* OpenJDK and glibc */
 #endif
 
 #define IO_THROWN	(-4)
@@ -454,7 +456,7 @@ n_sigtid(JNIEnv *env, jclass cls __unused, jlong j)
 	int e;
 
 	u.j[0] = j;
-	if ((e = pthread_kill(u.pt, /* Bionic */ __SIGRTMIN + 2)))
+	if ((e = pthread_kill(u.pt, SIGTID_SIGNO)))
 		throw(env, eX, e, "pthread_kill(%llu)", (unsigned long long)j);
 }
 
