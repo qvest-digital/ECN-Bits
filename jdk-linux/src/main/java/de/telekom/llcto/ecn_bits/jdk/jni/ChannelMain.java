@@ -305,7 +305,8 @@ public final class ChannelMain {
     }
 
     private void log(final String s) {
-        outArea.append(s + "\n");
+        outArea.append(String.format("[%s] %s\n",
+          Thread.currentThread().getName(), s));
     }
 
     private void run() {
