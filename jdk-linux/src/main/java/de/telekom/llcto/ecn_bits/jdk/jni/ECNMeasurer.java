@@ -1,7 +1,7 @@
 package de.telekom.llcto.ecn_bits.jdk.jni;
 
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *      mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -38,7 +38,9 @@ class ECNMeasurer {
      * the cached last packet’s traffic class field can be reset.
      */
     public void listen() {
-        lastTc = null;
+        synchronized (this) {
+            lastTc = null;
+        }
     }
 
     /**
@@ -47,7 +49,9 @@ class ECNMeasurer {
      * @return byte or nil if no record
      */
     public Byte last() {
-        return lastTc;
+        synchronized (this) {
+            return lastTc;
+        }
     }
 
     /**
@@ -59,16 +63,18 @@ class ECNMeasurer {
      * @param octet the traffic class octet of the received datagram
      */
     public void received(final boolean valid, final byte octet) {
-        if (valid) {
-            lastTc = octet;
-        }
+        synchronized (this) {
+            if (valid) {
+                lastTc = octet;
+            }
 
-        if (measuring == 1) {
-            final int offset = valid && Bits.CE.equals(Bits.valueOf(octet)) ? 1 : 0;
-            if (measurement[offset] == Integer.MAX_VALUE / 2) {
-                measuring = 2;
-            } else {
-                ++measurement[offset];
+            if (measuring == 1) {
+                final int offset = valid && Bits.CE.equals(Bits.valueOf(octet)) ? 1 : 0;
+                if (measurement[offset] == Integer.MAX_VALUE / 2) {
+                    measuring = 2;
+                } else {
+                    ++measurement[offset];
+                }
             }
         }
     }
