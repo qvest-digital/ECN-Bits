@@ -47,8 +47,19 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.StandardSocketOptions;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -135,6 +146,7 @@ public final class ChannelMain {
             if (ips.length < 1) {
                 throw die("no IP for hostname " + argv[argp]);
             }
+            ipS = Arrays.stream(ips).map(InetAddress::getHostAddress).toArray(String[]::new);
         } catch (UnknownHostException e) {
             throw die("resolve hostname " + hostname.s, e);
         }
@@ -144,26 +156,26 @@ public final class ChannelMain {
         } catch (IOException e) {
             throw die("create channel", e);
         }
-        chan.startMeasurement();
     }
 
     private final ClientMain.IPorFQDN hostname;
     private final int port;
     private final InetAddress[] ips;
+    private final String[] ipS;
     private int currentIP = 0;
     private final ECNBitsDatagramChannel chan;
+    private Receiver worker = null;
+    private final ByteBuffer sndbuf = ByteBuffer.allocateDirect(64);
+    private long sndctr = 0;
 
     private Font monoFont;
     private JFrame frame;
-    private JPanel contentPane;
     private JButton prevBtn;
     private JLabel tgtLabel;
     private JButton nextBtn;
     private JComboBox<BitsAdapter> ecnBox;
     private JTextField tcField;
     private JButton sendBtn;
-    private JButton measureBtn;
-    private JButton quitBtn;
     private JTextArea outArea;
 
     /**
@@ -265,12 +277,19 @@ public final class ChannelMain {
     }
 
     private void switchIP(final int dir) {
+        if (worker != null) {
+            worker.cancel(true);
+            worker = null;
+        }
         final int pos = currentIP + dir;
         currentIP = (pos < 0) ? 0 : (pos >= ips.length) ? ips.length - 1 : pos;
         prevBtn.setEnabled(pos > 0);
         nextBtn.setEnabled(pos < (ips.length - 1));
-        tgtLabel.setText(ips[pos].getHostAddress());
+        tgtLabel.setText(ipS[pos]);
         sendBtn.requestFocusInWindow();
+        if ((worker = new Receiver().init()) != null) {
+            worker.execute();
+        }
     }
 
     private void log(final String s) {
@@ -283,7 +302,7 @@ public final class ChannelMain {
         frame = new JFrame("ECN-Bits Channel Example");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(720, 600);
-        contentPane = new JPanel(new BorderLayout());
+        final JPanel contentPane = new JPanel(new BorderLayout());
 
         final JPanel controlArea = new JPanel();
         controlArea.setLayout(new BoxLayout(controlArea, BoxLayout.X_AXIS));
@@ -312,8 +331,8 @@ public final class ChannelMain {
                 final String otext = getText();
                 double w = 0;
                 double h = 0;
-                for (final InetAddress ip : ips) {
-                    setText(ip.getHostAddress());
+                for (final String ip : ipS) {
+                    setText(ip);
                     final Dimension d = super.getPreferredSize();
                     w = Math.max(w, d.getWidth());
                     h = Math.max(h, d.getHeight());
@@ -402,7 +421,6 @@ public final class ChannelMain {
                 super.paintComponent(drawAA(g));
             }
         });
-        setDropdown(Bits.ECT0);
         ecnBox.addActionListener(e -> {
             // changing the dropdown updates the tc input field
 
@@ -412,6 +430,7 @@ public final class ChannelMain {
             final byte tc = retrieveTC();
             setTC((tc & 0xFC) | (el & 0x03));
         });
+        setDropdown(Bits.ECT0);
         ecnBox.setFont(monoFont);
         controlArea.add(ecnBox);
         ecnLabel.setLabelFor(ecnBox);
@@ -502,13 +521,47 @@ public final class ChannelMain {
         sendBtn = new JButton("Send");
         sendBtn.setMnemonic(KeyEvent.VK_S);
         sendBtn.setToolTipText("Send a single UDP packet with the chosen traffic class to the currently active IP");
-        sendBtn.addActionListener(e -> log("boo!"));
+        sendBtn.addActionListener(e -> new SwingWorker<String, Void>() {
+            @Override
+            protected String doInBackground() {
+                final String payload = String.format("%s #%d", ZonedDateTime.now(ZoneOffset.UTC)
+                  .truncatedTo(ChronoUnit.MILLIS)
+                  .format(DateTimeFormatter.ISO_INSTANT), ++sndctr);
+                sndbuf.clear();
+                val payloadBytes = payload.getBytes(StandardCharsets.UTF_8);
+                sndbuf.put(payloadBytes);
+                sndbuf.flip();
+                try {
+                    final int written = chan.write(sndbuf);
+                    if (written == payloadBytes.length) {
+                        return "← " + payload;
+                    }
+                    return String.format("!! send (%s): short write (%d of %d)",
+                      payload, written, payloadBytes.length);
+                } catch (IOException e) {
+                    if (isCancelled() || Thread.interrupted()) {
+                        return "!! send interrupted";
+                    }
+                    return String.format("!! send (%s): %s", payload, e);
+                }
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    log(get());
+                } catch (InterruptedException | ExecutionException e) {
+                    LOG.log(Level.WARNING, "send thread threw", e);
+                    log("!! unexpected exception in send thread");
+                }
+            }
+        }.execute());
         controlArea.add(sendBtn);
 
-        measureBtn = new JButton("Measure");
+        final JButton measureBtn = new JButton("Measure");
         measureBtn.setMnemonic(KeyEvent.VK_M);
         measureBtn.setToolTipText("Display and reset ECN congestion measurement statistics");
-        measureBtn.addActionListener(e -> log("moo!"));
+        measureBtn.addActionListener(evt -> measureClk(false));
         controlArea.add(measureBtn);
 
         controlArea.add(Box.createHorizontalGlue());
@@ -524,7 +577,7 @@ public final class ChannelMain {
           "Exit this program");
         quitBtnAction.putValue(/* mnemonic */ Action.MNEMONIC_KEY,
           KeyEvent.VK_Q);
-        quitBtn = new JButton(quitBtnAction);
+        final JButton quitBtn = new JButton(quitBtnAction);
         controlArea.add(quitBtn);
         bindKey(quitBtnAction, JComponent.WHEN_IN_FOCUSED_WINDOW,
           KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0));
@@ -550,7 +603,7 @@ public final class ChannelMain {
             BorderFactory.createEmptyBorder(3, 3, 3, 3))));
         outArea.setEditable(false);
         ((DefaultCaret) outArea.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-        outArea.setCaretPosition( outArea.getText().length());
+        outArea.setCaretPosition(outArea.getText().length());
         outArea.setFont(monoFont);
         contentPane.add(BorderLayout.CENTER, new JScrollPane(outArea));
 
@@ -610,6 +663,11 @@ public final class ChannelMain {
             final int pos = tcField.getCaretPosition();
             tcField.setText(by);
             tcField.setCaretPosition(pos);
+            try {
+                chan.setOption(StandardSocketOptions.IP_TOS, tc & 0xFF);
+            } catch (IOException e) {
+                log("!! setsockopt(traffic class): " + e);
+            }
         }
     }
 
@@ -738,6 +796,108 @@ public final class ChannelMain {
         @Override
         public String toString() {
             return bit.getShortname();
+        }
+    }
+
+    void measureClk(final boolean start) {
+        try {
+            final ECNStatistics stats = chan.getMeasurement(true);
+            if (start && (stats == null || stats.getReceivedPackets() == 0)) {
+                return;
+            }
+            log(stats == null ? "!! no congestion measurement" :
+              String.format("ℹ %.2f%% of %d packets received over %d ms were congested",
+                stats.getCongestionFactor() * 100.0, stats.getReceivedPackets(),
+                stats.getLengthOfMeasuringPeriod() / 1000000L));
+        } catch (ArithmeticException e) {
+            log("!! " + e);
+        }
+    }
+
+    private class Receiver extends SwingWorker<Void, String> {
+        private final String ipstr;
+        private final InetSocketAddress dst;
+
+        Receiver() {
+            super();
+            ipstr = ipS[currentIP];
+            dst = new InetSocketAddress(ips[currentIP], port);
+        }
+
+        // run in event thread just after constructor
+        Receiver init() {
+            try {
+                chan.connect(dst);
+            } catch (IOException e) {
+                log("!! connect: " + e);
+                return null;
+            }
+            log("‣‣ connected to " + ipstr);
+            measureClk(true);
+            return this;
+        }
+
+        // run in worker thread
+        @Override
+        protected Void doInBackground() {
+            val buf = ByteBuffer.allocateDirect(512);
+            while (!isCancelled() && !Thread.interrupted()) {
+                buf.clear();
+                try {
+                    final int read = chan.read(buf);
+                    final String stamp = ZonedDateTime.now(ZoneOffset.UTC)
+                      .truncatedTo(ChronoUnit.MILLIS)
+                      .format(DateTimeFormatter.ISO_INSTANT);
+                    if (read < 0) {
+                        publish("!! recv: EOF @ " + stamp);
+                        // falls through to sleep to not repeat too fast
+                    } else {
+                        buf.flip();
+                        final Byte trafficClass = chan.retrieveLastTrafficClass();
+                        final String userData = StandardCharsets.UTF_8.decode(buf).toString();
+                        publish(String.format("→ %s %s{%s} (%d)%n%s",
+                          stamp, Bits.print(trafficClass),
+                          trafficClass == null ? "??" : String.format("%02X", trafficClass),
+                          read, userData.trim()));
+                        // does not fall through to sleep below
+                        continue;
+                    }
+                } catch (IOException e) {
+                    if (isCancelled() || Thread.interrupted()) {
+                        return null;
+                    }
+                    publish("!! recv: " + e);
+                    // falls through to sleep to not repeat too fast
+                }
+                // do not repeat errors too fast
+                try {
+                    //noinspection BusyWait
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    // restore interrupted flag
+                    Thread.currentThread().interrupt();
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        // run in event thread
+        @Override
+        protected void process(final List<String> chunks) {
+            log(String.join("\n", chunks));
+        }
+
+        // run in event thread
+        @Override
+        protected void done() {
+            measureClk(false);
+            try {
+                chan.disconnect();
+            } catch (IOException e) {
+                log("!! disconnect: " + e);
+            }
+            log("disconnected from " + ipstr);
         }
     }
 }
