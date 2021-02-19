@@ -151,6 +151,9 @@ public final class ChannelMain {
             throw die("resolve hostname " + hostname.s, e);
         }
 
+        // open a channel early so we’ll know whether it is at all functional,
+        // and this way the other functions do not get an NPE but consistently
+        // a ClosedChannelException no matter where from in the control flow
         try {
             chan = ECNBitsDatagramChannel.open();
         } catch (IOException e) {
@@ -163,7 +166,7 @@ public final class ChannelMain {
     private final InetAddress[] ips;
     private final String[] ipS;
     private int currentIP = 0;
-    private final ECNBitsDatagramChannel chan;
+    private ECNBitsDatagramChannel chan;
     private Receiver worker = null;
     private final ByteBuffer sndbuf = ByteBuffer.allocateDirect(64);
     private long sndctr = 0;
@@ -826,6 +829,16 @@ public final class ChannelMain {
 
         // run in event thread just after constructor
         Receiver init() {
+            // we need a new channel; terminating a worker closes the channel
+            try {
+                val newChannel = ECNBitsDatagramChannel.open();
+                newChannel.setOption(StandardSocketOptions.IP_TOS, retrieveTC() & 0xFF);
+                chan = newChannel;
+            } catch (IOException e) {
+                log("!! open channel: " + e);
+                return null;
+            }
+            // now connect to the peer
             try {
                 chan.connect(dst);
             } catch (IOException e) {
