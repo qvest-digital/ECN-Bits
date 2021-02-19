@@ -841,6 +841,8 @@ public final class ChannelMain {
             try {
                 chan.connect(dst);
             } catch (IOException e) {
+                LOG.log(Level.INFO, Thread.currentThread().getName()  +
+                    "| IOException on connect", e);
                 log("!! connect: " + e);
                 return null;
             }
@@ -875,6 +877,9 @@ public final class ChannelMain {
                         continue;
                     }
                 } catch (IOException e) {
+                    LOG.log(Level.INFO, Thread.currentThread().getName()  +
+                      "| IOException on read; isCancelled " + isCancelled() +
+                      " interrupted " + Thread.interrupted(), e);
                     if (isCancelled() || Thread.interrupted()) {
                         return null;
                     }
@@ -907,6 +912,8 @@ public final class ChannelMain {
             try {
                 chan.disconnect();
             } catch (IOException e) {
+                LOG.log(Level.INFO, Thread.currentThread().getName()  +
+                    "| IOException on disconnect", e);
                 log("!! disconnect: " + e);
             }
             log("disconnected from " + ipstr);
