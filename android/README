@@ -71,3 +71,7 @@ GUI application, later.
 
 The best option would be making Google add API to retrieve the
 traffic class (or, even better, adding that to OpenJDK).
+
+Note that IPv6 addresses look ugly in Java because it violates
+RFC 5952 § 4.2, and besides that RFC 5952 § 4.3 also is ugly.
+They will be legible enough, though (for our purposes anyway).

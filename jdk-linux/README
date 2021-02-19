@@ -47,6 +47,10 @@ for the JDK and the system libc must be made available.
 It’d probably be best if API for retrieving the traffic class
 could be added to OpenJDK directly.
 
+Note that IPv6 addresses look ugly in Java because it violates
+RFC 5952 § 4.2, and besides that RFC 5952 § 4.3 also is ugly.
+They will be legible enough, though (for our purposes anyway).
+
 ┌──────────┐
 │ Examples │
 └──────────┘
