@@ -51,7 +51,9 @@ import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.DatagramChannel;
+import java.nio.channels.NotYetConnectedException;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -541,6 +543,8 @@ public final class ChannelMain {
                     }
                     return String.format("!! send (%s): short write (%d of %d)",
                       payload, written, payloadBytes.length);
+                } catch (NotYetConnectedException | AsynchronousCloseException e) {
+                    return "!! send: channel not connected";
                 } catch (IOException e) {
                     if (isCancelled() || Thread.interrupted()) {
                         return "!! send interrupted";
