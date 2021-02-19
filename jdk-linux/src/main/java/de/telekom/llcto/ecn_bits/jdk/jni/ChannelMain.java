@@ -152,7 +152,7 @@ public final class ChannelMain {
         }
 
         try {
-            chan = DatagramChannel.open();
+            chan = ECNBitsDatagramChannel.open();
         } catch (IOException e) {
             throw die("create channel", e);
         }
@@ -163,7 +163,7 @@ public final class ChannelMain {
     private final InetAddress[] ips;
     private final String[] ipS;
     private int currentIP = 0;
-    private final DatagramChannel chan;
+    private final ECNBitsDatagramChannel chan;
     private Receiver worker = null;
     private final ByteBuffer sndbuf = ByteBuffer.allocateDirect(64);
     private long sndctr = 0;
@@ -813,7 +813,7 @@ public final class ChannelMain {
 
     void measureClk(final boolean start) {
         try {
-            final ECNStatistics stats = null;//chan.getMeasurement(true);
+            final ECNStatistics stats = chan.getMeasurement(true);
             if (start && (stats == null || stats.getReceivedPackets() == 0)) {
                 return;
             }
@@ -867,7 +867,7 @@ public final class ChannelMain {
                         // falls through to sleep to not repeat too fast
                     } else {
                         buf.flip();
-                        final Byte trafficClass = null;//chan.retrieveLastTrafficClass();
+                        final Byte trafficClass = chan.retrieveLastTrafficClass();
                         final String userData = StandardCharsets.UTF_8.decode(buf).toString();
                         publish(String.format("→ %s %s{%s} (%d)%n%s",
                           stamp, Bits.print(trafficClass),
