@@ -407,13 +407,13 @@ Technical details
  them to the ECN-Bits project or bundling it alongside your software
  will usually be sufficient.)
 
-	https://github.com/tarent/ECN-Bits/blob/master/android/ecn-lib/src/main/resources/COPYING
-	https://github.com/tarent/ECN-Bits/blob/master/android/ecn-lib/src/main/resources/LICENCE.ecn-lib
+	https://github.com/tarent/ECN-Bits/blob/master/android/ecn-lib/src/main/resources/META-INF/legal/de.telekom.llcto.ecn_bits.android/lib/COPYING
+	https://github.com/tarent/ECN-Bits/blob/master/android/ecn-lib/src/main/resources/META-INF/legal/de.telekom.llcto.ecn_bits.android/lib/LICENCE
 
  The Android solution also includes parts of an independent module
  (Android libnativehelper) under the Apache 2 licence.
 
-	https://github.com/tarent/ECN-Bits/blob/master/android/ecn-lib/src/main/resources/LICENSE-2.0
+	https://github.com/tarent/ECN-Bits/blob/master/android/ecn-lib/src/main/resources/META-INF/legal/de.telekom.llcto.ecn_bits.android/lib/LICENSE-2.0
 
  Note that all three of these licences apply to the ECN-Bits Android
  library, so all three must be adhered to: the Apache 2 licence for the
@@ -423,12 +423,39 @@ Technical details
 
 ‣‣Java & JNI — DatagramSocket, DatagramChannel: OpenJDK/JRE
 
- Support for desktop and server Java™ will be implemented based on
- Android support once finished. This will be limited to some platforms
- (the Android implementation is limited to Linux with only IPv6 sockets,
- heavily based on v4-mapped support), and, as no nice solutions for JNI
- exist, only compilation for the local platform will be supplied as an
- example, instead of a reusable library.
+ Support for desktop and server Java™ has been implemented based on
+ Android support. This is limited to some platforms, namely Linux,
+ with the requirement to compile the JNI part for the target platform
+ (as there is no “nice” way to provide JNI libraries for “all” possible
+ platforms; using JNA in a second JDK solution is being discussed).
+
+‣‣‣The example applications
+
+ The jdk-linux solution ships with two examples, again just clients,
+ which are provided as Main classes, with small wrapper shell scripts
+ to call them easily. See jdk-linux/README for more details on the
+ options and arguments they take.
+
+ The DatagramSocket client (./client.sh) behaves in almost exactly the
+ same way as the C/CLI example client does.
+
+ The DatagramChannel client (./channel.sh) is a Swing GUI application
+ that can send out individual packets on button press, displays all
+ incoming packets similar to how the Android äpp does it, can change
+ the IP traffic class octet for outgoing packets on the fly and switch
+ between the peer’s IP addresses; it also shows congestion measurements.
+
+‣‣‣Screenshot
+
+ ⇒ ss-Swing.png [Screenshot of the Channel example client program]
+
+ This screenshot shows the DatagramChannel client against a C/CLI server
+ running on localhost after having sent two and received eight packets
+ and manually triggering measurement.
+
+‣‣‣Legal
+
+ This solution is covered by the same terms as the Android solution.
 
 ‣‣C++ (and C): UWP (Universal Windows Platform)
 
@@ -548,6 +575,33 @@ Technical details
 ‣‣‣Android 8, 9, 10, 11
 
  … should work out of the box
+
+‣‣OpenJDK/JNI solution
+
+ Compile the solution with “mvn clean install” then add an appropriate
+ dependency to your project, for example this for Maven:
+
+	<dependency>
+		<groupId>de.telekom.llcto.ecn_bits.jdk</groupId>
+		<artifactId>jni</artifactId>
+		<version>0.2-SNAPSHOT</version>
+	</dependency>
+
+ Adjust the version to match the one in the jdk-linux/pom.xml file.
+ It is recommended to use a release version, not a snapshot version;
+ however, the ECN-Bits repository is likely to always contain the
+ latter due to technical limitations, but you can release it locally.
+
+ For gradle, this would be:
+
+	implementation 'de.telekom.llcto.ecn_bits.jdk:jni:0.2-SNAPSHOT'
+
+ It is also possible to add the solution as module to one’s own
+ multi-module Maven project.
+
+ Everything else is identical to the Android solution.
+
+ This has been tested with OpenJDK 11 but should run on JRE 8 and above.
 
 Download
 
