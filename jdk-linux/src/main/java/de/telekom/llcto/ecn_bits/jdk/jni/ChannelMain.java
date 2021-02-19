@@ -304,7 +304,7 @@ public final class ChannelMain {
 
         frame = new JFrame("ECN-Bits Channel Example");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(720, 600);
+        frame.setSize(896, 672);
         final JPanel contentPane = new JPanel(new BorderLayout());
 
         final JPanel controlArea = new JPanel();
@@ -809,8 +809,9 @@ public final class ChannelMain {
                 return;
             }
             log(stats == null ? "!! no congestion measurement" :
-              String.format("‡ %.2f%% of %d packets received over %d ms were congested",
-                stats.getCongestionFactor() * 100.0, stats.getReceivedPackets(),
+              String.format("‡ %d of %d packets (%.2f%%) received over %d ms were congested",
+                stats.getCongestedPackets(), stats.getReceivedPackets(),
+                stats.getCongestionFactor() * 100.0,
                 stats.getLengthOfMeasuringPeriod() / 1000000L));
         } catch (ArithmeticException e) {
             log("!! " + e);
@@ -868,7 +869,7 @@ public final class ChannelMain {
                         buf.flip();
                         final Byte trafficClass = chan.retrieveLastTrafficClass();
                         final String userData = StandardCharsets.UTF_8.decode(buf).toString();
-                        publish(String.format("→ %s %s{%s} (%d)%n%s",
+                        publish(String.format("→ %s %s{%s} (%d bytes payload follow)%n%s",
                           stamp, Bits.print(trafficClass),
                           trafficClass == null ? "??" : String.format("%02X", trafficClass),
                           read, userData.trim()));
