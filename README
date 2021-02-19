@@ -46,9 +46,7 @@ Development funded by Deutsche Telekom.
   • reuses the Android/Linux library (see above)
     ⇒ offers the exact same API (functions)
     ⇒ uses the exact same JNI library ⇒ Linux-specific
-  ⚠ work in progress!
-  : Status: tests pass; example client for DatagramSocket works;
-    tbd: example clients for DatagramChannel, Netty to fully test it
+  : Status: working (Netty example may be added later if demand exists)
   • PoC (Linux-specific and only for the buildhost architecture) first,
     possibly extended to other CPUs and OSes later, perhaps using JNA
 
