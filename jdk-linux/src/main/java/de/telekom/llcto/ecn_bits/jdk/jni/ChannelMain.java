@@ -152,7 +152,7 @@ public final class ChannelMain {
         }
 
         try {
-            chan = ECNBitsDatagramChannel.open();
+            chan = DatagramChannel.open();
         } catch (IOException e) {
             throw die("create channel", e);
         }
@@ -163,7 +163,7 @@ public final class ChannelMain {
     private final InetAddress[] ips;
     private final String[] ipS;
     private int currentIP = 0;
-    private final ECNBitsDatagramChannel chan;
+    private final DatagramChannel chan;
     private Receiver worker = null;
     private final ByteBuffer sndbuf = ByteBuffer.allocateDirect(64);
     private long sndctr = 0;
@@ -277,19 +277,31 @@ public final class ChannelMain {
     }
 
     private void switchIP(final int dir) {
+        LOG.info("before cancel");
         if (worker != null) {
+            LOG.info("will cancel");
             worker.cancel(true);
+            LOG.info("did cancel");
             worker = null;
+            LOG.info("worker is now nil");
         }
+        LOG.info("after cancel");
         final int pos = currentIP + dir;
         currentIP = (pos < 0) ? 0 : (pos >= ips.length) ? ips.length - 1 : pos;
         prevBtn.setEnabled(pos > 0);
         nextBtn.setEnabled(pos < (ips.length - 1));
         tgtLabel.setText(ipS[pos]);
         sendBtn.requestFocusInWindow();
-        if ((worker = new Receiver().init()) != null) {
+        LOG.info("before new worker");
+        worker = new Receiver();
+        LOG.info("new worker: " + worker);
+        if (worker != null) {
+            worker.init();
+            LOG.info("worker initialised");
             worker.execute();
+            LOG.info("executed new worker");
         }
+        LOG.info("after new worker");
     }
 
     private void log(final String s) {
@@ -801,7 +813,7 @@ public final class ChannelMain {
 
     void measureClk(final boolean start) {
         try {
-            final ECNStatistics stats = chan.getMeasurement(true);
+            final ECNStatistics stats = null;//chan.getMeasurement(true);
             if (start && (stats == null || stats.getReceivedPackets() == 0)) {
                 return;
             }
@@ -829,6 +841,8 @@ public final class ChannelMain {
             try {
                 chan.connect(dst);
             } catch (IOException e) {
+                LOG.log(Level.INFO, Thread.currentThread().getName()  +
+                    "| IOException on connect", e);
                 log("!! connect: " + e);
                 return null;
             }
@@ -853,7 +867,7 @@ public final class ChannelMain {
                         // falls through to sleep to not repeat too fast
                     } else {
                         buf.flip();
-                        final Byte trafficClass = chan.retrieveLastTrafficClass();
+                        final Byte trafficClass = null;//chan.retrieveLastTrafficClass();
                         final String userData = StandardCharsets.UTF_8.decode(buf).toString();
                         publish(String.format("→ %s %s{%s} (%d)%n%s",
                           stamp, Bits.print(trafficClass),
@@ -863,6 +877,9 @@ public final class ChannelMain {
                         continue;
                     }
                 } catch (IOException e) {
+                    LOG.log(Level.INFO, Thread.currentThread().getName()  +
+                      "| IOException on read; isCancelled " + isCancelled() +
+                      " interrupted " + Thread.interrupted(), e);
                     if (isCancelled() || Thread.interrupted()) {
                         return null;
                     }
@@ -895,6 +912,8 @@ public final class ChannelMain {
             try {
                 chan.disconnect();
             } catch (IOException e) {
+                LOG.log(Level.INFO, Thread.currentThread().getName()  +
+                    "| IOException on disconnect", e);
                 log("!! disconnect: " + e);
             }
             log("disconnected from " + ipstr);
