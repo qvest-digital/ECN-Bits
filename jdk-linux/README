@@ -57,13 +57,14 @@ to where the compiled DLL is placed by CMake.
 
 ‣ CHANNEL
 
-Run the DatagramChannel client: ./channel.sh host port
+Run the DatagramChannel client: ./channel.sh [--opts] host port
 
 This will start an interactive GUI in which the user can send
 packets (by pressing Enter, Alt-S or clicking the S̲end button),
 switch between the host’s IP addresses, and change what traffic
-class is set on outgoing packets.
-⚠ WIP: not yet finished ⚠
+class is set on outgoing packets. The M̲easure button shows how
+many received packets were in congestion since its last usage
+respectively since the destination IP last switched.
 
 Should GUI issues occur use --metal to avoid the Motif theme or
 --theme=<theme> to set one (use --theme to list the installed
