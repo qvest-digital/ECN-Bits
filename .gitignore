@@ -1,6 +1,8 @@
 *.a
+*.dll
 *.dylib
 *.exe
+*.exp
 *.ilk
 *.lib
 *.o
