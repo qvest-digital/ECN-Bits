@@ -53,9 +53,6 @@ CFLAGS=		/O2
 CFLAGS=		$(CFLAGS) /nologo
 
 CPPFLAGS=	$(CPPFLAGS) -D_REENTRANT -D_WIN32_WINNT=0x0600 -I../inc
-!IFNDEF NOPIC
-CPPFLAGS=	$(CPPFLAGS) -DECNBITS_WIN32_DLL
-!ENDIF
 CPPFLAGS=	$(CPPFLAGS) -I../util
 CFLAGS=		$(CFLAGS) /utf-8
 CFLAGS=		$(CFLAGS) /Wall
@@ -66,6 +63,9 @@ CPPFLAGS=	$(CPPFLAGS) -DDEBUG
 !ENDIF
 
 .c.obj:
+!IFDEF MKLIB
+	$(CC) $(CPPFLAGS) $(CFLAGS) /c -DECNBITS_WIN32_DLL /Fo$(@R)_dll.obj $<
+!ENDIF
 	$(CC) $(CPPFLAGS) $(CFLAGS) /c $<
 
 !IFDEF PROG
@@ -81,6 +81,7 @@ OBJS=		$(SRCS:.c=.obj)
 
 !IFDEF PROG
 !IFNDEF NOPIC
+CPPFLAGS=	$(CPPFLAGS) -DECNBITS_WIN32_DLL
 LIBS=		$(LIBS) ecn-bitw_imp.lib Ws2_32.lib
 !ELSE
 LIBS=		$(LIBS) ecn-bitw.lib Ws2_32.lib
@@ -92,11 +93,7 @@ CLEANFILES=	$(CLEANFILES) $(PROG).exe
 CLEANFILES=	$(CLEANFILES) ..$(BKSL)BIN$(BKSL)$(PROG).exe
 !ENDIF
 !IFNDEF DPADD
-!IFNDEF NOPIC
-DPADD=		../lib/ecn-bitw_imp.lib
-!ELSE
 DPADD=		../lib/ecn-bitw.lib
-!ENDIF
 !ENDIF
 all: $(PROG).exe
 $(PROG).exe: $(OBJS) $(DPADD)
@@ -124,18 +121,17 @@ CLEANFILES=	$(CLEANFILES) ..$(BKSL)BIN$(BKSL)$(MKLIB).dll
 !IFNDEF DPADD
 DPADD=
 !ENDIF
-!IFNDEF NOPIC
+all: $(MKLIB).lib
+$(MKLIB).lib: $(OBJS) $(DPADD)
+	lib.exe /OUT:$@ $(OBJS)
+
+DLLOBJS=	$(OBJS:.obj=.dllobj)
 LIBS=		$(LIBS) Ws2_32.lib
 all: $(MKLIB).dll
 $(MKLIB).dll: $(OBJS) $(MKLIB).def $(DPADD)
 	IF EXIST ..$(BKSL)BIN$(BKSL)$@ (DEL ..$(BKSL)BIN$(BKSL)$@)
-	$(CC) $(CFLAGS) $(LDFLAGS) /LD /Fe$@ $(OBJS) $(LIBS) /link /DEF:$(MKLIB).def /IMPLIB:$(MKLIB)_imp.lib $(LINKFLAGS)
+	$(CC) $(CFLAGS) $(LDFLAGS) /LD /Fe$@ $(DLLOBJS:.dllobj=_dll.obj) $(LIBS) /link /DEF:$(MKLIB).def /IMPLIB:$(MKLIB)_imp.lib $(LINKFLAGS)
 	COPY $@ ..$(BKSL)BIN$(BKSL)$@
-!ELSE
-all: $(MKLIB).lib
-$(MKLIB).lib: $(OBJS) $(DPADD)
-	lib.exe /OUT:$@ $(OBJS)
-!ENDIF
 !ENDIF
 
 clean:
