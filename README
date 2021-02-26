@@ -59,7 +59,7 @@ Development funded by Deutsche Telekom.
   + works on WSL 1, except setting the outgoing traffic class silently fails
   - cannot work on NetBSD, OpenBSD and derivatives: no API to get the TC
   ? might work on Solaris
-  : Status: completed for those operating systems mentioned
+  : Status: completed for those operating systems mentioned, dylib/.so built
 
 – Windows: C/CLI (ecn-bitw.lib; libecn-bitw.a)
   ‣ see ws2/README
@@ -73,7 +73,7 @@ Development funded by Deutsche Telekom.
   ! the outgoing traffic class cannot, at all, be set on Windows and WSL 1
   - so the examples don’t do it, the server just sends back one packet
   - functions dealing with setting the outgoing tc were also removed
-  : Status: complete
+  : Status: complete and builds a Windows DLL
   ! WSL 2 in theory would work better than WSL 1 (as it uses the native
     Linux network stack) but the hypervisor side breaks networking in
     too many cases (no IPv6 support (up to that syscalls fail), lack of

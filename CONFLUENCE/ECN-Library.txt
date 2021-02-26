@@ -492,9 +492,8 @@ Technical details
  the static library (possibly build the library with NOPIC=Yes) if it is
  to not become a run-time dependency (or use LDSTATIC=-static to force
  linking the executables statically). The Winsock2 version deliberately
- does not build a shared library on Unix, and there has not been any
- request for building a DLL on Windows, so the build system has not yet
- been extended to do so.
+ does not build a shared library on Unix but it does create a Win32 DLL
+ (link against ecn-bitw_imp.lib import library).
 
  For environments with a foreign function interface, convert the
  information found in the appropriate header (see above) to FFI bindings
