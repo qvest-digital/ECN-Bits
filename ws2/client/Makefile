@@ -21,6 +21,6 @@
 
 PROG=	client
 
-client.obj: ../util/rpl_err.h ../util/rpl_err.c
-
 !include ../NMAKE.mak
+
+client.obj: ../util/rpl_err.h ../util/rpl_err.c

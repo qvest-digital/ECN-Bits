@@ -21,6 +21,6 @@
 
 PROG=	server
 
-server.obj: ../util/rpl_err.h ../util/rpl_err.c
-
 !include ../NMAKE.mak
+
+server.obj: ../util/rpl_err.h ../util/rpl_err.c
