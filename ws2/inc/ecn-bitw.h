@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -28,6 +28,13 @@
 #define WSAMSG			struct msghdr
 #define LPWSAMSG		struct msghdr *
 #define SSIZE_T			ssize_t
+#endif
+
+/* stuff to make DLLs work */
+#ifdef ECNBITS_WIN32
+#define ECNBITS_EXPORTAPI	__declspec(dllimport)
+#else
+#define ECNBITS_EXPORTAPI	/* nothing */
 #endif
 
 #ifdef __cplusplus
@@ -65,8 +72,8 @@ extern "C" {
 #define ECNBITS_ECT0		2 /* ECN-capable; L4S: legacy transport */
 #define ECNBITS_ECT1		1 /* ECN-capable; L4S: L4S-aware transport */
 #define ECNBITS_CE		3 /* congestion experienced */
-extern const char *ecnbits_meanings[4];
-extern const char *ecnbits_shortnames[4];
+extern ECNBITS_EXPORTAPI const char *ecnbits_meanings[4];
+extern ECNBITS_EXPORTAPI const char *ecnbits_shortnames[4];
 
 /* setup return values */
 #if !defined(__linux__)
@@ -78,26 +85,26 @@ extern const char *ecnbits_shortnames[4];
 #endif
 
 /* socket operations */
-int ecnbits_prep(SOCKET fd, int af);
-SSIZE_T ecnbits_rdmsg(SOCKET fd, LPWSAMSG msg, int flags,
+ECNBITS_EXPORTAPI int ecnbits_prep(SOCKET fd, int af);
+ECNBITS_EXPORTAPI SSIZE_T ecnbits_rdmsg(SOCKET fd, LPWSAMSG msg, int flags,
     unsigned short *ecnresult);
 
 /* utility functions */
-int ecnbits_stoaf(SOCKET fd);
+ECNBITS_EXPORTAPI int ecnbits_stoaf(SOCKET fd);
 
 #if defined(_WIN32) || defined(WIN32)
 /* convenience functions: POSIXish sendmsg(2) and recvmsg(2) over Winsock2 */
-SSIZE_T ecnws2_sendmsg(SOCKET fd, LPWSAMSG msg, int flags);
-SSIZE_T ecnws2_recvmsg(SOCKET fd, LPWSAMSG msg, int flags);
+ECNBITS_EXPORTAPI SSIZE_T ecnws2_sendmsg(SOCKET fd, LPWSAMSG msg, int flags);
+ECNBITS_EXPORTAPI SSIZE_T ecnws2_recvmsg(SOCKET fd, LPWSAMSG msg, int flags);
 #endif
 
 /* wrapped calls */
-SSIZE_T ecnbits_recvmsg(SOCKET fd, LPWSAMSG msg, int flags,
+ECNBITS_EXPORTAPI SSIZE_T ecnbits_recvmsg(SOCKET fd, LPWSAMSG msg, int flags,
     unsigned short *ecnresult);
-SSIZE_T ecnbits_recvfrom(SOCKET fd, void *buf, size_t buflen,
+ECNBITS_EXPORTAPI SSIZE_T ecnbits_recvfrom(SOCKET fd, void *buf, size_t buflen,
     int flags, struct sockaddr *src_addr, socklen_t *addrlen,
     unsigned short *ecnresult);
-SSIZE_T ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
+ECNBITS_EXPORTAPI SSIZE_T ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
     int flags,
     unsigned short *ecnresult);
 
@@ -108,6 +115,8 @@ SSIZE_T ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
 #ifdef __cplusplus
 }
 #endif
+
+#undef ECNBITS_EXPORTAPI
 
 #ifndef ECNBITS_INTERNAL
 /* clean up compat defines except if building the library itself */
