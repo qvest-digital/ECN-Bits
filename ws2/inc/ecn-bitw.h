@@ -116,8 +116,6 @@ ECNBITS_EXPORTAPI SSIZE_T ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
 }
 #endif
 
-#undef ECNBITS_EXPORTAPI
-
 #ifndef ECNBITS_INTERNAL
 /* clean up compat defines except if building the library itself */
 #if !(defined(_WIN32) || defined(WIN32))
@@ -126,6 +124,7 @@ ECNBITS_EXPORTAPI SSIZE_T ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
 #undef LPWSAMSG
 #undef SSIZE_T
 #endif
+#undef ECNBITS_EXPORTAPI
 #else
 /* building the library itself, additional compatibility/utilities */
 #if !(defined(_WIN32) || defined(WIN32))

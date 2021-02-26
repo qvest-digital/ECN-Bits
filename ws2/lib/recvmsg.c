@@ -41,7 +41,7 @@
 #define recvmsg		ecnws2_recvmsg
 #endif
 
-SSIZE_T
+ECNBITS_EXPORTAPI SSIZE_T
 ecnbits_recvmsg(SOCKET s, LPWSAMSG mh, int flags, unsigned short *e)
 {
 	SSIZE_T rv;

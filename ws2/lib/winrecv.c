@@ -28,7 +28,7 @@
 
 #include "ecn-bitw.h"
 
-SSIZE_T
+ECNBITS_EXPORTAPI SSIZE_T
 ecnws2_recvmsg(SOCKET fd, LPWSAMSG msg, int flags)
 {
 	static LPFN_WSARECVMSG WSARecvMsg = NULL;

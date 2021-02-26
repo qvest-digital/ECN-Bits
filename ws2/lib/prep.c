@@ -36,7 +36,7 @@
 
 static const int on = 1;
 
-int
+ECNBITS_EXPORTAPI int
 ecnbits_prep(SOCKET socketfd, int af)
 {
 	switch (af) {

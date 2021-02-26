@@ -19,7 +19,18 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-const char *ecnbits_meanings[4] = {
+#include <sys/types.h>
+#if defined(_WIN32) || defined(WIN32)
+#pragma warning(push,1)
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma warning(pop)
+#else
+#include <sys/socket.h>
+#endif
+#include "ecn-bitw.h"
+
+ECNBITS_EXPORTAPI const char *ecnbits_meanings[4] = {
 	"nōn-ECN-capable transport",
 	"ECN-capable; L4S: L4S-aware transport",
 	"ECN-capable; L4S: legacy transport",

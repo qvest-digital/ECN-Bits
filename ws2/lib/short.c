@@ -19,7 +19,18 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-const char *ecnbits_shortnames[4] = {
+#include <sys/types.h>
+#if defined(_WIN32) || defined(WIN32)
+#pragma warning(push,1)
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma warning(pop)
+#else
+#include <sys/socket.h>
+#endif
+#include "ecn-bitw.h"
+
+ECNBITS_EXPORTAPI const char *ecnbits_shortnames[4] = {
 	"no ECN",
 	"ECT(1)",
 	"ECT(0)",

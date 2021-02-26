@@ -27,7 +27,7 @@
 
 #include "ecn-bitw.h"
 
-SSIZE_T
+ECNBITS_EXPORTAPI SSIZE_T
 ecnws2_sendmsg(SOCKET fd, LPWSAMSG msg, int flags)
 {
 	DWORD numbytes = 0;

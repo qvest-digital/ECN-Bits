@@ -32,7 +32,7 @@
 
 #include "ecn-bitw.h"
 
-SSIZE_T
+ECNBITS_EXPORTAPI SSIZE_T
 ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
     struct sockaddr *addr, socklen_t *addrlenp, unsigned short *e)
 {

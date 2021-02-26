@@ -114,7 +114,7 @@ recvtos_cmsg(struct cmsghdr *cmsg, unsigned short *e)
 
 static char msgbuf[2 * ECNBITS_CMSGBUFLEN];
 
-SSIZE_T
+ECNBITS_EXPORTAPI SSIZE_T
 ecnbits_rdmsg(SOCKET s, LPWSAMSG msgh, int flags, unsigned short *e)
 {
 	struct cmsghdr *cmsg;

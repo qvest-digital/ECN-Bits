@@ -33,7 +33,7 @@
 #include "ecn-bitw.h"
 
 #if (AF_INET != -1) && (AF_INET6 != -1)
-int
+ECNBITS_EXPORTAPI int
 ecnbits_stoaf(SOCKET socketfd)
 {
 	struct sockaddr_storage ss;

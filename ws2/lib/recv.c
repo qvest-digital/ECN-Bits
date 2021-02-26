@@ -32,7 +32,7 @@
 
 #include "ecn-bitw.h"
 
-SSIZE_T
+ECNBITS_EXPORTAPI SSIZE_T
 ecnbits_recv(SOCKET s, void *buf, size_t buflen, int flags, unsigned short *e)
 {
 	WSAMSG m;
