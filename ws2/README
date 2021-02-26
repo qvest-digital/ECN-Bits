@@ -23,11 +23,17 @@ variables are set up correctly for building, then issue the command…
 … or…
 	nmake DEBUG=1
 
-… in the top-level “ws2\” directory to build. To clean up again, run:
+… in the top-level “ws2\” directory to compile a DLL and link against
+it; to build a static library, add NOPIC=1 as well. To clean up again, run…
+
 	nmake clean
 
-Link a program against ecn-bitw.lib (Unix: with -lecn-bitw) to use
-the library; headers and functions are documented in the manual pages.
+… also when switching between static and DLL builds!
+
+Link a program either with -lecn-bitw (Unix), against ecn-bitw_imp.lib
+(Win32, using the DLL) or ecn-bitw.lib (Win32, with the static library)
+to use the library; headers and functions are documented in the manual
+pages (which are also provided as preformatted plaintext, for Windows).
 
 ① Start → Visual Studio 2019 (folder) → Developer Command Prompt for VS 2019
   or one of the other options if cross-compiling for another platform

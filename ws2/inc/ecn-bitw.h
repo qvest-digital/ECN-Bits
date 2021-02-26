@@ -30,11 +30,13 @@
 #define SSIZE_T			ssize_t
 #endif
 
-/* stuff to make DLLs work */
-#ifdef ECNBITS_WIN32
+/* stuff to make DLLs work; we offer the cdecl calling convention */
+#if !defined(ECNBITS_WIN32_DLL)
+#define ECNBITS_EXPORTAPI	/* nothing */
+#elif !defined(ECNBITS_INTERNAL)
 #define ECNBITS_EXPORTAPI	__declspec(dllimport)
 #else
-#define ECNBITS_EXPORTAPI	/* nothing */
+#define ECNBITS_EXPORTAPI	__declspec(dllexport)
 #endif
 
 #ifdef __cplusplus
