@@ -1,6 +1,6 @@
 # -*- mode: make -*-
 #-
-# Copyright © 2020
+# Copyright © 2020, 2021
 #	mirabilos <t.glaser@tarent.de>
 # Licensor: Deutsche Telekom
 #
@@ -27,11 +27,11 @@ all:
 # recursive build
 all clean:
 	@echo ==^> lib
-	@pushd lib & $(MAKE) /nologo /$(MAKEFLAGS) $@ & popd
+	@cd lib && $(MAKE) /nologo /$(MAKEFLAGS) $@
 	@echo ^<== lib
 	@echo ==^> client
-	@pushd client & $(MAKE) /nologo /$(MAKEFLAGS) $@ & popd
+	@cd client && $(MAKE) /nologo /$(MAKEFLAGS) $@
 	@echo ^<== client
 	@echo ==^> server
-	@pushd server & $(MAKE) /nologo /$(MAKEFLAGS) $@ & popd
+	@cd server && $(MAKE) /nologo /$(MAKEFLAGS) $@
 	@echo ^<== server
