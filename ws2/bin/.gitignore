@@ -1,0 +1,2 @@
+# On Windows, the results of compilation are placed in this directory.
+# This is caused by the requirement for a DLL to reside within that.

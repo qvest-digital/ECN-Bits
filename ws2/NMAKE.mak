@@ -4,7 +4,7 @@
 #	mirabilos <tg@mirbsd.org>
 # Copyright © 2013
 #	mirabilos <thorsten.glaser@teckids.org>
-# Copyright © 2020
+# Copyright © 2020, 2021
 #	mirabilos <t.glaser@tarent.de>
 # Licensor: Deutsche Telekom
 #
@@ -29,6 +29,8 @@
 # of said person’s immediate fault when using the work as intended.
 
 all:
+
+BKSL=^\
 
 !IF [cmd /C IF EXIST *.obj exit 1]
 CLEANFILES=	$(CLEANFILES) *.obj
@@ -79,12 +81,17 @@ LIBS=		$(LIBS) ecn-bitw.lib Ws2_32.lib
 !IF EXISTS($(PROG).exe)
 CLEANFILES=	$(CLEANFILES) $(PROG).exe
 !ENDIF
+!IF EXISTS(..$(BKSL)BIN$(BKSL)$(PROG).exe)
+CLEANFILES=	$(CLEANFILES) ..$(BKSL)BIN$(BKSL)$(PROG).exe
+!ENDIF
 !IFNDEF DPADD
 DPADD=		../lib/ecn-bitw.lib
 !ENDIF
 all: $(PROG).exe
 $(PROG).exe: $(OBJS) $(DPADD)
+	IF EXIST ..$(BKSL)BIN$(BKSL)$@ (DEL ..$(BKSL)BIN$(BKSL)$@)
 	$(CC) $(CFLAGS) $(LDFLAGS) /Fe$@ $(OBJS) $(LIBS) /link $(LINKFLAGS)
+	COPY $@ ..$(BKSL)BIN$(BKSL)$@
 !ENDIF
 
 !IFDEF MKLIB

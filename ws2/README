@@ -55,6 +55,9 @@ util/
 NMAKE.mak, Makefile
 ‣ build system for Windows (Visual Studio)
 
+bin/
+‣ EXEs and DLLs will be copied here, so that EXEs using DLLs will work
+
 ┌───────────────────────┐
 │ Example client/server │
 └───────────────────────┘
@@ -94,11 +97,11 @@ one run; the server can be terminated by pressing Ctrl-C.
 
 Example session:
 
-SERVER│C>server\server 1234
+SERVER│C>bin\server 1234
 SERVER│Listening on [::]:1234... ok
 SERVER│Listening on [0.0.0.0]:1234... ok
 SERVER│
-CLIENT│C>client\client localhost 1234
+CLIENT│C>bin\client localhost 1234
 CLIENT│Trying [::1]:1234... connected
 SERVER│2020-09-20T17:10:32Z notrunc [::1]:51119 no ECN{00} <hi!>
 CLIENT│2020-09-20T17:10:32Z no ECN{00} <[::1]:51119 2020-09-20T17:10:32Z no ECN{00} notrunc -> default>
