@@ -82,7 +82,7 @@ namespace ECNBits.Windows
             {
                 // Create socket, Prep using the ECNBits Api and connect to the sample server
                 var socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
-                Api.Prep(socket, (int)AddressFamily.InterNetwork);
+                Api.Prep(socket);
                 socket.Connect(host, port);
                 Debug.Log($"Connected to server! LocalEndpoint<{socket.LocalEndPoint}>, RemoteEndpoint<{socket.RemoteEndPoint}>!");
 

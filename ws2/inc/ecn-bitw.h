@@ -114,6 +114,9 @@ ECNBITS_EXPORTAPI SSIZE_T ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
 #define ecnbits_read(socketfd,buf,buflen,ecnresult) \
 	ecnbits_recv((socketfd), (buf), (buflen), 0, (ecnresult))
 
+/* extra functions for better support for high-level languages */
+ECNBITS_EXPORTAPI int ecnhll_prep(SOCKET fd, int af);
+
 #ifdef __cplusplus
 }
 #endif

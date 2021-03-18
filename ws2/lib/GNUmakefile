@@ -1,6 +1,6 @@
 # -*- mode: make -*-
 #-
-# Copyright © 2020
+# Copyright © 2020, 2021
 #	mirabilos <t.glaser@tarent.de>
 # Licensor: Deutsche Telekom
 #
@@ -28,6 +28,7 @@ LIB=		ecn-bitw
 HDRS+=		ecn-bitw.h
 
 SRCS+=		desc.c
+SRCS+=		hll.c
 SRCS+=		prep.c
 SRCS+=		rdmsg.c
 SRCS+=		recv.c

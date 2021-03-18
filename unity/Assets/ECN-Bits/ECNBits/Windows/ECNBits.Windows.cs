@@ -76,8 +76,32 @@ namespace ECNBits.Windows
         // As the original C Api uses platform dependent types (types whose size depend on the current platform),
         // the decision was taken to wrap the original C functions in a more C# friendly Api.
 
-        public static int Prep(Socket socket, int af) =>
-            ecnbits_prep(socket.Handle, af);
+        public static int Prep(Socket socket) {
+            // Unfortunately, .net hardcodes the Winsock address family enum numbers
+            // instead of using the native ones for the platform, so we’ll translate.
+            int af;
+            int rv;
+
+            switch (socket.AddressFamily) {
+            case AddressFamily.InterNetwork:
+                af = 4;
+                break;
+            case AddressFamily.InterNetworkV6:
+                af = 6;
+                break;
+            default:
+                // the underlying library will throw WSAEAFNOSUPPORT
+                af = 0;
+                break;
+            }
+
+            rv = ecnhll_prep(socket.Handle, af);
+            if (rv >= 2) {
+                // this will use WSAGetLastError() to retrieve the error code
+                throw new SocketException();
+            }
+            return rv;
+        }
 
         public static int SocketToAddressFamily(Socket socket) =>
             ecnbits_stoaf(socket.Handle);
@@ -113,7 +137,7 @@ namespace ECNBits.Windows
         private const string LIB_NAME = "ecn-bitw";
 
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int ecnbits_prep(IntPtr socketHandle, int af);
+        public static extern int ecnhll_prep(IntPtr socketHandle, int af);
 
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern int ecnbits_stoaf(IntPtr socketHandle);

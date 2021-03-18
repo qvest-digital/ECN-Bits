@@ -1,6 +1,6 @@
 # -*- mode: make -*-
 #-
-# Copyright © 2020
+# Copyright © 2020, 2021
 #	mirabilos <t.glaser@tarent.de>
 # Licensor: Deutsche Telekom
 #
@@ -24,6 +24,7 @@ CPPFLAGS=	$(CPPFLAGS) -DECNBITS_INTERNAL
 MKLIB=		ecn-bitw
 
 SRCS=		$(SRCS) desc.c
+SRCS=		$(SRCS) hll.c
 SRCS=		$(SRCS) prep.c
 SRCS=		$(SRCS) rdmsg.c
 SRCS=		$(SRCS) recv.c
