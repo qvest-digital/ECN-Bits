@@ -64,8 +64,8 @@ dependencies {
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
     compileOnly 'org.projectlombok:lombok:1.18.18'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
 
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.18'
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
@@ -73,7 +73,7 @@ dependencies {
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-    androidTestImplementation 'junit:junit:4.13.1'
+    androidTestImplementation 'junit:junit:4.13.2'
 
     androidTestAnnotationProcessor 'org.projectlombok:lombok:1.18.18'
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
