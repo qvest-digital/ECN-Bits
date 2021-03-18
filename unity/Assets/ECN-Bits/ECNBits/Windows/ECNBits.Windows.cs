@@ -1,10 +1,28 @@
-﻿using System;
+﻿// Copyright © 2021
+//      Mihail Luchian <m.luchian@tarent.de>
+// Licensor: Deutsche Telekom
+//
+// Provided that these terms and disclaimer and all copyright notices
+// are retained or reproduced in an accompanying document, permission
+// is granted to deal in this work without restriction, including un‐
+// limited rights to use, publicly perform, distribute, sell, modify,
+// merge, give away, or sublicence.
+//
+// This work is provided “AS IS” and WITHOUT WARRANTY of any kind, to
+// the utmost extent permitted by applicable law, neither express nor
+// implied; without malicious intent or gross negligence. In no event
+// may a licensor, author or contributor be held liable for indirect,
+// direct, other damage, loss, or other issues arising in any way out
+// of dealing in the work, even if advised of the possibility of such
+// damage or existence of a defect, except proven that it results out
+// of said person’s immediate fault when using the work as intended.
+
+using System;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
 namespace ECNBits.Windows
 {
-    
     /// <summary>
     /// Constants defined in the ws2/inc/ecn-bitw.h header file
     /// </summary>
@@ -57,11 +75,11 @@ namespace ECNBits.Windows
         #region wrappers
         // As the original C Api uses platform dependent types (types whose size depend on the current platform),
         // the decision was taken to wrap the original C functions in a more C# friendly Api.
-        
-        public static int Prep(Socket socket, int af) => 
+
+        public static int Prep(Socket socket, int af) =>
             ecnbits_prep(socket.Handle, af);
 
-        public static int SocketToAddressFamily(Socket socket) => 
+        public static int SocketToAddressFamily(Socket socket) =>
             ecnbits_stoaf(socket.Handle);
 
         public static long ReadMessage(Socket socket, ref Message message, int flags, ref ushort ecnResult) =>
@@ -78,10 +96,10 @@ namespace ECNBits.Windows
         public static long Receive(Socket socket, IntPtr buffer, uint bufLen, int flags, ref ushort ecnResult) =>
             ecnbits_recv(socket.Handle, buffer, new UIntPtr(bufLen), flags, ref ecnResult).ToInt64();
 
-        public static long SendMessage(Socket socket, ref Message message, int flags) => 
+        public static long SendMessage(Socket socket, ref Message message, int flags) =>
             ecnws2_sendmsg(socket.Handle, ref message, flags).ToInt64();
 
-        public static long ReceiveMessage(Socket socket, ref Message message, int flags) => 
+        public static long ReceiveMessage(Socket socket, ref Message message, int flags) =>
             ecnws2_recvmsg(socket.Handle, ref message, flags).ToInt64();
 
         public static long Read(Socket socket, IntPtr buffer, uint bufLen, ref ushort ecnResult) =>
@@ -91,7 +109,7 @@ namespace ECNBits.Windows
         #region native
         // Note: the C# types UIntPtr and IntPtr represent the easiest way to wrap in C# size_t/SIZE_T and SSIZE_T
         // hence their use in the native api portion.
-        
+
         private const string LIB_NAME = "ecn-bitw";
 
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
@@ -122,7 +140,7 @@ namespace ECNBits.Windows
 
         [DllImport(LIB_NAME, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr ecnws2_recvmsg(IntPtr socketHandle, ref Message message, int flags);
-        
+
         #endregion
     }
 

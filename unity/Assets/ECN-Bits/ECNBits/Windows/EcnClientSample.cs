@@ -1,4 +1,23 @@
-﻿using System;
+﻿// Copyright © 2021
+//      Mihail Luchian <m.luchian@tarent.de>
+// Licensor: Deutsche Telekom
+//
+// Provided that these terms and disclaimer and all copyright notices
+// are retained or reproduced in an accompanying document, permission
+// is granted to deal in this work without restriction, including un‐
+// limited rights to use, publicly perform, distribute, sell, modify,
+// merge, give away, or sublicence.
+//
+// This work is provided “AS IS” and WITHOUT WARRANTY of any kind, to
+// the utmost extent permitted by applicable law, neither express nor
+// implied; without malicious intent or gross negligence. In no event
+// may a licensor, author or contributor be held liable for indirect,
+// direct, other damage, loss, or other issues arising in any way out
+// of dealing in the work, even if advised of the possibility of such
+// damage or existence of a defect, except proven that it results out
+// of said person’s immediate fault when using the work as intended.
+
+using System;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -8,7 +27,6 @@ using UnityEngine;
 
 namespace ECNBits.Windows
 {
-    
     /// <summary>
     /// A client sample that connects to the sample ws2 server
     /// </summary>
@@ -30,7 +48,7 @@ namespace ECNBits.Windows
         private readonly CancellationTokenSource tokenSource = new CancellationTokenSource();
 
         #region unity lifecyle
-        
+
         private void Start()
         {
             var cancellationToken = tokenSource.Token;
@@ -47,7 +65,7 @@ namespace ECNBits.Windows
         }
 
         #endregion
-        
+
         /// <summary>
         /// This task will connect to the specified server and will poll for incoming messages,
         /// each time logging the status of the ECN Bits
@@ -55,7 +73,7 @@ namespace ECNBits.Windows
         public static async Task SocketTask(string host, int port, string message, CancellationToken token)
         {
             const uint BUFFER_SIZE = 512;
-            
+
             // Make sure the task will be run on the ThreadPool and not on the Unity UI thread
             await Task.Yield();
 
@@ -76,7 +94,7 @@ namespace ECNBits.Windows
                 socket.Send(messageAsBytes, 0, messageAsBytes.Length, SocketFlags.None, out var errorCode);
                 Debug.Log($"Sent message<{message}> to server...  ErrorCode:{errorCode}!");
 
-                // Allocate a buffer of unmanaged memory 
+                // Allocate a buffer of unmanaged memory
                 buffer = Marshal.AllocHGlobal((int)BUFFER_SIZE);
                 ushort ecnResult = 0;
 
