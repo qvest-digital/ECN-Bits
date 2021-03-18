@@ -63,7 +63,7 @@ NMAKE.mak, Makefile
 ‣ build system for Windows (Visual Studio)
 
 bin/
-‣ EXEs and DLLs will be copied here, so that EXEs using DLLs will work
+‣ EXEs and DLLs will be copied here, so that EXEs using DLLs will work (nmake)
 
 ┌───────────────────────┐
 │ Example client/server │
