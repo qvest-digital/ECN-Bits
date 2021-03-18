@@ -41,6 +41,8 @@ android {
 
     lintOptions {
         disable 'DefaultLocale'
+        // https://stackoverflow.com/a/66481267/2171120
+        disable 'ObsoleteLintCustomCheck'
         return void // WTF‽
     }
 }
