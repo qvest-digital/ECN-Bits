@@ -26,6 +26,7 @@ CPPFLAGS+=	-DECNBITS_INTERNAL
 
 LIB=		ecn-bitw
 HDRS+=		ecn-bitw.h
+SHLIB_VERSION=	2.0
 
 SRCS+=		desc.c
 SRCS+=		prep.c
