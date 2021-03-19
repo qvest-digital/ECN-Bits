@@ -61,19 +61,21 @@ Development funded by Deutsche Telekom.
   ? might work on Solaris
   : Status: completed for those operating systems mentioned, dylib/.so built
 
-– Windows: C/CLI (ecn-bitw.lib; libecn-bitw.a)
+– Windows: C/CLI (libecn-bitw.a/so; ecn-bitw.lib/dll)
   ‣ see ws2/README
   • library, CLI client/server examples, copied from BSD/Linux/Mac/WSL C/CLI
     but adapted for Winsock2 (supersetting: keeping BSD sockets support
     so all systems that the BSD/Linux/Mac/WSL runs on can be used modulo
     removed functionality (see below); applications needing to honour some
     Win32/Winsock2 specifics can remain portable)
+  • extra library exports for easier high-level language wrapping
   • manpages including preformatted plaintext form for GUI users
   • tested on Windows 10, versions 1909 (WSL 1, WinSock), 2004 (WSL 2)
   ! the outgoing traffic class cannot, at all, be set on Windows and WSL 1
   - so the examples don’t do it, the server just sends back one packet
   - functions dealing with setting the outgoing tc were also removed
   : Status: complete and builds a Windows DLL
+    HLL support functions under development in a separate branch
   ! WSL 2 in theory would work better than WSL 1 (as it uses the native
     Linux network stack) but the hypervisor side breaks networking in
     too many cases (no IPv6 support (up to that syscalls fail), lack of
@@ -84,10 +86,13 @@ Development funded by Deutsche Telekom.
   • implemented through linking the C/CLI library into the application
 
 – Windows, C♯/.net
-  • pre-planning
+  • planning, experimenting
 
 – iOS (Apple)
   • pre-planning
+
+– Windows/Linux, Unity (game engine)/C♯/Mono
+  • being under development
 
 ┌────────────────┐
 │ About ECN bits │
