@@ -7,5 +7,6 @@ public class Exp {
 		Console.WriteLine((int)se.SocketErrorCode);
 		Console.WriteLine(se.ErrorCode);
 		Console.WriteLine(se.NativeErrorCode);
+		throw se;
 	}
 }
