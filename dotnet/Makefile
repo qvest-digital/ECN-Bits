@@ -8,6 +8,11 @@ fwkver=5.0.4
 # dotnet-sdk-5.0 installed via .deb package
 dotnethome=/usr/share/dotnet
 dotnetlib=$(dotnethome)/shared/Microsoft.NETCore.App/$(fwkver)
+dotnet_csc=dotnet $(dotnethome)/sdk/$(sdkver)/Roslyn/bincore/csc.dll
+dotnet_cscopts=-lib:$(dotnetlib) -r:netstandard.dll -r:Microsoft.CSharp.dll \
+		-r:System.dll $$(cd $(dotnetlib) && for x in System.*.dll; do \
+			echo -r:$$x; \
+		done)
 
 all:
 	@echo choose one:
@@ -25,10 +30,7 @@ win:
 	exp
 
 dotnet:
-	dotnet $(dotnethome)/sdk/$(sdkver)/Roslyn/bincore/csc.dll -nologo \
-	    -lib:$(dotnetlib) -r:netstandard.dll -r:Microsoft.CSharp.dll \
-	    -r:System.dll $$(cd $(dotnetlib) && for x in System.*.dll; do \
-		echo -r:$$x; done) \
+	$(dotnet_csc) -nologo $(dotnet_cscopts) \
 	    -r:Microsoft.Win32.Primitives.dll exp.cs
 	echo '{"runtimeOptions":{"framework":{"name":"Microsoft.NETCore.App","version":"$(fwkver)"}}}' \
 	    >exp.runtimeconfig.json
@@ -39,4 +41,4 @@ mono:
 	mono exp.exe
 
 dotnethelp:
-	dotnet $(dotnethome)/sdk/$(sdkver)/Roslyn/bincore/csc.dll -help
+	$(dotnet_csc) -help
