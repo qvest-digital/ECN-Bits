@@ -1,12 +1,16 @@
 using System;
 using System.Net.Sockets;
 
+namespace ECNBits.DotNet.Experiment {
+
 public class Exp {
 	public static void Main(string[] args) {
-		var se = new SocketException((int) SocketError.ConnectionRefused);
+		var se = API.Do();
 		Console.WriteLine((int)se.SocketErrorCode);
 		Console.WriteLine(se.ErrorCode);
 		Console.WriteLine(se.NativeErrorCode);
-		throw se;
+		Console.WriteLine(se);
 	}
+}
+
 }

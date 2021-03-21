@@ -20,24 +20,29 @@ all:
 	@echo Linux: make dotnet, make mono, make clean
 
 clean:
-	rm -f *.exe *.runtimeconfig.json
+	rm -f *.dll *.exe *.runtimeconfig.json
 
 del:
+	if exist *.dll (del *.dll)
 	if exist *.exe (del *.exe)
 
 win:
-	csc exp.cs
+	csc -t:library unmngd.cs
+	csc -r:unmngd.dll exp.cs
 	exp
 
 dotnet:
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
-	    -r:Microsoft.Win32.Primitives.dll exp.cs
+	    -r:Microsoft.Win32.Primitives.dll -t:library unmngd.cs
+	$(dotnet_csc) -nologo $(dotnet_cscopts) \
+	    -r:Microsoft.Win32.Primitives.dll -r:unmngd.dll exp.cs
 	echo '{"runtimeOptions":{"framework":{"name":"Microsoft.NETCore.App","version":"$(fwkver)"}}}' \
 	    >exp.runtimeconfig.json
 	dotnet exp.exe
 
 mono:
-	mono-csc exp.cs
+	mono-csc -t:library unmngd.cs
+	mono-csc -r:unmngd.dll exp.cs
 	mono exp.exe
 
 dotnethelp:
