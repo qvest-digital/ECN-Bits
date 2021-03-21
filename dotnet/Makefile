@@ -10,10 +10,15 @@ dotnethome=/usr/share/dotnet
 dotnetlib=$(dotnethome)/shared/Microsoft.NETCore.App/$(fwkver)
 
 all:
-	@echo choose one: make win, make dotnet, make mono
+	@echo choose one:
+	@echo Windows: make win, make del
+	@echo Linux: make dotnet, make mono, make clean
 
 clean:
 	rm -f *.exe *.runtimeconfig.json
+
+del:
+	if exist *.exe (del *.exe)
 
 win:
 	csc exp.cs
