@@ -11,7 +11,7 @@ win:
 	exp
 
 dotnet:
-	dotnet csc -reference:Microsoft.Win32.Primitives.dll exp.cs
+	dotnet build exp.csproj
 	dotnet exp.exe
 
 mono:
