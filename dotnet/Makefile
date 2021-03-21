@@ -16,7 +16,7 @@ dotnet_cscopts=-lib:$(dotnetlib) -r:netstandard.dll -r:Microsoft.CSharp.dll \
 
 all:
 	@echo choose one:
-	@echo Windows: make win, make del
+	@echo Windows: nmake win, nmake del
 	@echo Linux: make dotnet, make mono, make clean
 
 clean:
