@@ -1,6 +1,6 @@
 # -*- mode: make -*-
 #-
-# Copyright © 2020
+# Copyright © 2020, 2021
 #	mirabilos <t.glaser@tarent.de>
 # Licensor: Deutsche Telekom
 #
@@ -109,40 +109,40 @@ endif
 endif
 
 ifdef HDRS
-MKINSTDIRS+=	${PREFIX}/include
+MKINSTDIRS+=	${DESTDIR}${PREFIX}/include
 install: install-hdrs
 uninstall: uninstall-hdrs
 install-hdrs:
 	$(foreach h,${HDRS},$(call hdrinstall,$h))
 uninstall-hdrs:
-	$(call _rm,$(addprefix ${PREFIX}/include/,${HDRS}))
+	$(call _rm,$(addprefix ${DESTDIR}${PREFIX}/include/,${HDRS}))
 
 define hdrinstall
 ${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NONBINMODE} \
     $(call shellescape,${TOP}/inc/$(1)) \
-    $(call shellescape,${PREFIX}/include/)
+    $(call shellescape,${DESTDIR}${PREFIX}/include/)
 
 endef
 endif
 
 ifneq (,$(strip ${LIBDIR}))
-MKINSTDIRS+=	${LIBDIR}
+MKINSTDIRS+=	${DESTDIR}${LIBDIR}
 install: install-lib
 uninstall: uninstall-lib
 install-lib:
 	${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NONBINMODE} \
-	    ${LIBINSTFILES} $(call shellescape,${LIBDIR}/)
+	    ${LIBINSTFILES} $(call shellescape,${DESTDIR}${LIBDIR}/)
 ifneq (,${SHLIB_LINK_1})
-	@$(call _rm,$(addprefix ${LIBDIR}/,${SHLIB_LINK_1} ${SHLIB_LINK_0}))
-	$(call _ln,${SHLIB_SONAME},${LIBDIR}/${SHLIB_LINK_1})
-	$(call _ln,${SHLIB_SONAME},${LIBDIR}/${SHLIB_LINK_0})
+	@$(call _rm,$(addprefix ${DESTDIR}${LIBDIR}/,${SHLIB_LINK_1} ${SHLIB_LINK_0}))
+	$(call _ln,${SHLIB_SONAME},${DESTDIR}${LIBDIR}/${SHLIB_LINK_1})
+	$(call _ln,${SHLIB_SONAME},${DESTDIR}${LIBDIR}/${SHLIB_LINK_0})
 endif
 endif
 
 uninstall-lib:
-	$(call _rm,$(addprefix ${LIBDIR}/,${LIBINSTFILES}))
+	$(call _rm,$(addprefix ${DESTDIR}${LIBDIR}/,${LIBINSTFILES}))
 ifneq (,${SHLIB_LINK_1})
-	$(call _rm,$(addprefix ${LIBDIR}/,${SHLIB_LINK_1} ${SHLIB_LINK_0}))
+	$(call _rm,$(addprefix ${DESTDIR}${LIBDIR}/,${SHLIB_LINK_1} ${SHLIB_LINK_0}))
 endif
 
 CLEANFILES+=	${LIBINSTFILES}
@@ -158,15 +158,15 @@ ${PROG}: ${OBJS} ${DPADD}
 	${LINK.c} -o $@ ${OBJS} ${LIBS}
 
 ifneq (,$(strip ${BINDIR}))
-MKINSTDIRS+=	${BINDIR}
+MKINSTDIRS+=	${DESTDIR}${BINDIR}
 install: install-bin
 uninstall: uninstall-bin
 install-bin:
 	${INSTALL} -c ${INSTALL_STRIP} -o ${BINOWN} -g ${BINGRP} -m ${BINMODE} \
-	    ${PROG} $(call shellescape,${BINDIR}/)
+	    ${PROG} $(call shellescape,${DESTDIR}${BINDIR}/)
 
 uninstall-bin:
-	$(call _rm,$(addprefix ${BINDIR}/,${PROG}))
+	$(call _rm,$(addprefix ${DESTDIR}${BINDIR}/,${PROG}))
 endif
 endif
 
@@ -174,19 +174,19 @@ NOMAN?=		No
 ifeq (,$(filter yes yeS yEs yES Yes YeS YEs YES,${NOMAN}))
 ifneq (,$(strip ${MAN} ${MLINKS}))
 install: install-man
-install-man: $(addprefix ${MANDIR}/man,$(subst .,,$(suffix ${MAN} ${MLINKS})))
+install-man: $(addprefix ${DESTDIR}${MANDIR}/man,$(subst .,,$(suffix ${MAN} ${MLINKS})))
 	$(foreach m,${MAN},$(call maninstall,$m))
 	@$(call mlinksinstall,${MLINKS})
 
 define maninstall
 ${INSTALL} -c -o ${BINOWN} -g ${BINGRP} -m ${NONBINMODE} $(1) \
-    $(addprefix ${MANDIR}/man,$(subst .,,$(suffix $(1))))/
+    $(addprefix ${DESTDIR}${MANDIR}/man,$(subst .,,$(suffix $(1))))/
 
 endef
 define mlinksinstall
 lnk=$(call shellescape,$(word 1,$(1))); \
 file=$(call shellescape,$(word 2,$(1))); \
-mdir=$(call shellescape,${MANDIR}); \
+mdir=$(call shellescape,${DESTDIR}${MANDIR}); \
 l=$$mdir/man$${lnk##*.}/$$lnk; \
 t=$$mdir/man$${file##*.}/$$file; \
 printf '%s -> %s\n' "$$t" "$$l"; \
@@ -196,11 +196,11 @@ $(if $(word 3,$(1)),$(call mlinksinstall,$(wordlist 3,99999,$(1))))
 
 endef
 
-PATINSTDIRS+=	${MANDIR}/man%
+PATINSTDIRS+=	${DESTDIR}${MANDIR}/man%
 
 uninstall: uninstall-man
 uninstall-man:
-	$(call _rm,$(join $(addprefix ${MANDIR}/man,$(subst .,,$(suffix ${MAN} ${MLINKS}))),$(addprefix /,${MAN} ${MLINKS})))
+	$(call _rm,$(join $(addprefix ${DESTDIR}${MANDIR}/man,$(subst .,,$(suffix ${MAN} ${MLINKS}))),$(addprefix /,${MAN} ${MLINKS})))
 endif
 endif
 

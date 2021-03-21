@@ -85,3 +85,15 @@ All three licences must be adhered to: the Apache 2 licence for the
 “nh” module *only*; both MirBSD and GPLv2 with Classpath Exception
 for the OpenJDK‑/Android-libcore-derived code in this project, and
 just The MirOS Licence for the rest of this project.
+
+Furthermore, this library contains as a resource the TrueType font
+file Inconsolatazi4varlquAH.ttf used for the DatagramChannel Swing
+example application. This font file is Copyright ©
+	2021 mirabilos <t.glaser@tarent.de>
+	2017 mirabilos <m@mirbsd.org>
+	2013–2016 Michael Sharpe <msharpe@ucsd.edu>
+	2006–2012 Raph Levien <raph.levien@gmail.com>
+and covered by both the SIL Open Font License 1.1 reproduced in the
+file OFLv1.1 and The MirOS Licence (see above); both licences must
+be adhered to. (An eventual Inconsolatus QL [MirOS] release is ex‐
+pected to supercede this file.)

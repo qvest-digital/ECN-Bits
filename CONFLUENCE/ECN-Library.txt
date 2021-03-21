@@ -491,9 +491,10 @@ Technical details
  that the Unix library is available as static and shared library; use
  the static library (possibly build the library with NOPIC=Yes) if it is
  to not become a run-time dependency (or use LDSTATIC=-static to force
- linking the executables statically). The Winsock2 version deliberately
- does not build a shared library on Unix but it does create a Win32 DLL
- (link against ecn-bitw_imp.lib import library).
+ linking the executables statically). The Winsock2 version also includes
+ helper functions for better high-level language support; on Windows, a
+ DLL will be created by default (link against the ecn-bitw_imp.lib import
+ library), build with NOPIC=1 for a static library instead.
 
  For environments with a foreign function interface, convert the
  information found in the appropriate header (see above) to FFI bindings
@@ -502,6 +503,9 @@ Technical details
 
  At a minimum, call ecnbits_prep() to set up the socket and use
  ecnbits_rdmsg() or one of the wrapper functions to receive packets.
+
+ High-level languages would usually call ecnhll_prep() and ecnhll_recv().
+XXX insert links to their documentation here
 
  Please read the example client and/or server program source code to see
  how this works.

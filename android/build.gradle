@@ -17,8 +17,10 @@ buildscript {
         //classpath 'com.android.tools.build:gradle:4.0.2'
         classpath 'com.android.tools.build:gradle:3.6.4'
         classpath 'com.google.android.gms:oss-licenses-plugin:0.10.2'
-        classpath 'de.mannodermaus.gradle.plugins:android-junit5:1.7.0.0'
-        classpath 'org.owasp:dependency-check-gradle:6.0.3'
+        classpath 'de.mannodermaus.gradle.plugins:android-junit5:1.7.1.1'
+        // cf. https://github.com/jeremylong/dependency-check-gradle/issues/216
+        //classpath 'org.owasp:dependency-check-gradle:6.1.2'
+        classpath 'org.owasp:dependency-check-gradle:6.1.1'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
