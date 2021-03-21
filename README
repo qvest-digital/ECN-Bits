@@ -49,6 +49,7 @@ Development funded by Deutsche Telekom.
   : Status: working (Netty example may be added later if demand exists)
   • PoC (Linux-specific and only for the buildhost architecture) first,
     possibly extended to other CPUs and OSes later, perhaps using JNA
+  ⚠ Valid only for Java < 15 (due to JEP 373)
 
 – BSD/Linux/MacOSX/WSL: C/CLI (libecn-bits.a/so)
   ‣ see c/README
