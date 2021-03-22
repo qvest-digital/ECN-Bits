@@ -1,4 +1,5 @@
 # GNU make and nmake compatible, except clean
+BKSL=^\
 
 # sdkver=$(dotnet --version)
 sdkver=5.0.201
@@ -29,9 +30,11 @@ del:
 	if exist *.obj (del *.obj)
 
 windll:
-	$(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
+	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" amd64 && \
+	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
 	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c clib.c
-	$(CC) /O2 $(CFLAGS) /nologo /utf-8 /Wall /LD /FecLib.dll clib.obj \
+	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" amd64 && \
+	    $(CC) /O2 $(CFLAGS) /nologo /utf-8 /Wall /LD /FecLib.dll clib.obj \
 	    Ws2_32.lib /link /IMPLIB:cLib_imp.lib
 	del cLib_imp.exp
 
