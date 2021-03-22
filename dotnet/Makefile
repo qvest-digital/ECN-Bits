@@ -20,18 +20,40 @@ all:
 	@echo Linux: make dotnet, make mono, make clean
 
 clean:
-	rm -f *.dll *.exe *.runtimeconfig.json
+	rm -f *.dll *.exe *.runtimeconfig.json *.so *.so.*
 
 del:
 	if exist *.dll (del *.dll)
 	if exist *.exe (del *.exe)
+	if exist *.lib (del *.lib)
+	if exist *.obj (del *.obj)
 
-win:
+windll:
+	$(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
+	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c clib.c
+	$(CC) /O2 $(CFLAGS) /nologo /utf-8 /Wall /LD /FecLib.dll clib.obj \
+	    Ws2_32.lib /link /IMPLIB:cLib_imp.lib
+	del cLib_imp.exp
+
+win: windll
 	csc -t:library unmngd.cs
 	csc -r:unmngd.dll exp.cs
 	exp
 
-dotnet:
+gnulinux:
+	$(CC) -D_REENTRANT $(CPPFLAGS) -D_FORTIFY_SOURCE=2 -DECNBITS_INTERNAL \
+	    -O2 -g $(CFLAGS) -Wall -Wformat -Wdate-time -Wextra \
+	    -fstack-protector-strong -Werror=format-security -fPIC -DPIC -c \
+	    -o clib.so clib.c
+	rm -f libcLib.so.1
+	$(CC) -O2 -g $(CFLAGS) -Wall -Wformat -Wdate-time -Wextra \
+	    -fstack-protector-strong -Werror=format-security -fPIC \
+	    -Wl,--no-undefined $(LDFLAGS) -Wl,-z,relro -Wl,-z,now \
+	    -Wl,--as-needed -shared clib.so \
+	    -Wl,-soname,libcLib.so.1 -o libcLib.so.1.0
+	ln -s libcLib.so.1.0 libcLib.so.1
+
+dotnet: gnulinux
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
 	    -r:Microsoft.Win32.Primitives.dll -t:library unmngd.cs
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
@@ -40,7 +62,7 @@ dotnet:
 	    >exp.runtimeconfig.json
 	dotnet exp.exe
 
-mono:
+mono: gnulinux
 	mono-csc -t:library unmngd.cs
 	mono-csc -r:unmngd.dll exp.cs
 	mono exp.exe
