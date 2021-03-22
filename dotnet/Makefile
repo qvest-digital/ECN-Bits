@@ -48,13 +48,14 @@ gnulinux:
 	    -O2 -g $(CFLAGS) -Wall -Wformat -Wdate-time -Wextra \
 	    -fstack-protector-strong -Werror=format-security -fPIC -DPIC -c \
 	    -o clib.so clib.c
-	rm -f libcLib.so.1
+	rm -f libcLib.so.1 libcLib.so
 	$(CC) -O2 -g $(CFLAGS) -Wall -Wformat -Wdate-time -Wextra \
 	    -fstack-protector-strong -Werror=format-security -fPIC \
 	    -Wl,--no-undefined $(LDFLAGS) -Wl,-z,relro -Wl,-z,now \
 	    -Wl,--as-needed -shared clib.so \
 	    -Wl,-soname,libcLib.so.1 -o libcLib.so.1.0
 	ln -s libcLib.so.1.0 libcLib.so.1
+	ln -s libcLib.so.1.0 libcLib.so
 
 dotnet: gnulinux
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
@@ -63,12 +64,14 @@ dotnet: gnulinux
 	    -r:Microsoft.Win32.Primitives.dll -r:unmngd.dll exp.cs
 	echo '{"runtimeOptions":{"framework":{"name":"Microsoft.NETCore.App","version":"$(fwkver)"}}}' \
 	    >exp.runtimeconfig.json
-	dotnet exp.exe
+	LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
+	    dotnet exp.exe
 
 mono: gnulinux
 	mono-csc -t:library unmngd.cs
 	mono-csc -r:unmngd.dll exp.cs
-	mono exp.exe
+	LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
+	    mono exp.exe
 
 dotnethelp:
 	$(dotnet_csc) -help
