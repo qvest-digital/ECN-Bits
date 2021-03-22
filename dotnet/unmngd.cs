@@ -22,7 +22,7 @@ internal class Unmanaged {
 	#region native
 	private const string LIB = "cLib";
 
-	[DllImport(LIB, CallingConvention=CallingConvention.Cdecl)]
+	[DllImport(LIB, CallingConvention=CallingConvention.Cdecl, SetLastError=true)]
 	internal static extern int ecnbits_example_ndo();
 
 	#endregion
