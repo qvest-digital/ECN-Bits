@@ -34,12 +34,15 @@ windll:
 	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
 	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c clib.c
 	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" amd64 && \
+	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
+	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c monomap.c
+	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" amd64 && \
 	    $(CC) /O2 $(CFLAGS) /nologo /utf-8 /Wall /LD /FecLib.dll clib.obj \
-	    Ws2_32.lib /link /IMPLIB:cLib_imp.lib
+	    monomap.obj Ws2_32.lib /link /IMPLIB:cLib_imp.lib
 	del cLib_imp.exp
 
 win: windll
-	csc -t:library unmngd.cs
+	csc -t:library unmngd.cs monosupp.cs
 	csc -r:unmngd.dll exp.cs
 	exp
 
@@ -48,18 +51,22 @@ gnulinux:
 	    -O2 -g $(CFLAGS) -Wall -Wformat -Wdate-time -Wextra \
 	    -fstack-protector-strong -Werror=format-security -fPIC -DPIC -c \
 	    -o clib.so clib.c
+	$(CC) -D_REENTRANT $(CPPFLAGS) -D_FORTIFY_SOURCE=2 -DECNBITS_INTERNAL \
+	    -O2 -g $(CFLAGS) -Wall -Wformat -Wdate-time -Wextra \
+	    -fstack-protector-strong -Werror=format-security -fPIC -DPIC -c \
+	    -o monomap.so monomap.c
 	rm -f libcLib.so.1 libcLib.so
 	$(CC) -O2 -g $(CFLAGS) -Wall -Wformat -Wdate-time -Wextra \
 	    -fstack-protector-strong -Werror=format-security -fPIC \
 	    -Wl,--no-undefined $(LDFLAGS) -Wl,-z,relro -Wl,-z,now \
-	    -Wl,--as-needed -shared clib.so \
+	    -Wl,--as-needed -shared clib.so monomap.so \
 	    -Wl,-soname,libcLib.so.1 -o libcLib.so.1.0
 	ln -s libcLib.so.1.0 libcLib.so.1
 	ln -s libcLib.so.1.0 libcLib.so
 
 dotnet: gnulinux
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
-	    -r:Microsoft.Win32.Primitives.dll -t:library unmngd.cs
+	    -r:Microsoft.Win32.Primitives.dll -t:library unmngd.cs monosupp.cs
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
 	    -r:Microsoft.Win32.Primitives.dll -r:unmngd.dll exp.cs
 	echo '{"runtimeOptions":{"framework":{"name":"Microsoft.NETCore.App","version":"$(fwkver)"}}}' \
@@ -68,7 +75,7 @@ dotnet: gnulinux
 	    dotnet exp.exe
 
 mono: gnulinux
-	mono-csc -t:library unmngd.cs
+	mono-csc -t:library unmngd.cs monosupp.cs
 	mono-csc -r:unmngd.dll exp.cs
 	LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
 	    mono exp.exe
