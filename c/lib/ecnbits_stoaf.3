@@ -166,18 +166,18 @@ is set to indicate the error.
 returns any errors returned by
 .Xr getsockname 2
 as well as
-.Dv EAFNOSUPPORT
+.Er EAFNOSUPPORT
 if the socket is not of a supported address family.
 .Pp
 .Fn ecnbits_mkcmsg
 returns any errors returned by
 .Xr calloc 3
 as well as
-.Dv ERANGE
+.Er ERANGE
 if the passed
 .Ar *lenp
 is too small and
-.Dv EAFNOSUPPORT
+.Er EAFNOSUPPORT
 if the socket is not of a supported address family
 .Pq Li AF_INET No or Li AF_INET6 .
 .Pp

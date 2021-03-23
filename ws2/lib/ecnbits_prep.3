@@ -187,7 +187,7 @@ if (ECNBITS_PREP_FATAL(ecnbits_prep(handle, AF_INET6)))
 Besides the errors returned by the system calls used internally (currently, only
 .Xr setsockopt 2 ,
 but this is implementation detail subject to change without notice),
-.Dv WSAEAFNOSUPPORT
+.Er WSAEAFNOSUPPORT
 is returned if
 .Ar af
 is unknown.
