@@ -49,6 +49,7 @@
 #define ECNBITS_EXPORTAPI	__declspec(dllexport)
 #endif
 
+/* map errno to Winsock error code */
 ECNBITS_EXPORTAPI int
 monosupp_errnomap(int e)
 {
@@ -98,13 +99,15 @@ monosupp_errnomap(int e)
 		return (10054);
 	case EDESTADDRREQ:
 		return (10039);
-// not a precise match, best wecan do.
 	case EDOM:
+		// not a precise match, best wecan do.
 		return (10022);
 	case EEXIST:
 		return (80);
 	case EFAULT:
 		return (10014);
+	case EHOSTDOWN:
+		return (10064);
 	case EHOSTUNREACH:
 		return (10065);
 	case EINPROGRESS:
@@ -113,8 +116,8 @@ monosupp_errnomap(int e)
 		return (10004);
 	case EINVAL:
 		return (10022);
-// not a precise match, best we can do.
 	case EIO:
+		// not a precise match, best we can do.
 		return (6);
 	case EISCONN:
 		return (10056);
@@ -138,14 +141,18 @@ monosupp_errnomap(int e)
 		return (10024);
 	case ENOBUFS:
 		return (10055);
+	case ENODATA:
+		return (11004);
 	case ENODEV:
 		return (55);
 	case ENOENT:
 		return (10049);
 	case ENOEXEC:
 		return (11);
+#ifdef ENOKEY
 	case ENOKEY:
 		return (10051);
+#endif
 	case ENOMEM:
 		return (10055);
 	case ENONET:
@@ -163,7 +170,7 @@ monosupp_errnomap(int e)
 	case ENOTDIR:
 		return (2);
 #if ENOTEMPTY != EEXIST
-// AIX defines this
+	// AIX defines this
 	case ENOTEMPTY:
 		return (145);
 #endif
@@ -173,55 +180,46 @@ monosupp_errnomap(int e)
 		return (10045);
 	case ENOTTY:
 		return (10038);
-// not perfect, but closest match available
 	case ENXIO:
+		// not perfect, but closest match available
 		return (11001);
+#if EOPNOTSUPP != ENOTSUP
 	case EOPNOTSUPP:
 		return (10045);
+#endif
 	case EPERM:
 		return (10013);
+	case EPFNOSUPPORT:
+		return (10046);
 	case EPIPE:
 		return (10058);
 	case EPROTONOSUPPORT:
 		return (10043);
 	case EPROTOTYPE:
 		return (10041);
-// best match I could find
 	case ERESTART:
+		// best match I could find
 		return (997);
 	case EROFS:
 		return (5);
-	case ESOCKTNOSUPPORT:
-		return (10044);
-	case ESPIPE:
-		return (25);
-	case ETIMEDOUT:
-		return (10060);
+	case ESHUTDOWN:
+		return (10101);
 #ifdef ESOCKTNOSUPPORT
 	case ESOCKTNOSUPPORT:
 		return (10044);
 #endif
-	case EPFNOSUPPORT:
-		return (10046);
-	case ESHUTDOWN:
-		return (10101);
-	case EHOSTDOWN:
-		return (10064);
-	case ENODATA:
-		return (11004);
-#if EOPNOTSUPP != ENOTSUP
-	case EOPNOTSUPP:
-		return (10045);
-#endif
+	case ESPIPE:
+		return (25);
+	case ETIMEDOUT:
+		return (10060);
 #if EWOULDBLOCK != EAGAIN
 	case EWOULDBLOCK:
 		return (10035);
 #endif
 	default:
 		return (-1);
-
-
-
-#endif
+	}
+#else
 	return (e);
+#endif
 }
