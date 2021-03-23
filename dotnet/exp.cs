@@ -7,22 +7,34 @@ namespace ECNBits.DotNet.Experiment {
 
 public class Exp {
 	public static void Main(string[] args) {
+		Console.Write("Is64Bit? ");
 		Console.WriteLine(Environment.Is64BitProcess);
+		Console.Write("Platform ");
 		Console.WriteLine(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
 		    "Windows" : RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ?
 		    "GNU/Linux" : "other");
+		Console.Write("Arch:    ");
 		Console.WriteLine(RuntimeInformation.ProcessArchitecture);
 		try {
 			var i = API.Do();
-			Console.WriteLine("ok:");
+			Console.Write("Success: ");
 			Console.WriteLine(i);
 		} catch (SocketException se) {
+			Console.Write("SocketEC ");
 			Console.WriteLine((int)se.SocketErrorCode);
+			Console.Write("      EC ");
 			Console.WriteLine(se.ErrorCode);
+			Console.Write("NativeEC ");
 			Console.WriteLine(se.NativeErrorCode);
-			Console.WriteLine((se is MonoSocketException) ?
-			    ((se as MonoSocketException).NativeErrorCode) :
-			    -1234567);
+			if (se is MonoSocketException) {
+				var mse = se as MonoSocketException;
+				Console.Write("MonoExc. ");
+				Console.WriteLine(mse.NativeErrorCode);
+			} else
+				Console.WriteLine("Nōn-Mono exception.");
+			Console.Write("HResult: ");
+			Console.WriteLine(se.HResult);
+			Console.Write("Exception: ");
 			Console.WriteLine(se);
 		}
 	}
