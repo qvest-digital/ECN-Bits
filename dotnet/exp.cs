@@ -20,6 +20,9 @@ public class Exp {
 			Console.WriteLine((int)se.SocketErrorCode);
 			Console.WriteLine(se.ErrorCode);
 			Console.WriteLine(se.NativeErrorCode);
+			Console.WriteLine((se is MonoSocketException) ?
+			    ((se as MonoSocketException).NativeErrorCode) :
+			    -1234567);
 			Console.WriteLine(se);
 		}
 	}
