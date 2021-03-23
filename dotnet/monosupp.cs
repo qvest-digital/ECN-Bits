@@ -42,6 +42,10 @@ public class MonoSocketException : SocketException {
 	private int ErrnoValue;
 	private int MappedCode;
 
+	// ok SOL… both NativeErrorCode and SocketErrorCode are
+	// not overridable, yet both return NativeErrorCode… and
+	// that’s *precisely* which we *must* distinguish ☹
+
 	public /*override*/new int NativeErrorCode {
 		get {
 			return ErrnoValue;
