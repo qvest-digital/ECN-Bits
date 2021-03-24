@@ -23,6 +23,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
+ *-
+ * Workaround for https://github.com/mono/mono/issues/20958 (Mono on !Windows)
  */
 
 using System;
@@ -54,6 +56,11 @@ public class MonoSocketException : SocketException {
 
 	// this is unfortunately the only one overridable
 	public override int ErrorCode => ErrnoValue;
+
+	// we w̲o̲u̲l̲d̲ like to set NativeErrorCode as well,
+	// keeping the mapped-to-Windows code in only
+	// SocketErrorCode, but .net is like Turbo Pascal ☹
+	// cf. https://stackoverflow.com/a/27500564/2171120
 	#endregion
 
 	#region overridden_impl

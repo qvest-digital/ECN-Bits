@@ -25,6 +25,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
+ *-
+ * Workaround for https://github.com/mono/mono/issues/20958 (Mono on !Windows)
  */
 
 #include <sys/types.h>
