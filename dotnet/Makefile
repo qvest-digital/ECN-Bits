@@ -72,7 +72,7 @@ windll:
 
 win: windll
 	csc -t:library unmngd.cs monosupp.cs
-	csc -platform:anycpu32bitpreferred -r:unmngd.dll exp.cs
+	csc -r:unmngd.dll exp.cs
 	exp
 
 gnulinux:
