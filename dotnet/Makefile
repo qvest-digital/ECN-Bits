@@ -21,19 +21,52 @@ all:
 	@echo Linux: make dotnet, make mono, make clean
 
 clean:
-	rm -rf i386 amd64
+	rm -rf armhf arm64 amd64 i386
 	rm -f *.dll *.exe *.runtimeconfig.json *.so *.so.*
 
 del:
-	rd /s /q i386 amd64 2>nul
+	-rd /s /q armhf arm64 amd64 i386 2>nul
 	if exist *.dll (del *.dll)
 	if exist *.exe (del *.exe)
 	if exist *.lib (del *.lib)
 	if exist *.obj (del *.obj)
 
 windll:
-	rem rd /s /q i386 amd64 2>nul
-	rem x86 x86_amd64 | x86_arm | x86_arm64
+	-rd /s /q armhf arm64 amd64 i386 2>nul
+#	md armhf
+#	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_arm && \
+#	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
+#	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c clib.c
+#	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_arm && \
+#	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
+#	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c monomap.c
+#	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_arm && \
+#	    $(CC) /O2 $(CFLAGS) /nologo /utf-8 /Wall /LD /Fearmhf$(BKSL)cLib.dll \
+#	    clib.obj monomap.obj Ws2_32.lib /link /IMPLIB:armhf$(BKSL)cLib_imp.lib
+#	del *.obj
+#	md arm64
+#	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_arm64 && \
+#	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
+#	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c clib.c
+#	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_arm64 && \
+#	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
+#	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c monomap.c
+#	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_arm64 && \
+#	    $(CC) /O2 $(CFLAGS) /nologo /utf-8 /Wall /LD /Fearm64$(BKSL)cLib.dll \
+#	    clib.obj monomap.obj Ws2_32.lib /link /IMPLIB:arm64$(BKSL)cLib_imp.lib
+#	del *.obj
+	md amd64
+	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_amd64 && \
+	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
+	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c clib.c
+	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_amd64 && \
+	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
+	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c monomap.c
+	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_amd64 && \
+	    $(CC) /O2 $(CFLAGS) /nologo /utf-8 /Wall /LD /Feamd64$(BKSL)cLib.dll \
+	    clib.obj monomap.obj Ws2_32.lib /link /IMPLIB:amd64$(BKSL)cLib_imp.lib
+	del *.obj
+	md i386
 	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86 && \
 	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
 	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c clib.c
@@ -41,9 +74,9 @@ windll:
 	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
 	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c monomap.c
 	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86 && \
-	    $(CC) /O2 $(CFLAGS) /nologo /utf-8 /Wall /LD /FecLib.dll clib.obj \
-	    monomap.obj Ws2_32.lib /link /IMPLIB:cLib_imp.lib
-	del cLib_imp.exp
+	    $(CC) /O2 $(CFLAGS) /nologo /utf-8 /Wall /LD /Fei386$(BKSL)cLib.dll \
+	    clib.obj monomap.obj Ws2_32.lib /link /IMPLIB:i386$(BKSL)cLib_imp.lib
+	del *.obj
 
 win: windll
 	csc -t:library unmngd.cs monosupp.cs
