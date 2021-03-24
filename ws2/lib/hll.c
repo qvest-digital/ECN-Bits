@@ -45,6 +45,6 @@
 ECNBITS_EXPORTAPI int
 ecnhll_prep(SOCKET socketfd, int af)
 {
-	return (ecnhll_prep(socketfd, af == 6 ? AF_INET6 :
+	return (ecnbits_prep(socketfd, af == 6 ? AF_INET6 :
 	    af == 4 ? AF_INET : 0));
 }
