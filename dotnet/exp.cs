@@ -26,12 +26,6 @@ public class Exp {
 			Console.WriteLine(se.ErrorCode);
 			Console.Write("NativeEC ");
 			Console.WriteLine(se.NativeErrorCode);
-			if (se is MonoSocketException) {
-				var mse = se as MonoSocketException;
-				Console.Write("MonoExc. ");
-				Console.WriteLine(mse.NativeErrorCode);
-			} else
-				Console.WriteLine("Nōn-Mono exception.");
 			Console.Write("HResult: ");
 			Console.WriteLine(se.HResult);
 			Console.Write("Exception: ");
