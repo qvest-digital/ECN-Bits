@@ -116,6 +116,9 @@ ECNBITS_EXPORTAPI SSIZE_T ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
 
 /* extra functions for better support for high-level languages */
 ECNBITS_EXPORTAPI int ecnhll_prep(SOCKET fd, int af);
+/* support code for Mono */
+ECNBITS_EXPORTAPI void ecnhll_mono_test(void);
+ECNBITS_EXPORTAPI int ecnhll_mono_map(int errno_code);
 
 #ifdef __cplusplus
 }

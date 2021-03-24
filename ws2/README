@@ -133,3 +133,15 @@ ship certain functions dealing with outgoing traffic class
 setting; if needed, the c/ (libecn-bits) version contains them.
 
 WSL 2, being a Linux virtual machine, suffers from neither restriction.
+
+┌─────────────────────────────────────────────────────┐
+│ Extra functions for high-level language integration │
+└─────────────────────────────────────────────────────┘
+
+The library includes a few functions for better HLL support as well.
+They are not intended to be called by end users, therefore they are
+not documented with the other functions in the manual pages; comments
+in the source code (lib/hll*.c) should sufficiently do that and they
+are used by the .NET and Unity integration currently, so that serves
+as another example. These are of interest mainly to integrators who
+work on the ECN-Bits project itself.

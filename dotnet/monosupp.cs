@@ -41,7 +41,7 @@ public class MonoSocketException : SocketException {
 		if (NoMonoSupportNeeded)
 			return new SocketException();
 		int errno = Marshal.GetLastWin32Error();
-		int winerr = monosupp_errnomap(errno);
+		int winerr = ecnhll_mono_map(errno);
 		return new MonoSocketException(errno, winerr);
 	}
 	#endregion
@@ -103,7 +103,7 @@ public class MonoSocketException : SocketException {
 	internal static readonly bool NoMonoSupportNeeded;
 
 	static MonoSocketException() {
-		monosupp_errtest();
+		ecnhll_mono_test();
 		var se = new SocketException();
 		NoMonoSupportNeeded = se.SocketErrorCode ==
 		    SocketError.AddressFamilyNotSupported;
@@ -112,10 +112,10 @@ public class MonoSocketException : SocketException {
 
 	#region native
 	[DllImport(Unmanaged.LIB, CallingConvention=CallingConvention.Cdecl, SetLastError=true)]
-	internal static extern void monosupp_errtest();
+	internal static extern void ecnhll_mono_test();
 
 	[DllImport(Unmanaged.LIB, CallingConvention=CallingConvention.Cdecl)]
-	internal static extern int monosupp_errnomap(int errno);
+	internal static extern int ecnhll_mono_map(int errno);
 	#endregion
 }
 

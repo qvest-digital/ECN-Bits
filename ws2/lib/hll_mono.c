@@ -42,23 +42,11 @@
 #endif
 #include <errno.h>
 
-/* stuff to make DLLs work; we offer the cdecl calling convention */
-#if !defined(ECNBITS_WIN32_DLL)
-#define ECNBITS_EXPORTAPI	/* nothing */
-#elif !defined(ECNBITS_INTERNAL)
-#define ECNBITS_EXPORTAPI	__declspec(dllimport)
-#else
-#define ECNBITS_EXPORTAPI	__declspec(dllexport)
-#endif
+#include "ecn-bitw.h"
 
-/* building the library itself, additional compatibility/utilities */
-#if !(defined(_WIN32) || defined(WIN32))
-#define WSAEAFNOSUPPORT	EAFNOSUPPORT
-#endif
-
-/* helper used in checking whether this mapping is necessary */
+/* helper for testing whether manually mapping error codes is needed */
 ECNBITS_EXPORTAPI void
-monosupp_errtest(void)
+ecnhll_mono_test(void)
 {
 #if defined(_WIN32) || defined(WIN32)
 	WSASetLastError(WSAEAFNOSUPPORT);
@@ -66,11 +54,13 @@ monosupp_errtest(void)
 	errno = WSAEAFNOSUPPORT;
 }
 
-/* map errno to Winsock error code */
+/* maps errno to Winsock error code */
 ECNBITS_EXPORTAPI int
-monosupp_errnomap(int e)
+ecnhll_mono_map(int e)
 {
-#if !(defined(_WIN32) || defined(WIN32))
+#if defined(_WIN32) || defined(WIN32)
+	return (e);
+#else
 	/*
 	 * error code map derived from the .NET Runtime
 	 * • src/libraries/Native/Unix/Common/pal_error_common.h
@@ -236,7 +226,5 @@ monosupp_errnomap(int e)
 	default:
 		return (-1);
 	}
-#else
-	return (e);
 #endif
 }

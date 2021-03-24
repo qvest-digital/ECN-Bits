@@ -25,6 +25,7 @@ MKLIB=		ecn-bitw
 
 SRCS=		$(SRCS) desc.c
 SRCS=		$(SRCS) hll.c
+SRCS=		$(SRCS) hll_mono.c
 SRCS=		$(SRCS) prep.c
 SRCS=		$(SRCS) rdmsg.c
 SRCS=		$(SRCS) recv.c

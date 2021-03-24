@@ -30,6 +30,7 @@ SHLIB_VERSION=	2.0
 
 SRCS+=		desc.c
 SRCS+=		hll.c
+SRCS+=		hll_mono.c
 SRCS+=		prep.c
 SRCS+=		rdmsg.c
 SRCS+=		recv.c
