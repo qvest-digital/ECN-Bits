@@ -33,14 +33,12 @@ public class MonoSocketException : SocketException {
 	#region implementation
 	internal MonoSocketException(int eno, int errorCode) : base(errorCode) {
 		ErrnoValue = eno;
-		MappedCode = errorCode;
 	}
 
-	// we cannot directly overwrite the parent class’ fields
-	// because it uses the same field for multiple purposes,
-	// so do our own and override those getters involved
 	private int ErrnoValue;
-	private int MappedCode;
+
+	// this is unfortunately the only one overridable
+	public override int ErrorCode => ErrnoValue;
 
 	// ok SOL… both NativeErrorCode and SocketErrorCode are
 	// not overridable, yet both return NativeErrorCode… and
