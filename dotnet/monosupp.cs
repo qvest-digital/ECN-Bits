@@ -34,24 +34,28 @@ using System.Text;
 namespace ECNBits.DotNet.Experiment {
 
 public class MonoSocketException : SocketException {
-	#region IsRunningOnMono
-	private static readonly Lazy<bool> IsThisMono = new Lazy<bool>(() => {
-		return Type.GetType("Mono.Runtime") != null;
-	});
+	#region MonoSupportNeeded
+	internal static readonly bool NoMonoSupportNeeded;
 
-	public static bool IsRunningOnMono() {
-		return IsThisMono.Value;
+	static MonoSocketException() {
+		monosupp_errtest();
+		var se = new SocketException();
+		NoMonoSupportNeeded = se.SocketErrorCode ==
+		    SocketError.AddressFamilyNotSupported;
 	}
 	#endregion
 
 	#region native
+	[DllImport(Unmanaged.LIB, CallingConvention=CallingConvention.Cdecl, SetLastError=true)]
+	internal static extern void monosupp_errtest();
+
 	[DllImport(Unmanaged.LIB, CallingConvention=CallingConvention.Cdecl)]
 	internal static extern int monosupp_errnomap(int errno);
 	#endregion
 
 	#region factory
 	internal static SocketException NewSocketException() {
-		if (!IsRunningOnMono())
+		if (NoMonoSupportNeeded)
 			return new SocketException();
 		int errno = Marshal.GetLastWin32Error();
 		int winerr = monosupp_errnomap(errno);

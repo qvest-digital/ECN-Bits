@@ -49,6 +49,21 @@
 #define ECNBITS_EXPORTAPI	__declspec(dllexport)
 #endif
 
+/* building the library itself, additional compatibility/utilities */
+#if !(defined(_WIN32) || defined(WIN32))
+#define WSAEAFNOSUPPORT	EAFNOSUPPORT
+#endif
+
+/* helper used in checking whether this mapping is necessary */
+ECNBITS_EXPORTAPI void
+monosupp_errtest(void)
+{
+#if defined(_WIN32) || defined(WIN32)
+	WSASetLastError(WSAEAFNOSUPPORT);
+#endif
+	errno = WSAEAFNOSUPPORT;
+}
+
 /* map errno to Winsock error code */
 ECNBITS_EXPORTAPI int
 monosupp_errnomap(int e)
