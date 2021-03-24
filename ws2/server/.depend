@@ -1,0 +1,17 @@
+# This file is read before [mM]akefile by BSD make.
+# Normally we’d create a BSDmakefile calling gmake,
+# forwarding all targets, but NetBSD® broke the API
+# stopping searching BSDmakefile before [mM]akefile
+# and the latter (case-insensitively) is what nmake
+# on Windows® already uses. GNU make still searches
+# for GNUmakefile first which we make (hah!) use of
+# here already. Unfortunately, this means erroring,
+# printing a suitable warning to use gmake instead,
+# is all we can do, on “modern” BSD make (and bmake
+# packaged for GNU systems) anyway (traditional BSD
+# systems could use BSDmakefile, but then we’d lose
+# the ability to warn bmake users which then wonder
+# as 「/bin/sh: cannot create lib: Is a directory」
+# isn’t a helpful error message.
+
+.error Use gmake (not make) on BSD; read .depend for why.
