@@ -34,25 +34,6 @@ using System.Text;
 namespace ECNBits.DotNet.Experiment {
 
 public class MonoSocketException : SocketException {
-	#region MonoSupportNeeded
-	internal static readonly bool NoMonoSupportNeeded;
-
-	static MonoSocketException() {
-		monosupp_errtest();
-		var se = new SocketException();
-		NoMonoSupportNeeded = se.SocketErrorCode ==
-		    SocketError.AddressFamilyNotSupported;
-	}
-	#endregion
-
-	#region native
-	[DllImport(Unmanaged.LIB, CallingConvention=CallingConvention.Cdecl, SetLastError=true)]
-	internal static extern void monosupp_errtest();
-
-	[DllImport(Unmanaged.LIB, CallingConvention=CallingConvention.Cdecl)]
-	internal static extern int monosupp_errnomap(int errno);
-	#endregion
-
 	#region factory
 	internal static SocketException NewSocketException() {
 		if (NoMonoSupportNeeded)
@@ -64,7 +45,8 @@ public class MonoSocketException : SocketException {
 	#endregion
 
 	#region implementation
-	internal MonoSocketException(int eno, int errorCode) : base(errorCode) {
+	// use the factory method instead
+	private MonoSocketException(int eno, int errorCode) : base(errorCode) {
 		ErrnoValue = eno;
 	}
 
@@ -108,6 +90,25 @@ public class MonoSocketException : SocketException {
 
 		return s.ToString();
 	}
+	#endregion
+
+	#region MonoSupportNeeded
+	internal static readonly bool NoMonoSupportNeeded;
+
+	static MonoSocketException() {
+		monosupp_errtest();
+		var se = new SocketException();
+		NoMonoSupportNeeded = se.SocketErrorCode ==
+		    SocketError.AddressFamilyNotSupported;
+	}
+	#endregion
+
+	#region native
+	[DllImport(Unmanaged.LIB, CallingConvention=CallingConvention.Cdecl, SetLastError=true)]
+	internal static extern void monosupp_errtest();
+
+	[DllImport(Unmanaged.LIB, CallingConvention=CallingConvention.Cdecl)]
+	internal static extern int monosupp_errnomap(int errno);
 	#endregion
 }
 
