@@ -25,6 +25,7 @@ clean:
 	rm -f *.dll *.exe *.runtimeconfig.json *.so *.so.*
 
 del:
+	-cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
 	-rd /s /q armhf arm64 amd64 i386 2>nul
 	if exist *.dll (del *.dll)
 	if exist *.exe (del *.exe)
@@ -32,47 +33,34 @@ del:
 	if exist *.obj (del *.obj)
 
 windll:
+	-cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
 	-rd /s /q armhf arm64 amd64 i386 2>nul
 	md armhf
 	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_arm && \
-	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
-	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c \
-	    clib.c hll_mono.c
-	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_arm && \
-	    $(CC) /O2 $(CFLAGS) /nologo /utf-8 /Wall /LD /Fearmhf$(BKSL)cLib.dll \
-	    clib.obj hll_mono.obj Ws2_32.lib /link /IMPLIB:armhf$(BKSL)cLib_imp.lib
-	del *.obj
+	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE)
+	copy ..$(BKSL)ws2$(BKSL)bin$(BKSL)ecn-bitw.dll armhf$(BKSL)
+	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
 	md arm64
 	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_arm64 && \
-	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
-	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c \
-	    clib.c hll_mono.c
-	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_arm64 && \
-	    $(CC) /O2 $(CFLAGS) /nologo /utf-8 /Wall /LD /Fearm64$(BKSL)cLib.dll \
-	    clib.obj hll_mono.obj Ws2_32.lib /link /IMPLIB:arm64$(BKSL)cLib_imp.lib
-	del *.obj
+	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE)
+	copy ..$(BKSL)ws2$(BKSL)bin$(BKSL)ecn-bitw.dll arm64$(BKSL)
+	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
 	md amd64
 	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_amd64 && \
-	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
-	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c \
-	    clib.c hll_mono.c
-	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_amd64 && \
-	    $(CC) /O2 $(CFLAGS) /nologo /utf-8 /Wall /LD /Feamd64$(BKSL)cLib.dll \
-	    clib.obj hll_mono.obj Ws2_32.lib /link /IMPLIB:amd64$(BKSL)cLib_imp.lib
-	del *.obj
+	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE)
+	copy ..$(BKSL)ws2$(BKSL)bin$(BKSL)ecn-bitw.dll amd64$(BKSL)
+	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
 	md i386
 	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86 && \
-	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
-	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c \
-	    clib.c hll_mono.c
-	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86 && \
-	    $(CC) /O2 $(CFLAGS) /nologo /utf-8 /Wall /LD /Fei386$(BKSL)cLib.dll \
-	    clib.obj hll_mono.obj Ws2_32.lib /link /IMPLIB:i386$(BKSL)cLib_imp.lib
-	del *.obj
+	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE)
+	copy ..$(BKSL)ws2$(BKSL)bin$(BKSL)ecn-bitw.dll i386$(BKSL)
+	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
+	REM --- Windows DLLs built for all architectures
 
 win: windll
 	csc -t:library unmngd.cs monosupp.cs
 	csc -r:unmngd.dll exp.cs
+	REM or: csc -platform:anycpu32bitpreferred -r:unmngd.dll exp.cs
 	exp
 
 gnulinux:

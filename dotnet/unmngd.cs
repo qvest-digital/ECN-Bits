@@ -1,3 +1,4 @@
+using System;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
@@ -8,7 +9,7 @@ public class API {
 	public static int Do() {
 		int rv;
 
-		rv = Unmanaged.ecnbits_example_ndo();
+		rv = Unmanaged.ecnhll_prep(new IntPtr(-1), 0);
 		if (rv >= 2) {
 			// this will retrieve the last error code
 			throw MonoSocketException.NewSocketException();
@@ -52,10 +53,10 @@ internal class Unmanaged {
 	#endregion
 
 	#region native
-	internal const string LIB = "cLib";
+	internal const string LIB = "ecn-bitw";
 
 	[DllImport(LIB, CallingConvention=CallingConvention.Cdecl, SetLastError=true)]
-	internal static extern int ecnbits_example_ndo();
+	internal static extern int ecnhll_prep(IntPtr socketfd, int af);
 	#endregion
 }
 
