@@ -170,8 +170,10 @@ ecnhll_mono_map(int e)
 		return (10042);
 	case ENOSPC:
 		return (39);
+#ifdef ENOSR
 	case ENOSR:
 		return (10050);
+#endif
 	case ENOSYS:
 		return (50);
 	case ENOTCONN:
