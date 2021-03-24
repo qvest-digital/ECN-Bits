@@ -162,8 +162,10 @@ ecnhll_mono_map(int e)
 #endif
 	case ENOMEM:
 		return (10055);
+#ifdef ENONET
 	case ENONET:
 		return (10051);
+#endif
 	case ENOPROTOOPT:
 		return (10042);
 	case ENOSPC:
@@ -204,9 +206,11 @@ ecnhll_mono_map(int e)
 		return (10043);
 	case EPROTOTYPE:
 		return (10041);
+#ifdef ERESTART
 	case ERESTART:
 		// best match I could find
 		return (997);
+#endif
 	case EROFS:
 		return (5);
 	case ESHUTDOWN:
