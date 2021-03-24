@@ -21,29 +21,33 @@ all:
 	@echo Linux: make dotnet, make mono, make clean
 
 clean:
+	rm -rf i386 amd64
 	rm -f *.dll *.exe *.runtimeconfig.json *.so *.so.*
 
 del:
+	rd /s /q i386 amd64 2>nul
 	if exist *.dll (del *.dll)
 	if exist *.exe (del *.exe)
 	if exist *.lib (del *.lib)
 	if exist *.obj (del *.obj)
 
 windll:
-	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" amd64 && \
+	rem rd /s /q i386 amd64 2>nul
+	rem x86 x86_amd64 | x86_arm | x86_arm64
+	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86 && \
 	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
 	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c clib.c
-	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" amd64 && \
+	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86 && \
 	    $(CC) -DECNBITS_WIN32_DLL $(CPPFLAGS) -DECNBITS_INTERNAL -D_REENTRANT \
 	    -D_WIN32_WINNT=0x0600 /O2 $(CFLAGS) /nologo /utf-8 /Wall /c monomap.c
-	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" amd64 && \
+	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86 && \
 	    $(CC) /O2 $(CFLAGS) /nologo /utf-8 /Wall /LD /FecLib.dll clib.obj \
 	    monomap.obj Ws2_32.lib /link /IMPLIB:cLib_imp.lib
 	del cLib_imp.exp
 
 win: windll
 	csc -t:library unmngd.cs monosupp.cs
-	csc -r:unmngd.dll exp.cs
+	csc -platform:anycpu32bitpreferred -r:unmngd.dll exp.cs
 	exp
 
 gnulinux:
