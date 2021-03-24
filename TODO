@@ -23,3 +23,13 @@
 • OWASP plugin for Gradle
   https://github.com/jeremylong/dependency-check-gradle/issues/206
   https://github.com/jeremylong/dependency-check-gradle/issues/216
+
+• Android/Unity
+  – create an NDK project building the library
+    (basically like android/ecn-lib/ except building ecn-bitw)
+    maybe https://github.com/Meach/UnitySimpleNativeLibrary helps
+  – import the four generated shared objects into Unity, assigning
+    Android support and the correct CPU to each, according to
+    https://docs.unity3d.com/Manual/AndroidNativePlugins.html
+  – now [DllImport("ecn-bitw")] “should just work”, let’s hope it
+    selects the correct .so according to what platform it’s running on
