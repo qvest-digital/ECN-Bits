@@ -28,10 +28,7 @@ else (HAS_SSP2)
 	endif (HAS_SSP1)
 endif (HAS_SSP2)
 add_compile_options(-Werror=format-security)
-#LDFLAGS+=	-Wl,-z,relro -Wl,-z,now
-#LDFLAGS+=	-Wl,--as-needed
 add_definitions(-DECNBITS_INTERNAL)
-#LDFLAGS+=	-Wl,--no-undefined
 
 add_library(ecn-bitw SHARED
 	# MirBSD licenced
@@ -51,6 +48,8 @@ add_library(ecn-bitw SHARED
 	# MIT licenced
 	hll_mono.c
 	)
+
+target_link_libraries(ecn-bitw -Wl,-z,relro -Wl,-z,now -Wl,--as-needed)
 
 check_c_compiler_flag(-ffile-prefix-map=a=b HAS_FILE_PREFIX_MAP)
 if (HAS_FILE_PREFIX_MAP)
