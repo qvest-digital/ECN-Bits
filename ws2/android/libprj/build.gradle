@@ -53,3 +53,11 @@ android {
 dependencies {
     //implementation fileTree(dir: "libs", include: ["*.jar"])
 }
+
+project.afterEvaluate {
+    task externalNativeBuildCleanContainingDirectory(type: Delete) {
+        dependsOn tasks.externalNativeBuildCleanDebug, tasks.externalNativeBuildCleanRelease
+        delete project.layout.projectDirectory.dir(".cxx").asFile
+    }
+    tasks.clean.dependsOn(tasks.externalNativeBuildCleanContainingDirectory)
+}
