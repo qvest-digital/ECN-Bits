@@ -64,22 +64,10 @@ win: windll
 	exp
 
 gnulinux:
-	$(CC) -D_REENTRANT $(CPPFLAGS) -D_FORTIFY_SOURCE=2 -DECNBITS_INTERNAL \
-	    -O2 -g $(CFLAGS) -Wall -Wformat -Wdate-time -Wextra \
-	    -fstack-protector-strong -Werror=format-security -fPIC -DPIC -c \
-	    -o clib.so clib.c
-	$(CC) -D_REENTRANT $(CPPFLAGS) -D_FORTIFY_SOURCE=2 -DECNBITS_INTERNAL \
-	    -O2 -g $(CFLAGS) -Wall -Wformat -Wdate-time -Wextra \
-	    -fstack-protector-strong -Werror=format-security -fPIC -DPIC -c \
-	    -o hll_mono.so hll_mono.c
-	rm -f libcLib.so.1 libcLib.so
-	$(CC) -O2 -g $(CFLAGS) -Wall -Wformat -Wdate-time -Wextra \
-	    -fstack-protector-strong -Werror=format-security -fPIC \
-	    -Wl,--no-undefined $(LDFLAGS) -Wl,-z,relro -Wl,-z,now \
-	    -Wl,--as-needed -shared clib.so hll_mono.so \
-	    -Wl,-soname,libcLib.so.1 -o libcLib.so.1.0
-	ln -s libcLib.so.1.0 libcLib.so.1
-	ln -s libcLib.so.1.0 libcLib.so
+	-cd ../ws2/lib && $(MAKE) clean
+	cd ../ws2/lib && $(MAKE)
+	cp -a ../ws2/lib/libecn-bitw.so ../ws2/lib/libecn-bitw.so.* ./
+	-cd ../ws2/lib && $(MAKE) clean
 
 dotnet: gnulinux
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
