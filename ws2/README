@@ -59,6 +59,9 @@ util/
 *.mk, GNUmakefile
 ‣ build system for Unix and WSL
 
+android/
+‣ build system targetting Android (e.g. for Unity)
+
 NMAKE.mak, Makefile
 ‣ build system for Windows (Visual Studio)
 

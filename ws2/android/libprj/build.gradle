@@ -1,0 +1,55 @@
+apply plugin: 'com.android.library'
+
+def dirToplev = project.layout.projectDirectory.asFile.getParentFile().getParentFile().absolutePath
+
+// project licence: The MirOS Licence AND MIT
+// as documented in ../../../LICENCE
+//
+// apparently, there’s no standardised way to declare the project licence in Gradle:
+// https://discuss.gradle.org/t/how-to-declare-a-license-for-a-gradle-project/26114
+
+android {
+    compileSdkVersion 30
+
+    defaultConfig {
+        minSdkVersion 1
+        targetSdkVersion 30
+        ndkVersion "21.4.7075529"
+
+        versionCode 1
+        versionName "0.1"
+
+        externalNativeBuild {
+            cmake {
+                //noinspection GroovyAssignabilityCheck because Gradle and the IDE have different world views…
+                arguments "-DTOPLEV=" + dirToplev
+            }
+            return void // WTF‽
+        }
+
+        return void // WTF‽
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "../../lib/CMakeLists.txt"
+            return void // WTF‽
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
+    buildToolsVersion = '30.0.3'
+}
+
+dependencies {
+    //implementation fileTree(dir: "libs", include: ["*.jar"])
+}
