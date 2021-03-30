@@ -85,9 +85,9 @@ endef
 
 CPPFLAGS+=	-D_REENTRANT
 CPPFLAGS+=	-I$(call shellescape,${TOP})/inc
+$(eval $(call cc_opt,CPPFLAGS,-Wdate-time))
 CPPFLAGS+=	-D_FORTIFY_SOURCE=2
 CFLAGS+=	-Wall -Wformat
-$(eval $(call cc_opt,CFLAGS,-Wdate-time))
 CFLAGS+=	-Wextra
 $(eval $(call cc_opt,CFLAGS,-fstack-protector-strong,-fstack-protector))
 CFLAGS+=	-Werror=format-security
