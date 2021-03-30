@@ -24,7 +24,7 @@ android {
         externalNativeBuild {
             cmake {
                 //noinspection GroovyAssignabilityCheck because Gradle and the IDE have different world views…
-                arguments "-DTOPLEV=" + dirToplev
+                arguments "-DCMAKE_VERBOSE_MAKEFILE=1","-DTOPLEV=" + dirToplev
             }
             return void // WTF‽
         }

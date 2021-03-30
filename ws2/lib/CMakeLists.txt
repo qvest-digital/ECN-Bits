@@ -7,7 +7,14 @@ project(ecn-bitw)
 if (NOT TOPLEV)
 	message(FATAL_ERROR "setting the top-level directory is mandatory")
 endif (NOT TOPLEV)
+
 include(CheckCCompilerFlag)
+# grml…
+message(WARNING "generator is (${CMAKE_GENERATOR})")
+if (${CMAKE_GENERATOR} STREQUAL Ninja)
+	message(WARNING "Ninja…")
+	set(CMAKE_MAKE_PROGRAM "${CMAKE_MAKE_PROGRAM} -v")
+endif (${CMAKE_GENERATOR} STREQUAL Ninja)
 
 add_definitions(-D_REENTRANT)
 include_directories(BEFORE ${TOPLEV}/inc)
