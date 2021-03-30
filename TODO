@@ -25,14 +25,9 @@
   https://github.com/jeremylong/dependency-check-gradle/issues/216
 
 • Android/Unity
-  – create an NDK project building the library
-    (basically like android/ecn-lib/ except building ecn-bitw)
-	‣ clean .cxx/ (see also android solution)
-	‣ verbose make, linker flags
-	‣ should output AAR but offer the .so as well
-    maybe https://github.com/Meach/UnitySimpleNativeLibrary helps
   – import the four generated shared objects into Unity, assigning
     Android support and the correct CPU to each, according to
     https://docs.unity3d.com/Manual/AndroidNativePlugins.html
+    ‣ maybe we can just import the AAR instead?
   – now [DllImport("ecn-bitw")] “should just work”, let’s hope it
     selects the correct .so according to what platform it’s running on
