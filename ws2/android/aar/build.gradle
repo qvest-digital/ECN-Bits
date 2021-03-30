@@ -3,7 +3,7 @@ apply plugin: 'com.android.library'
 def dirToplev = project.layout.projectDirectory.asFile.getParentFile().getParentFile().absolutePath
 
 // project licence: The MirOS Licence AND MIT
-// as documented in ../../../LICENCE
+// see src/legal/LICENCE
 //
 // apparently, there’s no standardised way to declare the project licence in Gradle:
 // https://discuss.gradle.org/t/how-to-declare-a-license-for-a-gradle-project/26114
@@ -18,6 +18,8 @@ android {
 
         versionCode 1
         versionName "0.1"
+
+        setProperty("archivesBaseName", "ecn-bitw")
 
         externalNativeBuild {
             cmake {
