@@ -1,1 +1,2 @@
-../../android/gradlew
+#!/bin/sh
+exec ../../android/gradlew "$@"

@@ -1,1 +1,1 @@
-../../android/gradlew.bat
+@..\..\android\gradlew %*
