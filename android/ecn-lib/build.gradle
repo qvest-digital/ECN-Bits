@@ -48,10 +48,10 @@ android {
     defaultConfig {
         minSdkVersion 26
         targetSdkVersion 30
-        ndkVersion "22.0.7026061"
+        ndkVersion "22.1.7171670"
 
-        versionCode 6
-        versionName "2.1"
+        versionCode 7
+        versionName "2.2"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         consumerProguardFiles "consumer-rules.pro"
@@ -91,24 +91,24 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.18'
+    annotationProcessor 'org.projectlombok:lombok:1.18.20'
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
-    compileOnly 'org.projectlombok:lombok:1.18.18'
+    compileOnly 'org.projectlombok:lombok:1.18.20'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
 
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.18'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
-    testCompileOnly 'org.projectlombok:lombok:1.18.18'
+    testCompileOnly 'org.projectlombok:lombok:1.18.20'
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     androidTestImplementation 'junit:junit:4.13.2'
 
-    androidTestAnnotationProcessor 'org.projectlombok:lombok:1.18.18'
+    androidTestAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
     //noinspection AnnotationProcessorOnCompilePath because both are needed :/
-    androidTestCompileOnly 'org.projectlombok:lombok:1.18.18'
+    androidTestCompileOnly 'org.projectlombok:lombok:1.18.20'
 }
 
 def dirForNativeNoNDK = project.layout.buildDirectory.get().dir("native-noNDK")
