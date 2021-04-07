@@ -1,12 +1,32 @@
 apply plugin: 'com.android.library'
 
-def dirToplev = project.layout.projectDirectory.asFile.getParentFile().getParentFile().absolutePath
-
 // project licence: The MirOS Licence AND MIT
 // see src/legal/LICENCE
 //
 // apparently, there’s no standardised way to declare the project licence in Gradle:
 // https://discuss.gradle.org/t/how-to-declare-a-license-for-a-gradle-project/26114
+
+logger.error("OS:");
+logger.error(org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem().isWindows() ? "yep" : "nee");
+
+def getUnixPathEquivalent(afile) {
+    if (!afile.exists())
+        throw new GradleScriptException("File does not exist: " + afile, null);
+    java.nio.file.Path p = afile.toPath()
+    String s = afile.getAbsolutePath()
+    if (!java.nio.file.Files.isSameFile(p, java.nio.file.Paths.get(s)))
+        throw new GradleScriptException(Strings.format("File does not match its absolute path <%s>: %s", s, afile));
+    if (org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem().isWindows()) {
+        s = s.replace('\\', '/');
+    }
+    if (!java.nio.file.Files.isSameFile(p, java.nio.file.Paths.get(s)))
+        throw new GradleScriptException(Strings.format("File cannot be converted to Unix path <%s>: %s", s, afile));
+    return s;
+}
+
+def dirToplev = getUnixPathEquivalent(project.layout.projectDirectory.asFile.getParentFile().getParentFile())
+
+logger.error("Dir: " + dirToplev);
 
 android {
     compileSdkVersion 30
