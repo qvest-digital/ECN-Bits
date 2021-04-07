@@ -11,7 +11,7 @@
 	<version>0.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>${project.groupId}:${project.artifactId}</name>
-	<description>UDP client (WIP)</description>
+	<description>OpenJDK/JNI/Linux-native implementation of ECN-Bits library and sample UDP clients</description>
 	<url>https://github.com/tarent/ECN-Bits/tree/master/jdk</url>
 	<licenses>
 		<license>
