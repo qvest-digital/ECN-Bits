@@ -44,6 +44,10 @@ CLEANFILES=	$(CLEANFILES) *.ilk
 CLEANFILES=	$(CLEANFILES) *.pdb
 !ENDIF
 
+!IF [..$(BKSL)..$(BKSL)test-git.bat /q]
+!ERROR clone the repository with symlinks enabled
+!ENDIF
+
 !IFNDEF CC
 CC=		cl.exe
 !ENDIF

@@ -24,6 +24,11 @@
 # default target
 all:
 
+BKSL=^\
+!IF [..$(BKSL)test-git.bat /q]
+!ERROR clone the repository with symlinks enabled
+!ENDIF
+
 # recursive build
 all clean:
 	@echo ==^> lib

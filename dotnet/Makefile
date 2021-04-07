@@ -31,8 +31,10 @@ del:
 	if exist *.exe (del *.exe)
 	if exist *.lib (del *.lib)
 	if exist *.obj (del *.obj)
+	@..$(BKSL)test-git.bat /q
 
 windll:
+	..$(BKSL)test-git.bat /q
 	-cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
 	-rd /s /q armhf arm64 amd64 i386 2>nul
 	md armhf
@@ -58,6 +60,7 @@ windll:
 	REM --- Windows DLLs built for all architectures
 
 win: windll
+	..$(BKSL)test-git.bat /q
 	csc -t:library unmngd.cs monosupp.cs
 	csc -r:unmngd.dll exp.cs
 	REM or: csc -platform:anycpu32bitpreferred -r:unmngd.dll exp.cs

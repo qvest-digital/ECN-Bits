@@ -1,5 +1,6 @@
 @echo off
 set v=
+cd %~dp0
 set /p v=<.symlink.tst
 if "%v%"=="meow" (goto ok)
 goto nope
