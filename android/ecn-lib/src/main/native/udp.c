@@ -206,6 +206,17 @@ JNI_OnLoad(JavaVM *vm, void *reserved __unused)
 		return (JNI_ERR);
 	}
 
+ecnlog_info("FILE normal: %s", __FILE__);
+#ifdef OLD_CLANG_SRCDIR_HACK
+	if (!strncmp(__FILE__, OLD_CLANG_SRCDIR_HACK, sizeof(OLD_CLANG_SRCDIR_HACK) - 1)) {
+		ecnlog_info("FILE prefix: «ECN-Bits»/%s", __FILE__ + sizeof(OLD_CLANG_SRCDIR_HACK) - 1);
+	} else {
+		ecnlog_info("FILE prefix does not match");
+	}
+#else
+ecnlog_info("no OLD_CLANG_SRCDIR_HACK");
+#endif
+
 #define getclass(dst,name) do {						\
 	jclass tmpcls;							\
 	if (!(tmpcls = (*env)->FindClass(env, (name))) ||		\
