@@ -24,7 +24,7 @@ android {
         externalNativeBuild {
             cmake {
                 //noinspection GroovyAssignabilityCheck because Gradle and the IDE have different world views…
-                arguments "-DTOPLEV=" + dirToplev
+                arguments "-DTOPLEV=" + dirToplev.replace("\\", "\\\\")
             }
             return void // WTF‽
         }
