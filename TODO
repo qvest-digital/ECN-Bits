@@ -31,3 +31,7 @@
     ‣ maybe we can just import the AAR instead?
   – now [DllImport("ecn-bitw")] “should just work”, let’s hope it
     selects the correct .so according to what platform it’s running on
+
+• IntelliJ insists on creating ws2/android/gradle{/,w,w.bat},
+  but we cannot symlink them because some users use nōn-symlink-aware
+  tools on Windows® (and I would rather not double them)
