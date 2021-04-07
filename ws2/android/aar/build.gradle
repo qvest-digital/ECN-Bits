@@ -9,6 +9,14 @@ apply plugin: 'com.android.library'
 logger.error("OS:");
 logger.error(org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem().isWindows() ? "yep" : "nee");
 
+if (org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem().isWindows()) {
+    def repoRoot = project.layout.projectDirectory.asFile.getParentFile().getParentFile().getParentFile().getAbsolutePath()
+    def proc = ("cmd /c " + repoRoot + "\\test-git.bat /q").execute()
+    proc.waitForProcessOutput(System.out, System.err)
+    if (proc.exitValue() != 0)
+        throw new GradleScriptException("git repository clone consistency check failed", null);
+}
+
 def getUnixPathEquivalent(afile) {
     if (!afile.exists())
         throw new GradleScriptException("File does not exist: " + afile, null);

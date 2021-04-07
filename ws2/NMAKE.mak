@@ -45,7 +45,7 @@ CLEANFILES=	$(CLEANFILES) *.pdb
 !ENDIF
 
 !IF [..$(BKSL)..$(BKSL)test-git.bat /q]
-!ERROR clone the repository with symlinks enabled
+!ERROR git repository clone consistency check failed
 !ENDIF
 
 !IFNDEF CC
