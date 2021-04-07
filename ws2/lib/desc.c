@@ -36,5 +36,3 @@ ECNBITS_EXPORTAPI const char *ecnbits_meanings[4] = {
 	"ECN-capable; L4S: legacy transport",
 	"congestion experienced"
 };
-
-const char x[] __attribute__((__used__)) = "FILE here: <" __FILE__ ">";
