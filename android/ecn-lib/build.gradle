@@ -1,3 +1,8 @@
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+
+import java.nio.file.Files
+import java.nio.file.Paths
+
 apply plugin: 'com.android.library'
 apply plugin: 'de.mannodermaus.android-junit5'
 
@@ -9,27 +14,30 @@ apply plugin: 'de.mannodermaus.android-junit5'
 // apparently, there’s no standardised way to declare the project licence in Gradle:
 // https://discuss.gradle.org/t/how-to-declare-a-license-for-a-gradle-project/26114
 
-if (org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem().isWindows()) {
-    def repoRoot = project.layout.projectDirectory.asFile.getParentFile().getParentFile().getAbsolutePath()
+if (DefaultNativePlatform.currentOperatingSystem.windows) {
+    def repoRoot = project.layout.projectDirectory.asFile.parentFile.parentFile.absolutePath
     def proc = ("cmd /c " + repoRoot + "\\test-git.bat /q").execute()
     proc.waitForProcessOutput(System.out, System.err)
     if (proc.exitValue() != 0)
-        throw new GradleScriptException("git repository clone consistency check failed", null);
+        throw new GradleScriptException("git repository clone consistency check failed", null)
 }
 
-def getUnixPathEquivalent(afile) {
+static def checkPathSameness(final File f, final String s, final String msg) {
+    if (!Files.isSameFile(f.toPath(), Paths.get(s)))
+        throw new GradleScriptException(String.format(msg + " <%s>: %s", s, f), null)
+}
+
+static def getUnixPathEquivalent(final File afile) {
     if (!afile.exists())
-        throw new GradleScriptException("File does not exist: " + afile, null);
-    java.nio.file.Path p = afile.toPath()
-    String s = afile.getAbsolutePath()
-    if (!java.nio.file.Files.isSameFile(p, java.nio.file.Paths.get(s)))
-        throw new GradleScriptException(Strings.format("File does not match its absolute path <%s>: %s", s, afile));
-    if (org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem().isWindows()) {
-        s = s.replace('\\', '/');
+        throw new GradleScriptException("File does not exist: " + afile, null)
+    afile.toPath() // ensure it’s cached
+    String s = afile.absolutePath
+    checkPathSameness(afile, s, "File does not match its absolute path")
+    if (DefaultNativePlatform.currentOperatingSystem.windows) {
+        s = s.replace('\\', '/')
     }
-    if (!java.nio.file.Files.isSameFile(p, java.nio.file.Paths.get(s)))
-        throw new GradleScriptException(Strings.format("File cannot be converted to Unix path <%s>: %s", s, afile));
-    return s;
+    checkPathSameness(afile, s, "File cannot be converted to Unix path")
+    return s
 }
 
 def dirToplev = getUnixPathEquivalent(project.layout.projectDirectory.asFile)
@@ -121,7 +129,7 @@ task buildGMakeNativeNoNDK(type: Exec) {
 }
 
 project.afterEvaluate {
-    if (org.gradle.internal.os.OperatingSystem.current().isLinux()) {
+    if (org.gradle.internal.os.OperatingSystem.current().linux) {
         testDebugUnitTest {
             dependsOn buildGMakeNativeNoNDK
             systemProperty "java.library.path", dirForNativeNoNDK.asFile.absolutePath + ":" + System.getProperty("java.library.path")
