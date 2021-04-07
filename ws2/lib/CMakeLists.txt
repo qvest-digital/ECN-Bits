@@ -76,7 +76,7 @@ target_link_libraries(ecn-bitw -Wl,-z,relro -Wl,-z,now -Wl,--as-needed)
 
 check_c_compiler_flag(-ffile-prefix-map=a=b HAS_FILE_PREFIX_MAP)
 if (HAS_FILE_PREFIX_MAP)
-	add_definitions("-ffile-prefix-map=${TOPLEV}=«ECN-Bits»")
+	add_definitions("-ffile-prefix-map=${TOPLEV}=«ecn-bitw»")
 else (HAS_FILE_PREFIX_MAP)
 	# expected with NDK r21 (LTS), sadly
 	#message(WARNING "no support for -ffile-prefix-map in the compiler")
