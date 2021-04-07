@@ -42,7 +42,8 @@ Normal Maven invocations are used to compile this, that is:
 
 Maven shells out compilation of the JNI library; for this,
 mksh and cmake as well as a C and C++ compiler and headers
-for the JDK and the system libc must be made available.
+for the JDK and the system libc must be made available (and
+it builds on Linux only obviously).
 
 It’d probably be best if API for retrieving the traffic class
 could be added to OpenJDK directly.
