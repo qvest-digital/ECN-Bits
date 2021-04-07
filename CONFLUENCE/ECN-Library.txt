@@ -617,3 +617,9 @@ Download
  Due to the fact that the libraries themselves are rather small, and the
  extra usage examples are the primary value of the repository, no
  pre-compiled binaries are distributed.
+
+‣Note for users of git on Windows®
+
+ The git repository *must* be cloned with symbolic links *enabled*.
+
+	https://github.com/git-for-windows/git/wiki/Symbolic-Links
