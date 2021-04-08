@@ -71,6 +71,7 @@ jobs:
 
     - run: |
        : build jobs
+       ANDROID_NDK_HOME=x; unset ANDROID_NDK_HOME
        set -x +e
        rv=0
        (cd c && make clean && make) || rv=1
