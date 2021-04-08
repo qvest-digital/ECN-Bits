@@ -79,7 +79,7 @@ public abstract class AbstractECNBitsDatagramSocket extends DatagramSocket imple
      * {@inheritDoc}
      *
      * <hr>
-     * <h4 style="text-align:center;"><big>Important API note</big></h4>
+     * <h3 style="text-align:center;">Important API note</h3>
      * <p>It is <strong>mandatory</strong> to reset the DatagramPacket’s buffer
      * after each call to {@link #receive(DatagramPacket)} if the DatagramPacket
      * will be reused (such as for another receive call, send, etc.) because the
