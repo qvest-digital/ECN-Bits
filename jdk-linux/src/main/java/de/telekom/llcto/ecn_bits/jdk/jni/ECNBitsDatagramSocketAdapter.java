@@ -57,6 +57,8 @@ import java.nio.channels.UnsupportedAddressTypeException;
 
 /**
  * Makes a datagram-socket channel look like a datagram socket
+ *
+ * @author mirabilos (t.glaser@tarent.de)
  */
 class ECNBitsDatagramSocketAdapter extends AbstractECNBitsDatagramSocket {
     // The channel being adapted

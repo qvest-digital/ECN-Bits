@@ -4,7 +4,7 @@ package de.telekom.llcto.ecn_bits.android.lib;
  * Copyright © 2020
  *      mirabilos <t.glaser@tarent.de>
  * Copyright © 2014
- *	The Android Open Source Project
+ *      The Android Open Source Project
  * Copyright © 2000, 2001, 2012, 2013
  *      Oracle and/or its affiliates
  * Licensor: Deutsche Telekom
@@ -57,6 +57,8 @@ import java.nio.channels.UnsupportedAddressTypeException;
 
 /**
  * Makes a datagram-socket channel look like a datagram socket
+ *
+ * @author mirabilos (t.glaser@tarent.de)
  */
 class ECNBitsDatagramSocketAdapter extends AbstractECNBitsDatagramSocket {
     // The channel being adapted
