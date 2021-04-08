@@ -137,6 +137,11 @@ setting; if needed, the c/ (libecn-bits) version contains them.
 
 WSL 2, being a Linux virtual machine, suffers from neither restriction.
 
+Android is best served with the top-level c/ (for console applications,
+maybe statically linked with musl libc, or with bionic) or android/ for
+regular Java™ applications. The ws2/android/ build is mostly for Unity
+targetting Android; its built AAR can be reused elsewhere, though.
+
 ┌─────────────────────────────────────────────────────┐
 │ Extra functions for high-level language integration │
 └─────────────────────────────────────────────────────┘
