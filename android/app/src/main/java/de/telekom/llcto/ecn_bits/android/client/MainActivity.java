@@ -402,7 +402,8 @@ public class MainActivity extends AppCompatActivity {
                           .format(DateTimeFormatter.ISO_INSTANT);
                         final Byte trafficClass = sock.retrieveLastTrafficClass();
                         oneSuccess = true;
-                        final String userData = new String(buf, StandardCharsets.UTF_8);
+                        final String userData = new String(buf,
+                          precv.getOffset(), precv.getLength(), StandardCharsets.UTF_8);
                         final String logLine = String.format("• %s %s{%s}%s%s",
                           stamp, Bits.print(trafficClass),
                           trafficClass == null ? "??" : String.format("%02X", trafficClass),

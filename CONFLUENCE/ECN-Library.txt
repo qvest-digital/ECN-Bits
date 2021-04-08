@@ -587,7 +587,7 @@ XXX insert links to their documentation here
 	<dependency>
 		<groupId>de.telekom.llcto.ecn_bits.jdk</groupId>
 		<artifactId>jni</artifactId>
-		<version>0.2-SNAPSHOT</version>
+		<version>0.3-SNAPSHOT</version>
 	</dependency>
 
  Adjust the version to match the one in the jdk-linux/pom.xml file.
@@ -597,7 +597,7 @@ XXX insert links to their documentation here
 
  For gradle, this would be:
 
-	implementation 'de.telekom.llcto.ecn_bits.jdk:jni:0.2-SNAPSHOT'
+	implementation 'de.telekom.llcto.ecn_bits.jdk:jni:0.3-SNAPSHOT'
 
  It is also possible to add the solution as module to one’s own
  multi-module Maven project.

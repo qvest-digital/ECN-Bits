@@ -228,7 +228,8 @@ public final class ClientMain {
                       .format(DateTimeFormatter.ISO_INSTANT);
                     final Byte trafficClass = sock.retrieveLastTrafficClass();
                     oneSuccess = true;
-                    final String userData = new String(buf, StandardCharsets.UTF_8);
+                    final String userData = new String(buf,
+                      precv.getOffset(), precv.getLength(), StandardCharsets.UTF_8);
                     System.out.printf(/* what other client would you like it to look like? */
                       /* Android */ /* "• %s %s{%s}%n%s%n" */
                       /* C / CLI */ "%s %s{%s}<%s>%n",
