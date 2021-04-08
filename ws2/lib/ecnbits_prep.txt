@@ -90,7 +90,10 @@ CAVEATS
      It also works on Darwin (Mac OSX), except ecnbits_tc() cannot set the
      DSCP bits, only the ECN bits, on v4-mapped sockets.
 
+     EAFNOSUPPORT is used in its original POSIX meaning: The implementation
+     does not support the specified address family.
+
 LICENCE
      The MirOS Licence (short name: MirBSD)
 
-ECN-Bits                       October 29, 2020                       ECN-Bits
+ECN-Bits                        March 23, 2020                        ECN-Bits

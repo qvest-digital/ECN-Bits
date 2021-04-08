@@ -604,7 +604,10 @@ XXX insert links to their documentation here
 
  Everything else is identical to the Android solution.
 
- This has been tested with OpenJDK 11 but should run on JRE 8 and above.
+ This has been tested with OpenJDK 11 but should run on JRE 8 and above
+ but below 15 (because 15 ships JEP 373 which reimplements DatagramSocket).
+
+	https://openjdk.java.net/jeps/373
 
 Download
 

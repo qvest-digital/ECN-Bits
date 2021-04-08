@@ -108,7 +108,12 @@ LIBDIR?=	${PREFIX}/lib
 ifeq (/usr,${PREFIX})
 MANDIR?=	${PREFIX}/share/man
 else
+ifeq (dyld:/usr/local,${RTLD_TYPE}:${PREFIX})
+# manpath on Mac OSX only includes /usr/local/share/man, not /usr/local/man
+MANDIR?=	${PREFIX}/share/man
+else
 MANDIR?=	${PREFIX}/man
+endif
 endif
 BINOWN?=	0
 BINGRP?=	0
