@@ -35,9 +35,9 @@ dotnet_cscopts=-lib:$(dotnetlib) -r:netstandard.dll -r:Microsoft.CSharp.dll \
 			echo -r:$$x; \
 		done)
 
-LIB_NAME=	unmngd.dll
+LIB_NAME=	ecn-bitn.dll
 LIB_SRCS=	unmngd.cs monosupp.cs
-LIB_BUILD=	-t:library $(LIB_SRCS)
+LIB_BUILD=	-t:library -out:$(LIB_NAME) $(LIB_SRCS)
 PROG_NAME=	client
 PROG_SRCS=	client.cs
 PROG_BUILD=	-r:$(LIB_NAME) $(PROG_SRCS)

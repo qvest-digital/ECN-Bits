@@ -106,7 +106,7 @@ internal static class Unmanaged {
 			return;
 		}
 		// search for Unmanaged.LIB (ecn-bitw.dll) in a subdirectory
-		// below where this .net managed library (unmngd.dll) is located
+		// below where this (managed) library (ecn-bitn.dll) is located
 		if (!SetDllDirectory(System.IO.Path.Combine(mydir, arch)))
 			throw new System.ComponentModel.Win32Exception();
 	}
