@@ -188,10 +188,10 @@ and derivatives (such as Ubuntu), use the Multi-Arch directories, e.g.
 and /usr/local/lib/arm-linux-gnueabi/ etc. so that the system dynamic
 loader will find them.
 
-For Android, go to ../ws2/android/ then run ./gradlew build which will
-create an AAR containing shared objects, NDK-built, suitable for all
-Android platforms. This is used, for example, by Unity on Android; if
-installed correctly, bionic ld.so loads the right DLL automatically.
+For Android, an AAR containing NDK-built shared objects suitable for
+autoloading by the bionic shared loader on all Android architectures
+can be built by “make aar” (or “nmake aar”). This is used by Unity
+targetting Android, for example.
 
 ┌───────────────────┐
 │ Using the library │

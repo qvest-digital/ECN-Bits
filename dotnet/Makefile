@@ -61,6 +61,7 @@ all:
 	@echo Linux: make dotnet, make mono, make clean
 	@echo invoke with: args=$Qhost port$Q
 	@echo nmake windll or make gnulinux to rebuild the DLLs
+	@echo nmake aar or make aar to crossbuild the DLLs for Android
 
 clean:
 	rm -rf armhf arm64 amd64 i386
@@ -147,5 +148,6 @@ dotnethelp:
 LSL=ls -l
 DIR=$(LSL:^ls -l=dir)
 aar:
+	@..$(SL)test-git /q
 	cd ..$(SL)ws2$(SL)android && .$(SL)gradlew build
 	$(DIR) ..$(SL)ws2$(SL)android$(SL)aar$(SL)build$(SL)outputs$(SL)aar$(SL)
