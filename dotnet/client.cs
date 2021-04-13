@@ -45,6 +45,7 @@ private static bool Do(IPAddress addr, Int32 port) {
 		Console.WriteLine("received message from " + ep);
 		Console.WriteLine("content: " + utf8enc.GetString(recvbuf));
 	}
+	client.Dispose();
 	return ok;
 }
 
