@@ -57,13 +57,16 @@ ecnbits_recv(SOCKET s, void *buf, size_t buflen, int flags, unsigned short *e)
 		errno = WSAEMSGSIZE;
 		return ((SSIZE_T)-1);
 	}
+#define BUFLEN_CAST (int)
+#else
+#define BUFLEN_CAST /* nothing */
 #endif
 
 	if (!e)
-		return recv(s, buf, buflen, flags);
+		return (recv(s, buf, BUFLEN_CAST buflen, flags));
 
 	io.iov_base = buf;
-	io.iov_len = buflen;
+	io.iov_len = BUFLEN_CAST buflen;
 
 	memset(&m, 0, sizeof(m));
 	m.msg_iov = &io;
