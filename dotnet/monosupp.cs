@@ -33,10 +33,20 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace ECNBits.DotNet.Experiment {
+namespace ECNBits {
 
+/*
+ * SocketException except, when run on Mono on not-Windows®,
+ * we must use a subclass to pass the correct error code on…
+ */
 public class MonoSocketException : SocketException {
 	#region factory
+	/*
+	 * Use this factory instead of a constructor
+	 *
+	 * Calling “MonoSocketException.NewSocketException()”
+	 * replaces “new SocketException()” in all semantics.
+	 */
 	internal static SocketException NewSocketException() {
 		if (NoMonoSupportNeeded)
 			return new SocketException();
@@ -47,6 +57,10 @@ public class MonoSocketException : SocketException {
 	#endregion
 
 	#region implementation
+	/*
+	 * Internals, implementing the SocketException subclass
+	 */
+
 	// use the factory method instead
 	private MonoSocketException(int eno, int errorCode) : base(errorCode) {
 		ErrnoValue = eno;
@@ -63,10 +77,13 @@ public class MonoSocketException : SocketException {
 	// cf. https://stackoverflow.com/a/27500564/2171120
 	#endregion
 
-	#region overridden_impl
+	#region overridden ToString implementation
 	// from Mono’s external/corefx/src/Microsoft.Win32.Primitives/src/System/ComponentModel/Win32Exception.cs
 	private const int E_FAIL = unchecked((int)0x80004005);
 
+	/*
+	 * Slightly patched version of SocketException.ToString()
+	 */
 	public override string ToString() {
 		string message = Message;
 		string className = GetType().ToString();
@@ -102,6 +119,12 @@ public class MonoSocketException : SocketException {
 	#region MonoSupportNeeded
 	internal static readonly bool NoMonoSupportNeeded;
 
+	/*
+	 * Once-only check whether this is even needed
+	 *
+	 * Initialises NoMonoSupportNeeded, true if Windows® or not Mono
+	 * or running under a Mono with bug#20958 fixed…
+	 */
 	static MonoSocketException() {
 		ecnhll_mono_test();
 		var se = new SocketException();
@@ -111,6 +134,11 @@ public class MonoSocketException : SocketException {
 	#endregion
 
 	#region native
+	/*
+	 * Mapping native (unmanaged) code as used above;
+	 * see unmngd.cs for the actual ECNBits prod code
+	 */
+
 	[DllImport(Unmanaged.LIB, CallingConvention=CallingConvention.Cdecl, SetLastError=true)]
 	internal static extern void ecnhll_mono_test();
 
