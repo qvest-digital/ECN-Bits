@@ -1,3 +1,10 @@
+LIB_NAME=	unmngd.dll
+LIB_SRCS=	unmngd.cs monosupp.cs
+LIB_BUILD=	-t:library $(LIB_SRCS)
+PROG_NAME=	exp
+PROG_SRCS=	exp.cs
+PROG_BUILD=	-r:$(LIB_NAME) $(PROG_SRCS)
+
 # GNU make and nmake compatible, except clean
 BKSL=^\
 
@@ -19,10 +26,11 @@ all:
 	@echo choose one:
 	@echo Windows: nmake win, nmake del
 	@echo Linux: make dotnet, make mono, make clean
+	@echo nmake windll or make gnulinux to rebuild the DLLs
 
 clean:
 	rm -rf armhf arm64 amd64 i386
-	rm -f *.dll *.exe *.runtimeconfig.json *.so *.so.*
+	rm -f *.dll *.exe *.runtimeconfig.json *.so *.so.* *.stp
 
 del:
 	-cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
@@ -31,6 +39,7 @@ del:
 	if exist *.exe (del *.exe)
 	if exist *.lib (del *.lib)
 	if exist *.obj (del *.obj)
+	if exist *.stp (del *.stp)
 	@..$(BKSL)test-git.bat /q
 
 windll:
@@ -57,36 +66,44 @@ windll:
 	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE)
 	copy ..$(BKSL)ws2$(BKSL)bin$(BKSL)ecn-bitw.dll i386$(BKSL)
 	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
+	@echo stamp >windll.stp
 	REM --- Windows DLLs built for all architectures
 
-win: windll
+windll.stp:
+	$(MAKE) windll
+
+win: windll.stp
 	..$(BKSL)test-git.bat /q
-	csc -t:library unmngd.cs monosupp.cs
-	csc -r:unmngd.dll exp.cs
-	REM or: csc -platform:anycpu32bitpreferred -r:unmngd.dll exp.cs
-	exp
+	csc $(LIB_BUILD)
+	csc $(PROG_BUILD)
+	REM or: csc -platform:anycpu32bitpreferred $(PROG_BUILD)
+	$(PROG_NAME)
 
 gnulinux:
 	-cd ../ws2/lib && $(MAKE) clean
 	cd ../ws2/lib && $(MAKE)
 	cp -a ../ws2/lib/libecn-bitw.so ../ws2/lib/libecn-bitw.so.* ./
 	-cd ../ws2/lib && $(MAKE) clean
+	@echo stamp >gnulnx.stp
 
-dotnet: gnulinux
+gnulnx.stp:
+	$(MAKE) gnulinux
+
+dotnet: gnulnx.stp
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
-	    -r:Microsoft.Win32.Primitives.dll -t:library unmngd.cs monosupp.cs
+	    -r:Microsoft.Win32.Primitives.dll $(LIB_BUILD)
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
-	    -r:Microsoft.Win32.Primitives.dll -r:unmngd.dll exp.cs
+	    -r:Microsoft.Win32.Primitives.dll $(PROG_BUILD)
 	echo '{"runtimeOptions":{"framework":{"name":"Microsoft.NETCore.App","version":"$(fwkver)"}}}' \
 	    >exp.runtimeconfig.json
 	LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
-	    dotnet exp.exe
+	    dotnet $(PROG_NAME).exe
 
-mono: gnulinux
-	mono-csc -t:library unmngd.cs monosupp.cs
-	mono-csc -r:unmngd.dll exp.cs
+mono: gnulnx.stp
+	mono-csc $(LIB_BUILD)
+	mono-csc $(PROG_BUILD)
 	LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
-	    mono exp.exe
+	    mono $(PROG_NAME).exe
 
 dotnethelp:
 	$(dotnet_csc) -help
