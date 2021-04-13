@@ -107,7 +107,7 @@ win: windll.stp
 	csc $(LIB_BUILD)
 	csc $(PROG_BUILD)
 	REM or: csc -platform:anycpu32bitpreferred $(PROG_BUILD)
-	$(PROG_NAME) $(args)
+	if not "$(args: =)"=="" $(PROG_NAME) $(args)
 
 gnulinux:
 	-cd ../ws2/lib && $(MAKE) clean
@@ -126,13 +126,15 @@ dotnet: gnulnx.stp
 	    -r:Microsoft.Win32.Primitives.dll $(PROG_BUILD)
 	echo '{"runtimeOptions":{"framework":{"name":"Microsoft.NETCore.App","version":"$(fwkver)"}}}' \
 	    >$(PROG_NAME).runtimeconfig.json
-	LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
+	test -z '$(args:'='\'')' || \
+	    LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
 	    dotnet $(PROG_NAME).exe $(args)
 
 mono: gnulnx.stp
 	mono-csc $(LIB_BUILD)
 	mono-csc $(PROG_BUILD)
-	LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
+	test -z '$(args:'='\'')' || \
+	    LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
 	    mono $(PROG_NAME).exe $(args)
 
 dotnethelp:
