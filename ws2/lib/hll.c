@@ -31,7 +31,6 @@
 #include <netinet/ip.h>
 #endif
 #include <errno.h>
-#include <stdio.h>
 
 #include "ecn-bitw.h"
 
@@ -46,7 +45,6 @@
 ECNBITS_EXPORTAPI int
 ecnhll_prep(SOCKET socketfd, int af)
 {
-fprintf(stderr, "D: ecnhll_prep(%016llX, %d)\n", (unsigned long long)socketfd, af);
 	return (ecnbits_prep(socketfd, af == 6 ? AF_INET6 :
 	    af == 4 ? AF_INET : 0));
 }
