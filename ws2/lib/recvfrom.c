@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #if defined(_WIN32) || defined(WIN32)
 #pragma warning(push,1)
+#include <limits.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #pragma warning(pop)
@@ -52,6 +53,15 @@ ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
 	struct iovec io;
 #endif
 	char cmsgbuf[ECNBITS_CMSGBUFLEN];
+
+#if defined(_WIN32) || defined(WIN32)
+	/* recv() takes an int, io.iov_len an ULONG, check for the smaller */
+	if ((unsigned long long)buflen >= (unsigned long long)INT_MAX) {
+		WSASetLastError(WSAEMSGSIZE);
+		errno = WSAEMSGSIZE;
+		return ((SSIZE_T)-1);
+	}
+#endif
 
 	if (!e)
 		return recvfrom(s, buf, buflen, flags, addr, addrlenp);
