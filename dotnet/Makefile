@@ -95,7 +95,7 @@ dotnet: gnulnx.stp
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
 	    -r:Microsoft.Win32.Primitives.dll $(PROG_BUILD)
 	echo '{"runtimeOptions":{"framework":{"name":"Microsoft.NETCore.App","version":"$(fwkver)"}}}' \
-	    >exp.runtimeconfig.json
+	    >$(PROG_NAME).runtimeconfig.json
 	LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
 	    dotnet $(PROG_NAME).exe
 
