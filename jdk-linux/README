@@ -1,4 +1,9 @@
-See ../README for what this is all about.
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ECN-Bits • Java™ library for OpenJDK on Linux ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+See ../README for what this is all about,
+and ../android/README for the implementation this one is derived from.
 
 Welcome to the OpenJDK/Linux implementation! This library is
 specific to the Linux kernel, including WSL 2, because it’s
