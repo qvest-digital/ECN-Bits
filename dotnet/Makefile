@@ -1,12 +1,25 @@
-LIB_NAME=	unmngd.dll
-LIB_SRCS=	unmngd.cs monosupp.cs
-LIB_BUILD=	-t:library $(LIB_SRCS)
-PROG_NAME=	exp
-PROG_SRCS=	exp.cs
-PROG_BUILD=	-r:$(LIB_NAME) $(PROG_SRCS)
-
-# GNU make and nmake compatible, except clean
-BKSL=^\
+# -*- mode: make -*-
+#-
+# Copyright © 2021
+#	mirabilos <t.glaser@tarent.de>
+# Licensor: Deutsche Telekom
+#
+# Provided that these terms and disclaimer and all copyright notices
+# are retained or reproduced in an accompanying document, permission
+# is granted to deal in this work without restriction, including un‐
+# limited rights to use, publicly perform, distribute, sell, modify,
+# merge, give away, or sublicence.
+#
+# This work is provided “AS IS” and WITHOUT WARRANTY of any kind, to
+# the utmost extent permitted by applicable law, neither express nor
+# implied; without malicious intent or gross negligence. In no event
+# may a licensor, author or contributor be held liable for indirect,
+# direct, other damage, loss, or other issues arising in any way out
+# of dealing in the work, even if advised of the possibility of such
+# damage or existence of a defect, except proven that it results out
+# of said person’s immediate fault when using the work as intended.
+#-
+# GNU make and nmake compatible except clean (Unix) vs. del (CMD)
 
 # sdkver=$(dotnet --version)
 sdkver=5.0.201
@@ -22,10 +35,27 @@ dotnet_cscopts=-lib:$(dotnetlib) -r:netstandard.dll -r:Microsoft.CSharp.dll \
 			echo -r:$$x; \
 		done)
 
+LIB_NAME=	unmngd.dll
+LIB_SRCS=	unmngd.cs monosupp.cs
+LIB_BUILD=	-t:library $(LIB_SRCS)
+PROG_NAME=	client
+PROG_SRCS=	client.cs
+PROG_BUILD=	-r:$(LIB_NAME) $(PROG_SRCS)
+
+# backslash (for DOS pathnames)
+BKSL=^\
+
+# ↑ above line intentionally left blank!
+
+# echo doublequote
+QCHARPRE=\"
+Q=$(QCHARPRE:^\=)
+
 all:
 	@echo choose one:
 	@echo Windows: nmake win, nmake del
 	@echo Linux: make dotnet, make mono, make clean
+	@echo invoke with: args=$Qhost port$Q
 	@echo nmake windll or make gnulinux to rebuild the DLLs
 
 clean:
@@ -77,7 +107,7 @@ win: windll.stp
 	csc $(LIB_BUILD)
 	csc $(PROG_BUILD)
 	REM or: csc -platform:anycpu32bitpreferred $(PROG_BUILD)
-	$(PROG_NAME)
+	$(PROG_NAME) $(args)
 
 gnulinux:
 	-cd ../ws2/lib && $(MAKE) clean
@@ -97,13 +127,13 @@ dotnet: gnulnx.stp
 	echo '{"runtimeOptions":{"framework":{"name":"Microsoft.NETCore.App","version":"$(fwkver)"}}}' \
 	    >$(PROG_NAME).runtimeconfig.json
 	LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
-	    dotnet $(PROG_NAME).exe
+	    dotnet $(PROG_NAME).exe $(args)
 
 mono: gnulnx.stp
 	mono-csc $(LIB_BUILD)
 	mono-csc $(PROG_BUILD)
 	LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
-	    mono $(PROG_NAME).exe
+	    mono $(PROG_NAME).exe $(args)
 
 dotnethelp:
 	$(dotnet_csc) -help
