@@ -172,7 +172,15 @@ ecnbits_rdmsg(SOCKET s, LPWSAMSG msgh, int flags, unsigned short *e)
 			}
 			break;
 		}
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4116)
+#pragma warning(disable:4820)
+#endif
 		cmsg = CMSG_NXTHDR(msgh, cmsg);
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 #ifdef DEBUG
 		if (!cmsg)
 			fprintf(stderr, "D: end of cmsgs\n");
