@@ -186,6 +186,9 @@ ecnbits_rdmsg(SOCKET s, LPWSAMSG msgh, int flags, unsigned short *e)
 #endif
 	}
 
+#if defined(_WIN32) || defined(WIN32)
+	WSASetLastError(0);
+#endif
 	errno = 0;
 	return (rv);
 }
