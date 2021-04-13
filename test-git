@@ -5,7 +5,7 @@ if test x"$(cat .symlink.tst 2>&1)" = x"meow"; then
 	    been cloned with symlinks enabled, ok.
 	exit 0
 fi
-echo >&2 '
+echo >&2 "
 ==================================================
 THIS GIT REPOSITORY IS *NOT* CHECKED OUT CORRECTLY
 ==================================================
@@ -17,5 +17,6 @@ information on how to do that (including using gpedit
 as https://www.joshkel.com/2018/01/18/symlinks-in-windows/
 describes, or setting Windows 10 (1703 or newer) to
 Developer Mode). Then, erase this directory and clone
-it again (then run this script again to verify it's right).'
+it again (then run this script again to verify it's right).
+"
 exit 1
