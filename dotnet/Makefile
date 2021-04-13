@@ -47,6 +47,10 @@ BKSL=^\
 
 # ↑ above line intentionally left blank!
 
+# path slash
+SLPRE=/
+SL=$(SLPRE:^/=^\)
+
 # echo doublequote
 QCHARPRE=\"
 Q=$(QCHARPRE:^\=)
@@ -139,3 +143,9 @@ mono: gnulnx.stp
 
 dotnethelp:
 	$(dotnet_csc) -help
+
+LSL=ls -l
+DIR=$(LSL:^ls -l=dir)
+aar:
+	cd ..$(SL)ws2$(SL)android && .$(SL)gradlew build
+	$(DIR) ..$(SL)ws2$(SL)android$(SL)aar$(SL)build$(SL)outputs$(SL)aar$(SL)
