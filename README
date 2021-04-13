@@ -89,8 +89,8 @@ git clone -c core.symlinks=true https://github.com/tarent/ECN-Bits.git
   ! the outgoing traffic class cannot, at all, be set on Windows and WSL 1
   - so the examples don’t do it, the server just sends back one packet
   - functions dealing with setting the outgoing tc were also removed
-  : Status: complete and builds a Windows DLL
-    HLL support functions under development in a separate branch
+  : Status: complete and builds a .dylib/.so/.DLL also used by .net library
+    HLL support functions under development
   ! WSL 2 in theory would work better than WSL 1 (as it uses the native
     Linux network stack) but the hypervisor side breaks networking in
     too many cases (no IPv6 support (up to that syscalls fail), lack of
@@ -100,13 +100,14 @@ git clone -c core.symlinks=true https://github.com/tarent/ECN-Bits.git
 – Windows, C++/UWP
   • implemented through linking the C/CLI library into the application
 
-– Windows, C♯/.net
-  • planning, experimenting
+– Windows/Linux, C♯/.net including Mono (also VB.net and other CLR languages)
+  ‣ see dotnet/README
+  • being under development
 
 – iOS (Apple)
   • pre-planning
 
-– Windows/Linux, Unity (game engine)/C♯/Mono
+– Windows/Android, Unity (game engine)/C♯/Mono
   • being under development
 
 ┌────────────────┐
