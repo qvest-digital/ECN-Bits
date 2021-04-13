@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -119,7 +119,6 @@ ecnbits_rdmsg(SOCKET s, LPWSAMSG msgh, int flags, unsigned short *e)
 {
 	struct cmsghdr *cmsg;
 	SSIZE_T rv;
-	int eno;
 
 	*e = ECNBITS_INVALID_BIT;
 
@@ -131,7 +130,7 @@ ecnbits_rdmsg(SOCKET s, LPWSAMSG msgh, int flags, unsigned short *e)
 	rv = recvmsg(s, msgh, flags);
 	if (rv == (SSIZE_T)-1)
 		return (rv);
-	eno = errno;
+	/* assert: errno == 0 */
 
 	cmsg = CMSG_FIRSTHDR(msgh);
 #ifdef DEBUG
@@ -187,6 +186,6 @@ ecnbits_rdmsg(SOCKET s, LPWSAMSG msgh, int flags, unsigned short *e)
 #endif
 	}
 
-	errno = eno;
+	errno = 0;
 	return (rv);
 }
