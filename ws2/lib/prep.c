@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -40,12 +40,15 @@ ECNBITS_EXPORTAPI int
 ecnbits_prep(SOCKET socketfd, int af)
 {
 	switch (af) {
+#if AF_INET != 0
 	case AF_INET:
 		if (setsockopt(socketfd, IPPROTO_IP, IP_RECVTOS,
 		    (const void *)&on, sizeof(on))) {
 			return (2);
 		}
 		break;
+#endif
+#if AF_INET6 != 0
 	case AF_INET6:
 		if (setsockopt(socketfd, IPPROTO_IPV6, IPV6_RECVTCLASS,
 		    (const void *)&on, sizeof(on))) {
@@ -56,6 +59,7 @@ ecnbits_prep(SOCKET socketfd, int af)
 			return (1);
 		}
 		break;
+#endif
 	default:
 #if defined(_WIN32) || defined(WIN32)
 		WSASetLastError(WSAEAFNOSUPPORT);

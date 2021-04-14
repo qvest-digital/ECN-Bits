@@ -34,6 +34,7 @@
 
 #include "ecn-bitw.h"
 
+#if (AF_INET != -1) && (AF_INET6 != -1)
 /*
  * Wraps ecnbits_prep() for high-level languages.
  *
@@ -48,3 +49,6 @@ ecnhll_prep(SOCKET socketfd, int af)
 	return (ecnbits_prep(socketfd, af == 6 ? AF_INET6 :
 	    af == 4 ? AF_INET : 0));
 }
+#else
+# error AF_INET or AF_INET6 conflict with the error af value
+#endif
