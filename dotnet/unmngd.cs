@@ -65,6 +65,8 @@ public static class ECNBits {
 	internal static void ThrowSocketException(Socket socket) {
 		var e = MonoSocketException.NewSocketException();
 
+		if (NetEventSource.Log.IsEnabled())
+			NetEventSource.Error(socket, e);
 		// here, we *really* must do…
 		//socket.UpdateStatusAfterSocketError(e.SocketErrorCode);
 		// … which we cannot because it’s internal/private ☹
