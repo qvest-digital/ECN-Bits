@@ -59,6 +59,8 @@ public static class ECNBits {
 	internal static IntPtr SocketHandle(Socket socket) {
 		SafeSocketHandle handle = socket.SafeHandle;
 
+		if (handle.IsInvalid)
+			throw new ObjectDisposedException(socket.GetType().FullName);
 		return handle.DangerousGetHandle();
 	}
 
