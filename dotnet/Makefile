@@ -68,7 +68,7 @@ clean:
 	rm -f *.dll *.exe *.runtimeconfig.json *.so *.so.* *.stp
 
 del:
-	-cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
+	-cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo clean
 	-rd /s /q armhf arm64 amd64 i386 2>nul
 	if exist *.dll (del *.dll)
 	if exist *.exe (del *.exe)
@@ -79,39 +79,39 @@ del:
 
 windll:
 	..$(BKSL)test-git.bat /q
-	-cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
+	-cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo clean
 	-rd /s /q armhf arm64 amd64 i386 2>nul
 	md armhf
 	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_arm && \
-	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE)
+	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo
 	copy ..$(BKSL)ws2$(BKSL)bin$(BKSL)ecn-bitw.dll armhf$(BKSL)
-	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
+	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo clean
 	md arm64
 	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_arm64 && \
-	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE)
+	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo
 	copy ..$(BKSL)ws2$(BKSL)bin$(BKSL)ecn-bitw.dll arm64$(BKSL)
-	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
+	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo clean
 	md amd64
 	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_amd64 && \
-	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE)
+	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo
 	copy ..$(BKSL)ws2$(BKSL)bin$(BKSL)ecn-bitw.dll amd64$(BKSL)
-	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
+	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo clean
 	md i386
 	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86 && \
-	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE)
+	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo
 	copy ..$(BKSL)ws2$(BKSL)bin$(BKSL)ecn-bitw.dll i386$(BKSL)
-	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) clean
+	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo clean
 	@echo stamp >windll.stp
-	REM --- Windows DLLs built for all architectures
+	rem --- Windows DLLs built for all architectures
 
 windll.stp:
-	$(MAKE) windll
+	$(MAKE) /nologo windll
 
 win: windll.stp
 	..$(BKSL)test-git.bat /q
 	csc $(LIB_BUILD)
 	csc $(PROG_BUILD)
-	REM or: csc -platform:anycpu32bitpreferred $(PROG_BUILD)
+	rem or: csc -platform:anycpu32bitpreferred $(PROG_BUILD)
 	if not "$(args: =)"=="" $(PROG_NAME) $(args)
 
 gnulinux:

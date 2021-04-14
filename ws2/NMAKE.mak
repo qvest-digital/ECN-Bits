@@ -32,15 +32,15 @@ all:
 
 BKSL=^\
 
-!IF [cmd /C IF EXIST *.obj exit 1]
+!IF [cmd /c if exist *.obj exit 1]
 CLEANFILES=	$(CLEANFILES) *.obj
 !ENDIF
 
-!IF [cmd /C IF EXIST *.ilk exit 1]
+!IF [cmd /c if exist *.ilk exit 1]
 CLEANFILES=	$(CLEANFILES) *.ilk
 !ENDIF
 
-!IF [cmd /C IF EXIST *.pdb exit 1]
+!IF [cmd /c if exist *.pdb exit 1]
 CLEANFILES=	$(CLEANFILES) *.pdb
 !ENDIF
 
@@ -105,9 +105,9 @@ DPADD=		../lib/ecn-bitw.lib
 !ENDIF
 all: $(PROG).exe
 $(PROG).exe: $(OBJS) $(DPADD)
-	IF EXIST ..$(BKSL)BIN$(BKSL)$@ (DEL ..$(BKSL)BIN$(BKSL)$@)
+	if exist ..$(BKSL)BIN$(BKSL)$@ (del ..$(BKSL)BIN$(BKSL)$@)
 	$(CC) $(CFLAGS) $(LDFLAGS) /Fe$@ $(OBJS) $(LIBS) /link $(LINKFLAGS)
-	COPY $@ ..$(BKSL)BIN$(BKSL)$@
+	copy $@ ..$(BKSL)BIN$(BKSL)$@
 !ENDIF
 
 !IFDEF MKLIB
@@ -133,9 +133,9 @@ DPADD=
 LIBS=		$(LIBS) Ws2_32.lib
 all: $(MKLIB).dll
 $(MKLIB).dll: $(OBJS) $(MKLIB).def $(DPADD)
-	IF EXIST ..$(BKSL)BIN$(BKSL)$@ (DEL ..$(BKSL)BIN$(BKSL)$@)
+	if exist ..$(BKSL)BIN$(BKSL)$@ (del ..$(BKSL)BIN$(BKSL)$@)
 	$(CC) $(CFLAGS) $(LDFLAGS) /LD /Fe$@ $(OBJS) $(LIBS) /link /DEF:$(MKLIB).def /IMPLIB:$(MKLIB)_imp.lib $(LINKFLAGS)
-	COPY $@ ..$(BKSL)BIN$(BKSL)$@
+	copy $@ ..$(BKSL)BIN$(BKSL)$@
 !ELSE
 all: $(MKLIB).lib
 $(MKLIB).lib: $(OBJS) $(DPADD)
