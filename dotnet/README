@@ -177,8 +177,7 @@ multi-architecture support, that part must be (cross‑)compiled for
 each architecture to support. This can be achieved by compiling it
 manually: go to ../ws2/lib/ and run make clean followed by…
 
-$ make CC=arm-linux-gnueabi-gcc AR=arm-linux-gnueabi-ar \
-    RANLIB=arm-linux-gnueabi-ranlib
+$ make NOSTATIC=Yes CC=arm-linux-gnueabi-gcc
 
 … or a similar command suitable to invoke the cross toolchain.
 

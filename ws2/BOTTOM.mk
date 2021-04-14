@@ -44,16 +44,20 @@ SOBJS?=		${OBJS:.o=.so}
 
 ifdef LIB
 DPADD?=
+ifeq (,$(filter yes yeS yEs yES Yes YeS YEs YES,${NOSTATIC}))
 LIBINSTFILES+=	lib${LIB}.a
 all: lib${LIB}.a
+endif
 lib${LIB}.a: ${OBJS} ${DPADD}
 	${AR} rc $@ ${OBJS}
 	${RANLIB} $@
 
 ifeq (,$(filter yes yeS yEs yES Yes YeS YEs YES,${NOPIC}))
 CLEANFILES+=	${SOBJS}
+ifeq (,$(filter yes yeS yEs yES Yes YeS YEs YES,${NOSTATIC}))
 LIBINSTFILES+=	lib${LIB}_pic.a
 all: lib${LIB}_pic.a
+endif
 lib${LIB}_pic.a: ${SOBJS} ${DPADD}
 	${AR} rc $@ ${SOBJS}
 	${RANLIB} $@

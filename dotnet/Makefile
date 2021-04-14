@@ -116,7 +116,7 @@ win: windll.stp
 
 gnulinux:
 	-cd ../ws2/lib && $(MAKE) clean
-	cd ../ws2/lib && $(MAKE)
+	cd ../ws2/lib && $(MAKE) NOSTATIC=Yes
 	cp -a ../ws2/lib/libecn-bitw.so ../ws2/lib/libecn-bitw.so.* ./
 	-cd ../ws2/lib && $(MAKE) clean
 	@echo stamp >gnulnx.stp
