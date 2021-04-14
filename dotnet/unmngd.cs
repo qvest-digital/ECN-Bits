@@ -25,14 +25,15 @@ using System.Runtime.InteropServices;
 
 namespace ECNBits {
 
-#region wrappers
-/*
- * Managed code wrapping native code in proper exception handling
- */
 public static class ECNBits {
+	#region wrappers
+	/*
+	 * Managed code wrapping native code in proper exception handling
+	 */
 	public static int Prepare(Socket socket) {
 		int af;
 		int rv;
+		var sockfd = SocketHandle(socket);
 
 		switch (socket.AddressFamily) {
 		case AddressFamily.InterNetwork:
@@ -47,13 +48,19 @@ public static class ECNBits {
 			break;
 		}
 
-		rv = Unmanaged.ecnhll_prep(socket.Handle, af);
+		rv = Unmanaged.ecnhll_prep(sockfd, af);
 		if (rv >= 2)
 			throw MonoSocketException.NewSocketException();
 		return rv;
 	}
+	#endregion
+
+	#region helpers
+	internal static IntPtr SocketHandle(Socket socket) {
+		return socket.Handle;
+	}
+	#endregion
 }
-#endregion
 
 #region Socket extension
 public static class SocketExtension {
