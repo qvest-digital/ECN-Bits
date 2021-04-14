@@ -57,7 +57,9 @@ public static class ECNBits {
 
 	#region helpers
 	internal static IntPtr SocketHandle(Socket socket) {
-		return socket.Handle;
+		var handle = socket.SafeHandle;
+
+		return handle.DangerousGetHandle();
 	}
 	#endregion
 }
