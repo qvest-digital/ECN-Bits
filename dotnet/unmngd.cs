@@ -59,7 +59,8 @@ public static class ECNBits {
 	internal static IntPtr SocketHandle(Socket socket) {
 		SafeSocketHandle handle = socket.SafeHandle;
 
-		if (handle.IsInvalid)
+		// Socket.Disposed is unfortunately internal/private ☹
+		if (handle.IsInvalid /* || socket.Disposed */)
 			throw new ObjectDisposedException(socket.GetType().FullName);
 		return handle.DangerousGetHandle();
 	}
