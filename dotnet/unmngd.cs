@@ -50,7 +50,7 @@ public static class ECNBits {
 
 		rv = Unmanaged.ecnhll_prep(sockfd, af);
 		if (rv >= 2)
-			ThrowSocketException();
+			ThrowSocketException(socket);
 		return rv;
 	}
 	#endregion
@@ -62,9 +62,12 @@ public static class ECNBits {
 		return handle.DangerousGetHandle();
 	}
 
-	internal static void ThrowSocketException() {
+	internal static void ThrowSocketException(Socket socket) {
 		var e = MonoSocketException.NewSocketException();
 
+		// here, we *really* must do…
+		//socket.UpdateStatusAfterSocketError(e.SocketErrorCode);
+		// … which we cannot because it’s internal/private ☹
 		throw e;
 	}
 	#endregion
