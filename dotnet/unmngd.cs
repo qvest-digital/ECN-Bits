@@ -50,7 +50,7 @@ public static class ECNBits {
 
 		rv = Unmanaged.ecnhll_prep(sockfd, af);
 		if (rv >= 2)
-			throw MonoSocketException.NewSocketException();
+			ThrowSocketException();
 		return rv;
 	}
 	#endregion
@@ -60,6 +60,12 @@ public static class ECNBits {
 		var handle = socket.SafeHandle;
 
 		return handle.DangerousGetHandle();
+	}
+
+	internal static void ThrowSocketException() {
+		var e = MonoSocketException.NewSocketException();
+
+		throw e;
 	}
 	#endregion
 }
