@@ -31,3 +31,14 @@
     ‣ maybe we can just import the AAR instead?
   – now [DllImport("ecn-bitw")] “should just work”, let’s hope it
     selects the correct .so according to what platform it’s running on
+  - numerical	SocketFlags		flags
+	2	OutOfBand		MSG_OOB
+	1	Peek			MSG_PEEK
+  - Span<byte> bytes = stackalloc byte[length];
+  - ReadOnlySpan<int> span = new int[bufferSize];
+    fixed (int* ptr = &MemoryMarshal.GetReference(span)) {
+        return Native.Sum(Unsafe.AsRef<int>(ptr), (UIntPtr)span.Length);
+    }
+ vs fixed (int* ptr = span) {
+        return Native.Sum(ptr, span.Length);
+  - receive(0) → receive(1,|MSG_PEEK,&dummy_buf)
