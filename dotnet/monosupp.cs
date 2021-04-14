@@ -139,10 +139,10 @@ public class MonoSocketException : SocketException {
 	 * see unmngd.cs for the actual ECNBits prod code
 	 */
 
-	[DllImport(Unmanaged.LIB, CallingConvention=CallingConvention.Cdecl, SetLastError=true)]
+	[DllImport(Unmanaged.LIB, ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, SetLastError=true)]
 	internal static extern void ecnhll_mono_test();
 
-	[DllImport(Unmanaged.LIB, CallingConvention=CallingConvention.Cdecl)]
+	[DllImport(Unmanaged.LIB, ExactSpelling=true, CallingConvention=CallingConvention.Cdecl)]
 	internal static extern int ecnhll_mono_map(int errno);
 	#endregion
 }

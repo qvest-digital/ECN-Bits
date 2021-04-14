@@ -119,7 +119,7 @@ internal static class Unmanaged {
 
 	internal const string LIB = "ecn-bitw";
 
-	[DllImport(LIB, CallingConvention=CallingConvention.Cdecl, SetLastError=true)]
+	[DllImport(LIB, ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, SetLastError=true)]
 	internal static extern int ecnhll_prep(IntPtr socketfd, int af);
 	#endregion
 }
