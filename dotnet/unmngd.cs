@@ -17,7 +17,15 @@
  * of dealing in the work, even if advised of the possibility of such
  * damage or existence of a defect, except proven that it results out
  * of said person’s immediate fault when using the work as intended.
+ *-
+ * Define PROPER_DISPOSED_CHECK to correctly determine whether Socket
+ * was already disposed; this incurs a performance penalty so another
+ * method (unavailable on Mono) is normally used instead.
  */
+
+#if __MonoCS__
+#define PROPER_DISPOSED_CHECK
+#endif
 
 using System;
 using System.Net.Sockets;
@@ -57,12 +65,19 @@ public static class ECNBits {
 
 	#region helpers
 	internal static IntPtr SocketHandle(Socket socket) {
+#if PROPER_DISPOSED_CHECK
+		// this calls ThrowIfDisposed(); the backtrace will show
+		// GetSocketOption as first cause, but better than not doing it
+		socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Type);
+		return socket.Handle;
+#else
 		SafeSocketHandle handle = socket.SafeHandle;
 
 		// Socket.Disposed is unfortunately internal/private ☹
 		if (handle.IsInvalid /* || socket.Disposed */)
 			throw new ObjectDisposedException(socket.GetType().FullName);
 		return handle.DangerousGetHandle();
+#endif
 	}
 
 	internal static void ThrowSocketException(Socket socket) {
