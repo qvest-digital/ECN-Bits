@@ -32,4 +32,4 @@ mkdir -p "$top/target/native"
 set -x
 cd "$top/target/native"
 cmake -DTOPLEV="$top" "$top/src/main/native/"
-exec make
+exec make VERBOSE=1

@@ -125,7 +125,7 @@ task buildCMakeNativeNoNDK(type: Exec) {
 task buildGMakeNativeNoNDK(type: Exec) {
     dependsOn buildCMakeNativeNoNDK
     workingDir dirForNativeNoNDK
-    commandLine "/usr/bin/env", "make"
+    commandLine "/usr/bin/env", "make", "VERBOSE=1"
 }
 
 project.afterEvaluate {

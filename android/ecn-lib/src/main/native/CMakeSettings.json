@@ -1,0 +1,8 @@
+{
+  "configurations": [
+    {
+      "buildCommandArgs": "-v",
+      "name": "android-gradle-plugin-predetermined-name"
+    }
+  ]
+}
