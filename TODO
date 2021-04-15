@@ -29,6 +29,9 @@
     Android support and the correct CPU to each, according to
     https://docs.unity3d.com/Manual/AndroidNativePlugins.html
     ‣ maybe we can just import the AAR instead?
+  – Unity should not (currently) use stackalloc, apparently it’s
+    problematic in its VM; use #ifdef to heap-allocate (maybe use
+    a pool?) only on Unity, keeping stackalloc in proper .net/CLR?
   – now [DllImport("ecn-bitw")] “should just work”, let’s hope it
     selects the correct .so according to what platform it’s running on
   - numerical	SocketFlags		flags
