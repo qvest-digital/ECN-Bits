@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *	mirabilos <t.glaser@tarent.de>
  * Copyright © 2016, 2017
  *	mirabilos <m@mirbsd.org>
@@ -41,6 +41,10 @@ extern const char *__progname;
 #define RPLERR_PROGFMT	"%s"
 #endif
 
+#if defined(_WIN32) || defined(WIN32)
+static const char sEAF[] = "Address family not supported by protocol family";
+#endif
+
 static void
 vrpl_err(int docode, int code, const char *fmt, va_list ap)
 {
@@ -49,14 +53,22 @@ vrpl_err(int docode, int code, const char *fmt, va_list ap)
 		fprintf(stderr, ": ");
 		vfprintf(stderr, fmt, ap);
 	}
-	if (docode)
-		fprintf(stderr, ": %s\n",
+	if (docode) {
 #if defined(_WIN32) || defined(WIN32)
-		    code == WSAEAFNOSUPPORT ?
-		    "Address family not supported by protocol family" :
+		/* gaaah! */
+		char buf[88];
+		const char *errstr = buf;
+
+		if (code == WSAEAFNOSUPPORT)
+			errstr = sEAF;
+		else if (strerror_s(buf, sizeof(buf), code))
+			snprintf(buf, sizeof(buf),
+			    "Unknown error 0x%08X", code);
+		fprintf(stderr, ": %s\n", errstr);
+#else
+		fprintf(stderr, ": %s\n", strerror(code));
 #endif
-		    strerror(code));
-	else
+	} else
 		putc('\n', stderr);
 }
 

@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -216,7 +216,7 @@ do_packet(int s, unsigned int dscp)
 	static char data[512];
 	ssize_t len;
 	struct sockaddr_storage ss;
-	struct msghdr mh;
+	struct msghdr mh = {0};
 	struct iovec io;
 	unsigned short ecn;
 	time_t tt;
@@ -230,7 +230,6 @@ do_packet(int s, unsigned int dscp)
 	io.iov_base = data;
 	io.iov_len = sizeof(data) - 1;
 
-	memset(&mh, 0, sizeof(mh));
 	mh.msg_name = (void *)&ss;
 	mh.msg_namelen = sizeof(ss);
 	mh.msg_iov = &io;
@@ -244,7 +243,8 @@ do_packet(int s, unsigned int dscp)
 	data[len] = '\0';
 
 	time(&tt);
-	strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt));
+	if (strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt)) <= 0)
+		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
 
 	switch (mh.msg_flags & (MSG_TRUNC | MSG_CTRUNC)) {
 	case 0:

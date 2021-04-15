@@ -36,7 +36,7 @@
 ECNBITS_EXPORTAPI SSIZE_T
 ecnbits_recv(SOCKET s, void *buf, size_t buflen, int flags, unsigned short *e)
 {
-	WSAMSG m;
+	WSAMSG m = {0};
 #if defined(_WIN32) || defined(WIN32)
 	WSABUF io;
 #define iov_base buf
@@ -68,7 +68,6 @@ ecnbits_recv(SOCKET s, void *buf, size_t buflen, int flags, unsigned short *e)
 	io.iov_base = buf;
 	io.iov_len = BUFLEN_CAST buflen;
 
-	memset(&m, 0, sizeof(m));
 	m.msg_iov = &io;
 	m.msg_iovlen = 1;
 	m.msg_control = cmsgbuf;

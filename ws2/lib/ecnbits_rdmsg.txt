@@ -70,14 +70,13 @@ EXAMPLES
            char buf[512];
            unsigned short ecnresult;
            #if defined(_WIN32) || defined(WIN32)
-           WSAMSG msg;
+           WSAMSG msg = {0};
            WSABUF iov;
            #else
-           struct msghdr msg;
+           struct msghdr msg = {0};
            struct iovec iov;
            #endif
 
-           memset(&msg, 0, sizeof(msg));
            #if defined(_WIN32) || defined(WIN32)
            iov.buf = buf;
            iov.len = sizeof(buf);
@@ -124,4 +123,4 @@ CAVEATS
 LICENCE
      The MirOS Licence (short name: MirBSD)
 
-ECN-Bits                       October 29, 2020                       ECN-Bits
+ECN-Bits                        April 15, 2021                        ECN-Bits

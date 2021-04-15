@@ -53,10 +53,9 @@ EXAMPLES
      The following code fragment illustrates the usage:
 
            char buf[32];
-           WSAMSG msg;
+           WSAMSG msg = {0};
            WSABUF iov;
 
-           memset(&msg, 0, sizeof(msg));
            iov.buf = buf;
            iov.len = sizeof(buf);
            msg.lpBuffers = &iov;
@@ -91,4 +90,4 @@ CAVEATS
 LICENCE
      The MirOS Licence (short name: MirBSD)
 
-ECN-Bits                      September 28, 2020                      ECN-Bits
+ECN-Bits                        April 15, 2021                        ECN-Bits

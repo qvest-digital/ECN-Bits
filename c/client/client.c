@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -178,7 +178,7 @@ do_connect(int s, int af)
 
 	memcpy(buf, "hi!", 3);
 	if (use_sendmsg) {
-		struct msghdr mh;
+		struct msghdr mh = {0};
 		struct iovec io;
 		void *cmsgbuf;
 		size_t cmsgsz;
@@ -192,7 +192,6 @@ do_connect(int s, int af)
 		io.iov_base = buf;
 		io.iov_len = 3;
 
-		memset(&mh, 0, sizeof(mh));
 		mh.msg_iov = &io;
 		mh.msg_iovlen = 1;
 		mh.msg_control = cmsgbuf;
@@ -230,7 +229,8 @@ do_connect(int s, int af)
 		return (1);
 	}
 	time(&tt);
-	strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt));
+	if (strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt)) <= 0)
+		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
 	buf[n] = '\0';
 	if (n > 2 && buf[n - 1] == '\n') {
 		buf[n - 1] = '\0';

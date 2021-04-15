@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -295,10 +295,10 @@ do_packet(int s)
 	SSIZE_T len;
 	struct sockaddr_storage ss;
 #if defined(_WIN32) || defined(WIN32)
-	WSAMSG mh;
+	WSAMSG mh = {0};
 	WSABUF io;
 #else
-	struct msghdr mh;
+	struct msghdr mh = {0};
 	struct iovec io;
 #endif
 	unsigned short ecn;
@@ -307,11 +307,16 @@ do_packet(int s)
 	const char *trc;
 	int af;
 	char tcs[3];
+#if defined(_WIN32) || defined(WIN32)
+	struct tm tmptm;
+#define brokendowntime &tmptm
+#else
+#define brokendowntime gmtime(&tt)
+#endif
 
 	io.iov_base = data;
 	io.iov_len = sizeof(data) - 1;
 
-	memset(&mh, 0, sizeof(mh));
 	mh.msg_name = (void *)&ss;
 	mh.msg_namelen = sizeof(ss);
 	mh.msg_iov = &io;
@@ -325,7 +330,12 @@ do_packet(int s)
 	data[len] = '\0';
 
 	time(&tt);
-	strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt));
+	if ( /* gaaah! */
+#if defined(_WIN32) || defined(WIN32)
+	    gmtime_s(&tmptm, &tt) ||
+#endif
+	    strftime(tm, sizeof(tm), "%FT%TZ", brokendowntime) <= 0)
+		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
 
 	switch (mh.msg_flags & (MSG_TRUNC | MSG_CTRUNC)) {
 	case 0:

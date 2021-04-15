@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -226,6 +226,12 @@ do_connect(int s)
 	time_t tt;
 	char tm[21];
 	char tcs[3];
+#if defined(_WIN32) || defined(WIN32)
+	struct tm tmptm;
+#define brokendowntime &tmptm
+#else
+#define brokendowntime gmtime(&tt)
+#endif
 
 	memcpy(buf, "hi!", 3);
 	nsend = send(s, buf, 3, 0);
@@ -257,7 +263,12 @@ do_connect(int s)
 		return (1);
 	}
 	time(&tt);
-	strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt));
+	if ( /* gaaah! */
+#if defined(_WIN32) || defined(WIN32)
+	    gmtime_s(&tmptm, &tt) ||
+#endif
+	    strftime(tm, sizeof(tm), "%FT%TZ", brokendowntime) <= 0)
+		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
 	buf[nrecv] = '\0';
 	if (nrecv > 2 && buf[nrecv - 1] == '\n') {
 		buf[nrecv - 1] = '\0';
