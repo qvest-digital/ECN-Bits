@@ -34,7 +34,7 @@
 
 #include "ecn-bitw.h"
 
-#if (AF_INET != -1) && (AF_INET6 != -1)
+#if (AF_INET != 0) && (AF_INET6 != 0)
 /*
  * Wraps ecnbits_prep() for high-level languages.
  *
