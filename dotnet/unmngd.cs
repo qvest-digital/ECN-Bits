@@ -20,12 +20,11 @@
  *-
  * Define PROPER_DISPOSED_CHECK to correctly determine whether Socket
  * was already disposed; this incurs a performance penalty so another
- * method (unavailable on Mono) is normally used instead.
+ * method (unavailable on Mono) is normally used instead. Which seems
+ * to also be unavailable on Windows, same version of .NET as Linux…‽
  */
 
-#if __MonoCS__
 #define PROPER_DISPOSED_CHECK
-#endif
 
 using System;
 using System.Net.Sockets;
