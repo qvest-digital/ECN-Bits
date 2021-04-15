@@ -57,18 +57,26 @@ Q=$(QCHARPRE:^\=)
 !ENDIF
 
 all:
-	@echo choose one:
-	@echo Windows: nmake win, nmake del
-	@echo Linux: make dotnet, make mono, make clean
-	@echo invoke with: args=$Qhost port$Q
-	@echo nmake windll or make gnulinux to rebuild the DLLs
-	@echo nmake aar or make aar to crossbuild the DLLs for Android
+	@echo To build for Windows/Linux/Linux-Mono:
+	@echo nmake win, make dotnet, make mono
+	@echo To force rebuilding native DLLs:
+	@echo nmake windll, make gnulinux
+	@echo You can also run after building:
+	@echo make ... args=$Qhost port$Q
+	@echo Use nmake instead of make on Windows.
+	@echo Crossbuild DLLs for Android with: make aar
+	@echo To erase built files: make clean
 
-clean:
+CLEAN=unixclean
+clean: $(CLEAN:^unix=dos)
+	@..$Ytest-git /q
+
+unixclean:
+	-cd ../ws2/lib && $(MAKE) clean
 	rm -rf armhf arm64 amd64 i386
 	rm -f *.dll *.exe *.runtimeconfig.json *.so *.so.* *.stp
 
-del:
+dosclean:
 	-cd ..$Yws2$Ylib && $(MAKE) /nologo clean
 	-rd /s /q armhf arm64 amd64 i386 2>nul
 	if exist *.dll (del *.dll)
@@ -76,7 +84,6 @@ del:
 	if exist *.lib (del *.lib)
 	if exist *.obj (del *.obj)
 	if exist *.stp (del *.stp)
-	@..$Ytest-git /q
 
 windll:
 	..$Ytest-git /q
@@ -108,11 +115,15 @@ windll:
 windll.stp:
 	$(MAKE) /nologo windll
 
-win: windll.stp
+win: winbuild winrun
+
+winbuild: windll.stp
 	..$Ytest-git /q
 	csc -nologo $(LIB_BUILD)
 	csc -nologo $(PROG_BUILD)
 	rem or: csc -platform:anycpu32bitpreferred $(PROG_BUILD)
+
+winrun:
 	if not "$(args: =)"=="" $(PROG_NAME) $(args)
 
 gnulinux:
@@ -125,20 +136,28 @@ gnulinux:
 gnulnx.stp:
 	$(MAKE) gnulinux
 
-dotnet: gnulnx.stp
+dotnet: dotnetbuild dotnetrun
+
+dotnetbuild: gnulnx.stp
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
 	    -r:Microsoft.Win32.Primitives.dll $(LIB_BUILD)
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
 	    -r:Microsoft.Win32.Primitives.dll $(PROG_BUILD)
 	echo '{"runtimeOptions":{"framework":{"name":"Microsoft.NETCore.App","version":"$(fwkver)"}}}' \
 	    >$(PROG_NAME).runtimeconfig.json
+
+dotnetrun:
 	test -z '$(args:'='\'')' || \
 	    LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
 	    dotnet $(PROG_NAME).exe $(args)
 
-mono: gnulnx.stp
+mono: monobuild monorun
+
+monobuild: gnulnx.stp
 	mono-csc -nologo $(LIB_BUILD)
 	mono-csc -nologo $(PROG_BUILD)
+
+monorun:
 	test -z '$(args:'='\'')' || \
 	    LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
 	    mono $(PROG_NAME).exe $(args)
