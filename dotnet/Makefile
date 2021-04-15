@@ -156,8 +156,8 @@ dotnetrun:
 mono: monobuild monorun
 
 monobuild: gnulnx.stp
-	mono-csc -nologo $(LIB_BUILD)
-	mono-csc -nologo $(PROG_BUILD)
+	mcs -nologo $(LIB_BUILD)
+	mcs -nologo $(PROG_BUILD)
 
 monorun:
 	test -z '$(args:'='\'')' || \
