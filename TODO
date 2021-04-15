@@ -1,12 +1,11 @@
 • Android 11 strict mode prüfen, falls möglich
 
 • Warnungen:
-  – oss-licences-plugin in Gradle:
-    https://github.com/google/play-services-plugins/issues/166
   – restlichen Gradle-6-Warnungen:
     https://stackoverflow.com/q/65479693/2171120
   – Obsolete custom lint check:
     https://stackoverflow.com/q/65479506/2171120
+    (temporarily worked around)
 
 • com.android.tools.build:gradle:4.1.1 unbrauchbar:
   ‣ https://youtrack.jetbrains.com/issue/IDEA-252823
@@ -17,12 +16,9 @@
 
 • CodeQL vs. NDK
   https://stackoverflow.com/q/65480083/2171120
-  git revert 859505538c0a928127c17cb5fc6543267314ded9
-  https://github.com/actions/virtual-environments/issues/2365
 
 • OWASP plugin for Gradle
   https://github.com/jeremylong/dependency-check-gradle/issues/206
-  https://github.com/jeremylong/dependency-check-gradle/issues/216
 
 • Android/Unity
   – import the four generated shared objects into Unity, assigning
