@@ -17,13 +17,9 @@
  * of dealing in the work, even if advised of the possibility of such
  * damage or existence of a defect, except proven that it results out
  * of said person’s immediate fault when using the work as intended.
- *-
- * Define PROPER_DISPOSED_CHECK to correctly determine whether Socket
- * was already disposed; this incurs a performance penalty so another
- * method (unavailable on Mono) is normally used instead. Which seems
- * to also be unavailable on Windows, same version of .NET as Linux…‽
  */
 
+// incurs a performance penalty, alternative is not available everywhere though
 #define PROPER_DISPOSED_CHECK
 
 using System;
