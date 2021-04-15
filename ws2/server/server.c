@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -295,10 +295,10 @@ do_packet(int s)
 	SSIZE_T len;
 	struct sockaddr_storage ss;
 #if defined(_WIN32) || defined(WIN32)
-	WSAMSG mh;
+	WSAMSG mh = {0};
 	WSABUF io;
 #else
-	struct msghdr mh;
+	struct msghdr mh = {0};
 	struct iovec io;
 #endif
 	unsigned short ecn;
@@ -311,7 +311,6 @@ do_packet(int s)
 	io.iov_base = data;
 	io.iov_len = sizeof(data) - 1;
 
-	memset(&mh, 0, sizeof(mh));
 	mh.msg_name = (void *)&ss;
 	mh.msg_namelen = sizeof(ss);
 	mh.msg_iov = &io;

@@ -2,7 +2,7 @@
 .\"-
 .\" Copyright © 2008, 2009, 2010, 2016, 2018, 2020
 .\"	mirabilos <m@mirbsd.org>
-.\" Copyright © 2020
+.\" Copyright © 2020, 2021
 .\"	mirabilos <t.glaser@tarent.de>
 .\" Licensor: Deutsche Telekom
 .\"
@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: October 29 2020 $
+.Dd $Mdocdate: April 15 2021 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -196,14 +196,14 @@ The following code fragment illustrates the usage:
 .Bd -literal -offset indent
 char buf[512];
 unsigned short ecnresult;
-struct msghdr *msg = xcalloc(1, sizeof(struct msghdr));
+struct msghdr msg = {0};
 struct iovec iov;
 
 iov.iov_base = buf;
 iov.iov_len = sizeof(buf);
-msg\-\*(Gtmsg_iov = &iov;
-msg\-\*(Gtmsg_iovlen = 1;
-if (ecnbits_rdmsg(socketfd, msg, 0, &ecnresult) == (ssize_t)\-1)
+msg.msg_iov = &iov;
+msg.msg_iovlen = 1;
+if (ecnbits_rdmsg(socketfd, &msg, 0, &ecnresult) == (ssize_t)\-1)
 	err(1, "recvmsg");
 if (ECNBITS_VALID(ecnresult))
 	printf("%s\en", ecnbits_meanings[ECNBITS_BITS(ecnresult)]);

@@ -677,7 +677,6 @@ mksockaddr(JNIEnv *env, struct sockaddr_in6 *sin6, jbyteArray arr, jint port, ji
 {
 	jbyte *addr;
 
-	memset(sin6, '\0', sizeof(struct sockaddr_in6));
 	sin6->sin6_family = AF_INET6;
 	sin6->sin6_port = htons((uint16_t)port);
 
@@ -694,7 +693,7 @@ mksockaddr(JNIEnv *env, struct sockaddr_in6 *sin6, jbyteArray arr, jint port, ji
 static JNICALL void
 n_bind(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port, jint scope)
 {
-	struct sockaddr_in6 sin6;
+	struct sockaddr_in6 sin6 = {0};
 
 	if (mksockaddr(env, &sin6, addr, port, scope) /* threw an exception */)
 		return;
@@ -708,7 +707,7 @@ n_bind(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port, ji
 static JNICALL void
 n_connect(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port, jint scope)
 {
-	struct sockaddr_in6 sin6;
+	struct sockaddr_in6 sin6 = {0};
 
 	if (mksockaddr(env, &sin6, addr, port, scope) /* threw an exception */)
 		return;
@@ -722,9 +721,8 @@ n_connect(JNIEnv *env, jclass cls __unused, jint fd, jbyteArray addr, jint port,
 static JNICALL void
 n_disconnect(JNIEnv *env, jclass cls __unused, jint fd)
 {
-	struct sockaddr_in6 sin6;
+	struct sockaddr_in6 sin6 = {0};
 
-	memset(&sin6, '\0', sizeof(sin6));
 	sin6.sin6_family = AF_UNSPEC;
 	if (connect(fd, (struct sockaddr *)&sin6, sizeof(sin6)) == -1)
 		ethrow(env, eX_S_auto, "disconnect(%d)", fd);
@@ -822,13 +820,12 @@ n_recv(JNIEnv *env, jclass cls __unused, jint fd,
 {
 	ssize_t n;
 	unsigned short e;
-	struct msghdr m;
+	struct msghdr m = {0};
 	struct iovec io;
 	char cmsgbuf[ECNBITS_CMSGBUFLEN];
-	struct sockaddr_in6 sin6;
+	struct sockaddr_in6 sin6 = {0};
 
 	e = ECNBITS_INVALID_BIT;
-	memset(&sin6, '\0', sizeof(sin6));
 
 	io.iov_base = (*env)->GetDirectBufferAddress(env, bbuf);
 	if (!io.iov_base)
@@ -838,7 +835,6 @@ n_recv(JNIEnv *env, jclass cls __unused, jint fd,
 	if (io.iov_len > /* MAX_PACKET_LEN */ 65536U)
 		io.iov_len = 65536U;
 
-	memset(&m, '\0', sizeof(m));
 	m.msg_iov = &io;
 	m.msg_iovlen = 1;
 	m.msg_name = &sin6;
@@ -899,7 +895,7 @@ n_send(JNIEnv *env, jclass cls __unused, jint fd,
 	ssize_t n;
 	char *buf;
 	size_t len;
-	struct sockaddr_in6 sin6;
+	struct sockaddr_in6 sin6 = {0};
 
 	if (mksockaddr(env, &sin6, addr, port, scope) /* threw an exception */)
 		return (IO_THROWN);
@@ -932,14 +928,13 @@ n_recvfrom(JNIEnv *env, jclass cls __unused, jint fd,
 {
 	ssize_t n;
 	unsigned short e;
-	struct msghdr m;
+	struct msghdr m = {0};
 	struct iovec io;
 	char cmsgbuf[ECNBITS_CMSGBUFLEN];
-	struct sockaddr_in6 sin6;
+	struct sockaddr_in6 sin6 = {0};
 	jbyte *buf_elts;
 
 	e = ECNBITS_INVALID_BIT;
-	memset(&sin6, '\0', sizeof(sin6));
 
 	buf_elts = (*env)->GetByteArrayElements(env, buf, NULL);
 	if (!buf_elts)
@@ -951,7 +946,6 @@ n_recvfrom(JNIEnv *env, jclass cls __unused, jint fd,
 	if (io.iov_len > /* MAX_PACKET_LEN */ 65536U)
 		io.iov_len = 65536U;
 
-	memset(&m, '\0', sizeof(m));
 	m.msg_iov = &io;
 	m.msg_iovlen = 1;
 	m.msg_name = &sin6;
@@ -1017,7 +1011,7 @@ n_sendto(JNIEnv *env, jclass cls __unused, jint fd,
 	ssize_t n;
 	char *buf;
 	size_t len;
-	struct sockaddr_in6 sin6;
+	struct sockaddr_in6 sin6 = {0};
 	jbyte *buf_elts;
 	int ec;
 
@@ -1094,18 +1088,16 @@ n_rd(JNIEnv *env, jclass cls __unused, jint fd,
 {
 	ssize_t n;
 	unsigned short e;
-	struct msghdr m;
+	struct msghdr m = {0};
 	struct iovec iop[nbufs];
 	char cmsgbuf[ECNBITS_CMSGBUFLEN];
-	struct sockaddr_in6 sin6;
+	struct sockaddr_in6 sin6 = {0};
 
 	e = ECNBITS_INVALID_BIT;
-	memset(&sin6, '\0', sizeof(sin6));
 
 	if (sgio_unpack(env, iop, bufs, nbufs))
 		return (IO_THROWN);
 
-	memset(&m, '\0', sizeof(m));
 	m.msg_iov = iop;
 	m.msg_iovlen = nbufs;
 	m.msg_name = &sin6;
@@ -1135,10 +1127,10 @@ n_wr(JNIEnv *env, jclass cls __unused, jint fd,
     jobjectArray bufs, jbyteArray addr, jint port, jint scope)
 {
 	ssize_t n;
-	struct msghdr m;
+	struct msghdr m = {0};
 	jsize nbufs = (*env)->GetArrayLength(env, bufs);
 	struct iovec iop[nbufs];
-	struct sockaddr_in6 sin6;
+	struct sockaddr_in6 sin6 = {0};
 
 	if (mksockaddr(env, &sin6, addr, port, scope) /* threw an exception */)
 		return (IO_THROWN);
@@ -1146,7 +1138,6 @@ n_wr(JNIEnv *env, jclass cls __unused, jint fd,
 	if (sgio_unpack(env, iop, bufs, nbufs))
 		return (IO_THROWN);
 
-	memset(&m, '\0', sizeof(m));
 	m.msg_iov = iop;
 	m.msg_iovlen = nbufs;
 	m.msg_name = &sin6;

@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2021
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -30,7 +30,7 @@ ecnbits_recvfrom(int s, void *buf, size_t buflen, int flags,
     struct sockaddr *addr, socklen_t *addrlenp, unsigned short *e)
 {
 	ssize_t rv;
-	struct msghdr m;
+	struct msghdr m = {0};
 	struct iovec io;
 	char cmsgbuf[ECNBITS_CMSGBUFLEN];
 
@@ -40,7 +40,6 @@ ecnbits_recvfrom(int s, void *buf, size_t buflen, int flags,
 	io.iov_base = buf;
 	io.iov_len = buflen;
 
-	memset(&m, 0, sizeof(m));
 	m.msg_iov = &io;
 	m.msg_iovlen = 1;
 	if (addr) {

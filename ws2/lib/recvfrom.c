@@ -38,7 +38,7 @@ ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
     struct sockaddr *addr, socklen_t *addrlenp, unsigned short *e)
 {
 	SSIZE_T rv;
-	WSAMSG m;
+	WSAMSG m = {0};
 #if defined(_WIN32) || defined(WIN32)
 	WSABUF io;
 #define iov_base buf
@@ -73,7 +73,6 @@ ecnbits_recvfrom(SOCKET s, void *buf, size_t buflen, int flags,
 	io.iov_base = buf;
 	io.iov_len = BUFLEN_CAST buflen;
 
-	memset(&m, 0, sizeof(m));
 	m.msg_iov = &io;
 	m.msg_iovlen = 1;
 	if (addr) {
