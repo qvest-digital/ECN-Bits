@@ -101,6 +101,7 @@ git clone -c core.symlinks=true https://github.com/tarent/ECN-Bits.git
   • implemented through linking the C/CLI library into the application
 
 – Windows/Linux, C♯/.net including Mono (also VB.net and other CLR languages)
+  ‣ see dotnet/README
   • being under development
 
 – iOS (Apple)
