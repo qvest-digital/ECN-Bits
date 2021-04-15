@@ -229,7 +229,8 @@ do_connect(int s, int af)
 		return (1);
 	}
 	time(&tt);
-	strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt));
+	if (strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt)) <= 0)
+		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
 	buf[n] = '\0';
 	if (n > 2 && buf[n - 1] == '\n') {
 		buf[n - 1] = '\0';

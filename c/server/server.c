@@ -243,7 +243,8 @@ do_packet(int s, unsigned int dscp)
 	data[len] = '\0';
 
 	time(&tt);
-	strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt));
+	if (strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt)) <= 0)
+		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
 
 	switch (mh.msg_flags & (MSG_TRUNC | MSG_CTRUNC)) {
 	case 0:

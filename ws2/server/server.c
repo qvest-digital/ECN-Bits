@@ -307,6 +307,12 @@ do_packet(int s)
 	const char *trc;
 	int af;
 	char tcs[3];
+#if defined(_WIN32) || defined(WIN32)
+	struct tm tmptm;
+#define brokendowntime &tmptm
+#else
+#define brokendowntime gmtime(&tt)
+#endif
 
 	io.iov_base = data;
 	io.iov_len = sizeof(data) - 1;
@@ -324,7 +330,12 @@ do_packet(int s)
 	data[len] = '\0';
 
 	time(&tt);
-	strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt));
+	if ( /* gaaah! */
+#if defined(_WIN32) || defined(WIN32)
+	    gmtime_s(&tmptm, &tt) ||
+#endif
+	    strftime(tm, sizeof(tm), "%FT%TZ", brokendowntime) <= 0)
+		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
 
 	switch (mh.msg_flags & (MSG_TRUNC | MSG_CTRUNC)) {
 	case 0:
