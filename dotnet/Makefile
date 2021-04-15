@@ -48,8 +48,8 @@ BKSL=^\
 # ↑ above line intentionally left blank!
 
 # path slash
-SLPRE=/
-SL=$(SLPRE:^/=^\)
+SLASHPRE=/
+Y=$(SLASHPRE:^/=^\)
 
 # echo doublequote
 QCHARPRE=\"
@@ -148,6 +148,6 @@ dotnethelp:
 LSL=ls -l
 DIR=$(LSL:^ls -l=dir)
 aar:
-	@..$(SL)test-git /q
-	cd ..$(SL)ws2$(SL)android && .$(SL)gradlew build
-	$(DIR) ..$(SL)ws2$(SL)android$(SL)aar$(SL)build$(SL)outputs$(SL)aar$(SL)
+	@..$Ytest-git /q
+	cd ..$Yws2$Yandroid && .$Ygradlew build
+	$(DIR) ..$Yws2$Yandroid$Yaar$Ybuild$Youtputs$Yaar$Y
