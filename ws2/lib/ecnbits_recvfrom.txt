@@ -77,6 +77,8 @@ EXAMPLES
 ERRORS
      These functions return the same errors as the underlying system calls:
      recv(2) or recvfrom(2) if ecnresult is NULL, recvmsg(2) otherwise.
+     WSAEMSGSIZE is thrown on Windows if the passed buflen is equal to or
+     greater than INT_MAX.
 
 SEE ALSO
      recv(2), recvfrom(2), recvmsg(2), ECNBITS_BITS(3), ecnbits_prep(3),
@@ -105,4 +107,4 @@ CAVEATS
 LICENCE
      The MirOS Licence (short name: MirBSD)
 
-ECN-Bits                       October 29, 2020                       ECN-Bits
+ECN-Bits                        April 15, 2020                        ECN-Bits
