@@ -30,7 +30,15 @@
 
 all:
 
+# ¿what? ⸘WHAT‽ https://stackoverflow.com/a/57530957/2171120
+!IF [set __VSCMD_ARG_NO_LOGO=1] || [set VSCMD_SKIP_SENDTELEMETRY=1]
+!ENDIF
+
 BKSL=^\
+
+!IF [..$(BKSL)..$(BKSL)test-git.bat /q]
+!ERROR git repository clone consistency check failed
+!ENDIF
 
 !IF [cmd /c if exist *.obj exit 1]
 CLEANFILES=	$(CLEANFILES) *.obj
@@ -42,10 +50,6 @@ CLEANFILES=	$(CLEANFILES) *.ilk
 
 !IF [cmd /c if exist *.pdb exit 1]
 CLEANFILES=	$(CLEANFILES) *.pdb
-!ENDIF
-
-!IF [..$(BKSL)..$(BKSL)test-git.bat /q]
-!ERROR git repository clone consistency check failed
 !ENDIF
 
 !IFNDEF CC

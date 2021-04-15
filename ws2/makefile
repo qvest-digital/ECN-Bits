@@ -24,9 +24,14 @@
 # default target
 all:
 
+# ¿what? ⸘WHAT‽ https://stackoverflow.com/a/57530957/2171120
+!IF [set __VSCMD_ARG_NO_LOGO=1] || [set VSCMD_SKIP_SENDTELEMETRY=1]
+!ENDIF
+
 BKSL=^\
+
 !IF [..$(BKSL)test-git.bat /q]
-!ERROR clone the repository with symlinks enabled
+!ERROR git repository clone consistency check failed
 !ENDIF
 
 # recursive build
