@@ -45,3 +45,6 @@
  vs fixed (int* ptr = span) {
         return Native.Sum(ptr, span.Length);
   - receive(0) → receive(1,|MSG_PEEK,&dummy_buf)
+  - factor dotnet/unmngd.cs:ThrowSocketException back in
+    as/since/if/when it turns out we really can’t do a thing;
+    same with g/c’ing !PROPER_DISPOSED_CHECK
