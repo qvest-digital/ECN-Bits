@@ -50,6 +50,12 @@ Y=$(SLASHPRE:^/=^\)
 QCHARPRE=\"
 Q=$(QCHARPRE:^\=)
 
+# ¿what? ⸘WHAT‽ https://stackoverflow.com/a/57530957/2171120
+# nmake only \
+!IF [set __VSCMD_ARG_NO_LOGO=1]
+# still nmake \
+!ENDIF
+
 all:
 	@echo choose one:
 	@echo Windows: nmake win, nmake del
@@ -70,29 +76,29 @@ del:
 	if exist *.lib (del *.lib)
 	if exist *.obj (del *.obj)
 	if exist *.stp (del *.stp)
-	@..$Ytest-git.bat /q
+	@..$Ytest-git /q
 
 windll:
-	..$Ytest-git.bat /q
+	..$Ytest-git /q
 	-cd ..$Yws2$Ylib && $(MAKE) /nologo clean
 	-rd /s /q armhf arm64 amd64 i386 2>nul
 	md armhf
-	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall.bat" x86_arm && \
+	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall" x86_arm && \
 	    cd ..$Yws2$Ylib && $(MAKE) /nologo
 	copy ..$Yws2$Ybin$Yecn-bitw.dll armhf$Y
 	cd ..$Yws2$Ylib && $(MAKE) /nologo clean
 	md arm64
-	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall.bat" x86_arm64 && \
+	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall" x86_arm64 && \
 	    cd ..$Yws2$Ylib && $(MAKE) /nologo
 	copy ..$Yws2$Ybin$Yecn-bitw.dll arm64$Y
 	cd ..$Yws2$Ylib && $(MAKE) /nologo clean
 	md amd64
-	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall.bat" x86_amd64 && \
+	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall" x86_amd64 && \
 	    cd ..$Yws2$Ylib && $(MAKE) /nologo
 	copy ..$Yws2$Ybin$Yecn-bitw.dll amd64$Y
 	cd ..$Yws2$Ylib && $(MAKE) /nologo clean
 	md i386
-	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall.bat" x86 && \
+	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall" x86 && \
 	    cd ..$Yws2$Ylib && $(MAKE) /nologo
 	copy ..$Yws2$Ybin$Yecn-bitw.dll i386$Y
 	cd ..$Yws2$Ylib && $(MAKE) /nologo clean
@@ -103,9 +109,9 @@ windll.stp:
 	$(MAKE) /nologo windll
 
 win: windll.stp
-	..$Ytest-git.bat /q
-	csc $(LIB_BUILD)
-	csc $(PROG_BUILD)
+	..$Ytest-git /q
+	csc -nologo $(LIB_BUILD)
+	csc -nologo $(PROG_BUILD)
 	rem or: csc -platform:anycpu32bitpreferred $(PROG_BUILD)
 	if not "$(args: =)"=="" $(PROG_NAME) $(args)
 
@@ -131,8 +137,8 @@ dotnet: gnulnx.stp
 	    dotnet $(PROG_NAME).exe $(args)
 
 mono: gnulnx.stp
-	mono-csc $(LIB_BUILD)
-	mono-csc $(PROG_BUILD)
+	mono-csc -nologo $(LIB_BUILD)
+	mono-csc -nologo $(PROG_BUILD)
 	test -z '$(args:'='\'')' || \
 	    LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
 	    mono $(PROG_NAME).exe $(args)
