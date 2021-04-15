@@ -52,7 +52,7 @@ Q=$(QCHARPRE:^\=)
 
 # ¿what? ⸘WHAT‽ https://stackoverflow.com/a/57530957/2171120
 # nmake only \
-!IF [set __VSCMD_ARG_NO_LOGO=1]
+!IF [set __VSCMD_ARG_NO_LOGO=1] || [set VSCMD_SKIP_SENDTELEMETRY=1]
 # still nmake \
 !ENDIF
 
