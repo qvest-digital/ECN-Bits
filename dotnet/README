@@ -71,11 +71,11 @@ The directory structure of built files is thus:
 
 This is how the files must eventually be installed.
 
-‣‣‣ GNU/Linux, Mono
+‣‣‣ GNU/Linux and FreeBSD/MidnightBSD, Mono
 
 Here, the Makefile uses mono-csc from $PATH.
 
-$ make gnulinux
+$ make gnudll
 
 … will force (re‑)compilation of the native (“unmanaged”) DLL for the
 *current* platform, i.e. using the host-native compiler. Resulting files
@@ -122,7 +122,7 @@ Here, the Makefile goes quite a way to invoke Roslyn directly, as
 the “dotnet” wrapper command does not offer csc. No MSBuild file
 is provided currently.
 
-$ make gnulinux
+$ make gnudll
 
 … will force (re‑)compilation of the native (“unmanaged”) DLL for the
 *current* platform, i.e. using the host-native compiler. Resulting files

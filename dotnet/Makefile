@@ -57,17 +57,17 @@ Q=$(QCHARPRE:^\=)
 !ENDIF
 
 all:
-	@echo .............................................
-	@echo : To build for Windows/Linux/Linux-Mono:
+	@echo ...............................................
+	@echo : To build for Windows, Linux/BSD dotnet/Mono:
 	@echo : nmake win, make dotnet, make mono
 	@echo : To force rebuilding native DLLs:
-	@echo : nmake windll, make gnulinux
+	@echo : nmake windll, make gnudll
 	@echo : You can also run after building:
 	@echo : make ... args=$Qhost port$Q
 	@echo : Use nmake instead of make on Windows.
 	@echo : Crossbuild DLLs for Android with: make aar
 	@echo : To erase built files: make clean
-	@echo :............................................
+	@echo :..............................................
 
 CLEAN=unixclean
 clean: $(CLEAN:^unix=dos)
@@ -128,19 +128,19 @@ winbuild: windll.stp
 winrun:
 	if not "$(args: =)"=="" $(PROG_NAME) $(args)
 
-gnulinux:
+gnudll:
 	-cd ../ws2/lib && $(MAKE) clean
 	cd ../ws2/lib && $(MAKE) NOSTATIC=Yes
 	cp -a ../ws2/lib/libecn-bitw.so ../ws2/lib/libecn-bitw.so.* ./
 	-cd ../ws2/lib && $(MAKE) clean
-	@echo stamp >gnulnx.stp
+	@echo stamp >gnudll.stp
 
-gnulnx.stp:
-	$(MAKE) gnulinux
+gnudll.stp:
+	$(MAKE) gnudll
 
 dotnet: dotnetbuild dotnetrun
 
-dotnetbuild: gnulnx.stp
+dotnetbuild: gnudll.stp
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
 	    -r:Microsoft.Win32.Primitives.dll $(LIB_BUILD)
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
@@ -155,7 +155,7 @@ dotnetrun:
 
 mono: monobuild monorun
 
-monobuild: gnulnx.stp
+monobuild: gnudll.stp
 	mcs -nologo $(LIB_BUILD)
 	mcs -nologo $(PROG_BUILD)
 
