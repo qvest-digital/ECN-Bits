@@ -44,3 +44,5 @@
   - factor dotnet/unmngd.cs:ThrowSocketException back in
     as/since/if/when it turns out we really can’t do a thing;
     same with g/c’ing !PROPER_DISPOSED_CHECK
+  – Unity: might need to copy out built DLLs to Unity directory
+    structure, probably keep it there even through (n)make clean

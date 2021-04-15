@@ -3,14 +3,8 @@ all:
 	@echo pack converts .doc exported from Confluence to repo format
 	@echo unpack converts from repo to .doc for Confluence import
 
-# nmake: \
-!IF 1 # \
-RM=del # \
-!ELSE
-# make (BSD, POSIX, GNU):
-RM=rm -f
-# nmake again: \
-!ENDIF
+RMF=rm -f
+RM=$(RMF:^rm -f=del)
 
 pack:
 	$(RM) ECN-Library.doc.gz ECN-Library.doc.gz.uu

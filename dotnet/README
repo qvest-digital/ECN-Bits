@@ -51,7 +51,7 @@ C>nmake win args="host port"
 … will do the same, then execute the example client with the given
 arguments.
 
-C>nmake del
+C>nmake clean
 
 … will erase all created files.
 
