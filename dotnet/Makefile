@@ -57,15 +57,17 @@ Q=$(QCHARPRE:^\=)
 !ENDIF
 
 all:
-	@echo To build for Windows/Linux/Linux-Mono:
-	@echo nmake win, make dotnet, make mono
-	@echo To force rebuilding native DLLs:
-	@echo nmake windll, make gnulinux
-	@echo You can also run after building:
-	@echo make ... args=$Qhost port$Q
-	@echo Use nmake instead of make on Windows.
-	@echo Crossbuild DLLs for Android with: make aar
-	@echo To erase built files: make clean
+	@echo .............................................
+	@echo : To build for Windows/Linux/Linux-Mono:
+	@echo : nmake win, make dotnet, make mono
+	@echo : To force rebuilding native DLLs:
+	@echo : nmake windll, make gnulinux
+	@echo : You can also run after building:
+	@echo : make ... args=$Qhost port$Q
+	@echo : Use nmake instead of make on Windows.
+	@echo : Crossbuild DLLs for Android with: make aar
+	@echo : To erase built files: make clean
+	@echo :............................................
 
 CLEAN=unixclean
 clean: $(CLEAN:^unix=dos)
