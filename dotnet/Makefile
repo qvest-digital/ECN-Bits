@@ -42,11 +42,6 @@ PROG_NAME=	client
 PROG_SRCS=	client.cs
 PROG_BUILD=	-r:$(LIB_NAME) $(PROG_SRCS)
 
-# backslash (for DOS pathnames)
-BKSL=^\
-
-# ↑ above line intentionally left blank!
-
 # path slash
 SLASHPRE=/
 Y=$(SLASHPRE:^/=^\)
@@ -68,39 +63,39 @@ clean:
 	rm -f *.dll *.exe *.runtimeconfig.json *.so *.so.* *.stp
 
 del:
-	-cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo clean
+	-cd ..$Yws2$Ylib && $(MAKE) /nologo clean
 	-rd /s /q armhf arm64 amd64 i386 2>nul
 	if exist *.dll (del *.dll)
 	if exist *.exe (del *.exe)
 	if exist *.lib (del *.lib)
 	if exist *.obj (del *.obj)
 	if exist *.stp (del *.stp)
-	@..$(BKSL)test-git.bat /q
+	@..$Ytest-git.bat /q
 
 windll:
-	..$(BKSL)test-git.bat /q
-	-cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo clean
+	..$Ytest-git.bat /q
+	-cd ..$Yws2$Ylib && $(MAKE) /nologo clean
 	-rd /s /q armhf arm64 amd64 i386 2>nul
 	md armhf
-	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_arm && \
-	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo
-	copy ..$(BKSL)ws2$(BKSL)bin$(BKSL)ecn-bitw.dll armhf$(BKSL)
-	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo clean
+	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall.bat" x86_arm && \
+	    cd ..$Yws2$Ylib && $(MAKE) /nologo
+	copy ..$Yws2$Ybin$Yecn-bitw.dll armhf$Y
+	cd ..$Yws2$Ylib && $(MAKE) /nologo clean
 	md arm64
-	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_arm64 && \
-	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo
-	copy ..$(BKSL)ws2$(BKSL)bin$(BKSL)ecn-bitw.dll arm64$(BKSL)
-	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo clean
+	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall.bat" x86_arm64 && \
+	    cd ..$Yws2$Ylib && $(MAKE) /nologo
+	copy ..$Yws2$Ybin$Yecn-bitw.dll arm64$Y
+	cd ..$Yws2$Ylib && $(MAKE) /nologo clean
 	md amd64
-	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86_amd64 && \
-	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo
-	copy ..$(BKSL)ws2$(BKSL)bin$(BKSL)ecn-bitw.dll amd64$(BKSL)
-	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo clean
+	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall.bat" x86_amd64 && \
+	    cd ..$Yws2$Ylib && $(MAKE) /nologo
+	copy ..$Yws2$Ybin$Yecn-bitw.dll amd64$Y
+	cd ..$Yws2$Ylib && $(MAKE) /nologo clean
 	md i386
-	"$(VCINSTALLDIR)$(BKSL)Auxiliary$(BKSL)Build$(BKSL)vcvarsall.bat" x86 && \
-	    cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo
-	copy ..$(BKSL)ws2$(BKSL)bin$(BKSL)ecn-bitw.dll i386$(BKSL)
-	cd ..$(BKSL)ws2$(BKSL)lib && $(MAKE) /nologo clean
+	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall.bat" x86 && \
+	    cd ..$Yws2$Ylib && $(MAKE) /nologo
+	copy ..$Yws2$Ybin$Yecn-bitw.dll i386$Y
+	cd ..$Yws2$Ylib && $(MAKE) /nologo clean
 	@echo stamp >windll.stp
 	rem --- Windows DLLs built for all architectures
 
@@ -108,7 +103,7 @@ windll.stp:
 	$(MAKE) /nologo windll
 
 win: windll.stp
-	..$(BKSL)test-git.bat /q
+	..$Ytest-git.bat /q
 	csc $(LIB_BUILD)
 	csc $(PROG_BUILD)
 	rem or: csc -platform:anycpu32bitpreferred $(PROG_BUILD)
