@@ -21,6 +21,8 @@
 #-
 # GNU make wrapper, auto-detects dotnet-sdk versions
 
+export DOTNET_CLI_TELEMETRY_OPTOUT := 1
+
 include Makefile
 
 sdkver=$(shell dotnet --version)
