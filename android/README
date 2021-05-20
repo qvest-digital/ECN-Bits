@@ -4,6 +4,10 @@
 
 See ../README for what this is all about.
 
+To build, use JDK 8 or 11 (no newer versions): Android only
+supports language levels 7 and 8 anyway, and Java 15 changed
+the DatagramSocket internals in an incompatible way.
+
 This library mostly offers the following entry points:
 • de.telekom.llcto.ecn_bits.android.lib.Bits
 • de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramChannel

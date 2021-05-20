@@ -51,6 +51,7 @@ git clone -c core.symlinks=true https://github.com/tarent/ECN-Bits.git
     : Status: working, minor nitpicking waiting on external projects’ bugfixes
       testing on Android 11 needed (including “strict mode”)
   • demo client GUI application
+  ⚠ can be built with JDK 8 or 11 but no newer versions
 
 – OpenJDK/Linux: Java/JNI/CLI
   ‣ see jdk-linux/README
