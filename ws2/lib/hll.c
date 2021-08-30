@@ -52,3 +52,11 @@ ecnhll_prep(SOCKET socketfd, int af)
 #else
 # error AF_INET or AF_INET6 conflict with the error af value
 #endif
+
+#ifdef notyet
+/*
+ * Wraps ecnbits_recvfrom() for .net
+ *
+ * tbd
+ */
+#endif
