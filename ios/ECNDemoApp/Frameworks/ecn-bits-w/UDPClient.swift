@@ -30,12 +30,11 @@ public class ECNUDPclient {
     
     private weak var delegate: UDPClientDelegate?
     
-    var socketfd: Int32 = -1
-    var addr: sockaddr_storage = sockaddr_storage()
-    var host: String
-    var port: Int
-    var ecn:  Int = 0 // noECN default value
-    var ecnOnSend: Bool = false
+    private var socketfd: Int32 = -1
+    private var addr: sockaddr_storage = sockaddr_storage()
+    private var host: String
+    private var port: Int
+    private var ecn:  Int = 0 // noECN default value
      
     public init(host:String, port:Int, delegate: UDPClientDelegate) {
         self.host = host
@@ -94,7 +93,6 @@ public class ECNUDPclient {
      
      - Parameters:
         data:  The data that will be sent as Data
-        ecn:  ECN value as ECNBit that will sent to the host (the method will mark the ECN bit in IP header with this value)
         completion:  A callback (with a result parameter of type Result) cand be success or failure with error type
      */
     public func sendData(payload: String) {
@@ -187,11 +185,8 @@ public class ECNUDPclient {
             }
 
             let stringFromCChar = String(cString: buffer, encoding: .utf8)
-            if let serverResponse = stringFromCChar {
-                print(serverResponse)
-            }
-            
             if let responseString = stringFromCChar {
+                print(responseString)
                 let result = Int("\(ecnresult.pointee)")
                 DispatchQueue.main.async {
                     self.delegate?.didReceieveResponse(data: responseString, ecnResult: ECNBit(value:result!))
