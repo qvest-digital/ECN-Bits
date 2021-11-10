@@ -16,8 +16,8 @@
 		BA1B16F0272DB41300E67E9F /* ECNDemoAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA1B16EF272DB41300E67E9F /* ECNDemoAppTests.swift */; };
 		BA1B16FA272DB41300E67E9F /* ECNDemoAppUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA1B16F9272DB41300E67E9F /* ECNDemoAppUITests.swift */; };
 		BA1B16FC272DB41300E67E9F /* ECNDemoAppUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA1B16FB272DB41300E67E9F /* ECNDemoAppUITestsLaunchTests.swift */; };
-		BA757ED7272DC58700990CC2 /* ecn_bits_w.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA757ED3272DC20900990CC2 /* ecn_bits_w.framework */; };
-		BA757ED8272DC58700990CC2 /* ecn_bits_w.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = BA757ED3272DC20900990CC2 /* ecn_bits_w.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		BAEAD088273C1B7500BBE6C8 /* ecn_bits_w.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BAEAD085273C182100BBE6C8 /* ecn_bits_w.framework */; };
+		BAEAD089273C1B7500BBE6C8 /* ecn_bits_w.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = BAEAD085273C182100BBE6C8 /* ecn_bits_w.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,16 +35,16 @@
 			remoteGlobalIDString = BA1B16D4272DB41000E67E9F;
 			remoteInfo = ECNDemoApp;
 		};
-		BA757ED2272DC20900990CC2 /* PBXContainerItemProxy */ = {
+		BAEAD084273C182100BBE6C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = BA757ECD272DC20900990CC2 /* ecn-bits-w.xcodeproj */;
+			containerPortal = BAEAD07F273C182100BBE6C8 /* ecn-bits-w.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = BA1B1696272B1FEC00E67E9F;
 			remoteInfo = "ecn-bits-w";
 		};
-		BA757ED4272DC20900990CC2 /* PBXContainerItemProxy */ = {
+		BAEAD086273C182100BBE6C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = BA757ECD272DC20900990CC2 /* ecn-bits-w.xcodeproj */;
+			containerPortal = BAEAD07F273C182100BBE6C8 /* ecn-bits-w.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = BA1B169E272B1FEC00E67E9F;
 			remoteInfo = "ecn-bits-wTests";
@@ -58,7 +58,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				BA757ED8272DC58700990CC2 /* ecn_bits_w.framework in Embed Frameworks */,
+				BAEAD089273C1B7500BBE6C8 /* ecn_bits_w.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -80,7 +80,7 @@
 		BA1B16F9272DB41300E67E9F /* ECNDemoAppUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ECNDemoAppUITests.swift; sourceTree = "<group>"; };
 		BA1B16FB272DB41300E67E9F /* ECNDemoAppUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ECNDemoAppUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		BA7370C02731DBEC000C9FBD /* ECNDemoApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ECNDemoApp.entitlements; sourceTree = "<group>"; };
-		BA757ECD272DC20900990CC2 /* ecn-bits-w.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "ecn-bits-w.xcodeproj"; path = "Frameworks/ecn-bits-w/ecn-bits-w.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		BAEAD07F273C182100BBE6C8 /* ecn-bits-w.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "ecn-bits-w.xcodeproj"; path = "Frameworks/ecn-bits-w/ecn-bits-w.xcodeproj"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,7 +88,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BA757ED7272DC58700990CC2 /* ecn_bits_w.framework in Frameworks */,
+				BAEAD088273C1B7500BBE6C8 /* ecn_bits_w.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -134,7 +134,7 @@
 			isa = PBXGroup;
 			children = (
 				BA7370C02731DBEC000C9FBD /* ECNDemoApp.entitlements */,
-				BA757ED6272DC22300990CC2 /* ECN */,
+				BAEAD07F273C182100BBE6C8 /* ecn-bits-w.xcodeproj */,
 				BA1B16D8272DB41000E67E9F /* AppDelegate.swift */,
 				BA1B16DA272DB41000E67E9F /* SceneDelegate.swift */,
 				BA1B16E6272DB41300E67E9F /* Info.plist */,
@@ -177,23 +177,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		BA757ECE272DC20900990CC2 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				BA757ED3272DC20900990CC2 /* ecn_bits_w.framework */,
-				BA757ED5272DC20900990CC2 /* ecn-bits-wTests.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		BA757ED6272DC22300990CC2 /* ECN */ = {
-			isa = PBXGroup;
-			children = (
-				BA757ECD272DC20900990CC2 /* ecn-bits-w.xcodeproj */,
-			);
-			path = ECN;
-			sourceTree = "<group>";
-		};
 		BAABB98227341078000759A1 /* resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -201,6 +184,15 @@
 				BA1B16E1272DB41300E67E9F /* Assets.xcassets */,
 			);
 			path = resources;
+			sourceTree = "<group>";
+		};
+		BAEAD080273C182100BBE6C8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BAEAD085273C182100BBE6C8 /* ecn_bits_w.framework */,
+				BAEAD087273C182100BBE6C8 /* ecn-bits-wTests.xctest */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -296,8 +288,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = BA757ECE272DC20900990CC2 /* Products */;
-					ProjectRef = BA757ECD272DC20900990CC2 /* ecn-bits-w.xcodeproj */;
+					ProductGroup = BAEAD080273C182100BBE6C8 /* Products */;
+					ProjectRef = BAEAD07F273C182100BBE6C8 /* ecn-bits-w.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -310,18 +302,18 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		BA757ED3272DC20900990CC2 /* ecn_bits_w.framework */ = {
+		BAEAD085273C182100BBE6C8 /* ecn_bits_w.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = ecn_bits_w.framework;
-			remoteRef = BA757ED2272DC20900990CC2 /* PBXContainerItemProxy */;
+			remoteRef = BAEAD084273C182100BBE6C8 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		BA757ED5272DC20900990CC2 /* ecn-bits-wTests.xctest */ = {
+		BAEAD087273C182100BBE6C8 /* ecn-bits-wTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = "ecn-bits-wTests.xctest";
-			remoteRef = BA757ED4272DC20900990CC2 /* PBXContainerItemProxy */;
+			remoteRef = BAEAD086273C182100BBE6C8 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */

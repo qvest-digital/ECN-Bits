@@ -63,13 +63,6 @@ class ECNViewController: UIViewController {
         segmentedControl.setTitle("ECT CE", forSegmentAt: 3)
         
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "kCellReuseD")
-        
-// uncomment for easy testing
-//        hostTextField.text = "192.168.0.232"
-//        portTextField.text = "4568"
-//        ip = "192.168.0.232"
-//        port = "4568"
-        paramsWereUpdated = true
     }
     
     func resetUI() {
@@ -125,10 +118,10 @@ class ECNViewController: UIViewController {
     
     func updateDataWithTextField(textField:UITextField) {
         if (textField == hostTextField) {
-            paramsWereUpdated =  (self.ip != textField.text)
+            paramsWereUpdated =  !(self.ip != textField.text)
             self.ip = textField.text
         } else if (textField == portTextField) {
-            paramsWereUpdated =  (self.port != textField.text)
+            paramsWereUpdated =  !(self.port != textField.text)
             self.port = textField.text
         }
     }
@@ -197,6 +190,7 @@ extension ECNViewController : UITableViewDataSource {
 }
 
 extension ECNViewController : UITextFieldDelegate {
+    
     func textFieldDidEndEditing(_ textField: UITextField) {
         updateDataWithTextField(textField: textField)
     }
