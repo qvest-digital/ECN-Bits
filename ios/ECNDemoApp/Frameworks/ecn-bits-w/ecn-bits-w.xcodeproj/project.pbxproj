@@ -1,0 +1,561 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 55;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BA1B169F272B1FEC00E67E9F /* ecn_bits_w.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA1B1696272B1FEC00E67E9F /* ecn_bits_w.framework */; };
+		BA1B16A4272B1FEC00E67E9F /* ecn_bits_wTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA1B16A3272B1FEC00E67E9F /* ecn_bits_wTests.swift */; };
+		BA1B16A5272B1FEC00E67E9F /* ecn_bits_w.h in Headers */ = {isa = PBXBuildFile; fileRef = BA1B1699272B1FEC00E67E9F /* ecn_bits_w.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BA1B16BA272B204800E67E9F /* recvfrom.c in Sources */ = {isa = PBXBuildFile; fileRef = BA1B16B0272B204800E67E9F /* recvfrom.c */; };
+		BA1B16BB272B204800E67E9F /* tc.c in Sources */ = {isa = PBXBuildFile; fileRef = BA1B16B1272B204800E67E9F /* tc.c */; };
+		BA1B16BC272B204800E67E9F /* mkcmsg.c in Sources */ = {isa = PBXBuildFile; fileRef = BA1B16B2272B204800E67E9F /* mkcmsg.c */; };
+		BA1B16BD272B204800E67E9F /* recv.c in Sources */ = {isa = PBXBuildFile; fileRef = BA1B16B3272B204800E67E9F /* recv.c */; };
+		BA1B16BE272B204800E67E9F /* prep.c in Sources */ = {isa = PBXBuildFile; fileRef = BA1B16B4272B204800E67E9F /* prep.c */; };
+		BA1B16BF272B204800E67E9F /* stoaf.c in Sources */ = {isa = PBXBuildFile; fileRef = BA1B16B5272B204800E67E9F /* stoaf.c */; };
+		BA1B16C0272B204800E67E9F /* recvmsg.c in Sources */ = {isa = PBXBuildFile; fileRef = BA1B16B6272B204800E67E9F /* recvmsg.c */; };
+		BA1B16C1272B204800E67E9F /* short.c in Sources */ = {isa = PBXBuildFile; fileRef = BA1B16B7272B204800E67E9F /* short.c */; };
+		BA1B16C2272B204800E67E9F /* rdmsg.c in Sources */ = {isa = PBXBuildFile; fileRef = BA1B16B8272B204800E67E9F /* rdmsg.c */; };
+		BA1B16C3272B204800E67E9F /* desc.c in Sources */ = {isa = PBXBuildFile; fileRef = BA1B16B9272B204800E67E9F /* desc.c */; };
+		BA1B16C7272B251C00E67E9F /* ecn-bits.h in Headers */ = {isa = PBXBuildFile; fileRef = BA1B16C6272B251C00E67E9F /* ecn-bits.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		BA1B170B272DB98600E67E9F /* UDPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA1B170A272DB98600E67E9F /* UDPClient.swift */; };
+		BA571624273344E2005CF8AC /* SocketHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA571623273344E2005CF8AC /* SocketHelper.swift */; };
+		BA57162627334534005CF8AC /* ECNBits.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA57162527334534005CF8AC /* ECNBits.swift */; };
+		BA7370F8273298A1000C9FBD /* UDPClientProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA7370F7273298A1000C9FBD /* UDPClientProtocol.swift */; };
+		BAEAD077273BBDD900BBE6C8 /* ECNStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAEAD074273BBDD900BBE6C8 /* ECNStats.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		BA1B16A0272B1FEC00E67E9F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BA1B168D272B1FEC00E67E9F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BA1B1695272B1FEC00E67E9F;
+			remoteInfo = "ecn-bits-w";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		BA1B1696272B1FEC00E67E9F /* ecn_bits_w.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ecn_bits_w.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BA1B1699272B1FEC00E67E9F /* ecn_bits_w.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ecn_bits_w.h; sourceTree = "<group>"; };
+		BA1B169E272B1FEC00E67E9F /* ecn-bits-wTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ecn-bits-wTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BA1B16A3272B1FEC00E67E9F /* ecn_bits_wTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ecn_bits_wTests.swift; sourceTree = "<group>"; };
+		BA1B16B0272B204800E67E9F /* recvfrom.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = recvfrom.c; path = lib/recvfrom.c; sourceTree = SOURCE_ROOT; };
+		BA1B16B1272B204800E67E9F /* tc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = tc.c; path = lib/tc.c; sourceTree = SOURCE_ROOT; };
+		BA1B16B2272B204800E67E9F /* mkcmsg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mkcmsg.c; path = lib/mkcmsg.c; sourceTree = SOURCE_ROOT; };
+		BA1B16B3272B204800E67E9F /* recv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = recv.c; path = lib/recv.c; sourceTree = SOURCE_ROOT; };
+		BA1B16B4272B204800E67E9F /* prep.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = prep.c; path = lib/prep.c; sourceTree = SOURCE_ROOT; };
+		BA1B16B5272B204800E67E9F /* stoaf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = stoaf.c; path = lib/stoaf.c; sourceTree = SOURCE_ROOT; };
+		BA1B16B6272B204800E67E9F /* recvmsg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = recvmsg.c; path = lib/recvmsg.c; sourceTree = SOURCE_ROOT; };
+		BA1B16B7272B204800E67E9F /* short.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = short.c; path = lib/short.c; sourceTree = SOURCE_ROOT; };
+		BA1B16B8272B204800E67E9F /* rdmsg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = rdmsg.c; path = lib/rdmsg.c; sourceTree = SOURCE_ROOT; };
+		BA1B16B9272B204800E67E9F /* desc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = desc.c; path = lib/desc.c; sourceTree = SOURCE_ROOT; };
+		BA1B16C6272B251C00E67E9F /* ecn-bits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ecn-bits.h"; sourceTree = "<group>"; };
+		BA1B170A272DB98600E67E9F /* UDPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPClient.swift; sourceTree = "<group>"; };
+		BA571623273344E2005CF8AC /* SocketHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketHelper.swift; sourceTree = "<group>"; };
+		BA57162527334534005CF8AC /* ECNBits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ECNBits.swift; sourceTree = "<group>"; };
+		BA7370F7273298A1000C9FBD /* UDPClientProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPClientProtocol.swift; sourceTree = "<group>"; };
+		BAEAD074273BBDD900BBE6C8 /* ECNStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ECNStats.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BA1B1693272B1FEC00E67E9F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BA1B169B272B1FEC00E67E9F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BA1B169F272B1FEC00E67E9F /* ecn_bits_w.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BA1B168C272B1FEC00E67E9F = {
+			isa = PBXGroup;
+			children = (
+				BA757E9F272DC1D500990CC2 /* client */,
+				BA57162727334557005CF8AC /* helpers */,
+				BA1B1698272B1FEC00E67E9F /* ecn-bits-w */,
+				BA1B16A2272B1FEC00E67E9F /* ecn-bits-wTests */,
+				BA1B1697272B1FEC00E67E9F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BA1B1697272B1FEC00E67E9F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BA1B1696272B1FEC00E67E9F /* ecn_bits_w.framework */,
+				BA1B169E272B1FEC00E67E9F /* ecn-bits-wTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BA1B1698272B1FEC00E67E9F /* ecn-bits-w */ = {
+			isa = PBXGroup;
+			children = (
+				BA1B1699272B1FEC00E67E9F /* ecn_bits_w.h */,
+				BA1B16C6272B251C00E67E9F /* ecn-bits.h */,
+				BA1B16B9272B204800E67E9F /* desc.c */,
+				BA1B16B2272B204800E67E9F /* mkcmsg.c */,
+				BA1B16B4272B204800E67E9F /* prep.c */,
+				BA1B16B8272B204800E67E9F /* rdmsg.c */,
+				BA1B16B3272B204800E67E9F /* recv.c */,
+				BA1B16B0272B204800E67E9F /* recvfrom.c */,
+				BA1B16B6272B204800E67E9F /* recvmsg.c */,
+				BA1B16B7272B204800E67E9F /* short.c */,
+				BA1B16B5272B204800E67E9F /* stoaf.c */,
+				BA1B16B1272B204800E67E9F /* tc.c */,
+			);
+			path = "ecn-bits-w";
+			sourceTree = "<group>";
+		};
+		BA1B16A2272B1FEC00E67E9F /* ecn-bits-wTests */ = {
+			isa = PBXGroup;
+			children = (
+				BA1B16A3272B1FEC00E67E9F /* ecn_bits_wTests.swift */,
+			);
+			path = "ecn-bits-wTests";
+			sourceTree = "<group>";
+		};
+		BA57162727334557005CF8AC /* helpers */ = {
+			isa = PBXGroup;
+			children = (
+				BA57162527334534005CF8AC /* ECNBits.swift */,
+				BAEAD074273BBDD900BBE6C8 /* ECNStats.swift */,
+				BA571623273344E2005CF8AC /* SocketHelper.swift */,
+			);
+			path = helpers;
+			sourceTree = "<group>";
+		};
+		BA757E9F272DC1D500990CC2 /* client */ = {
+			isa = PBXGroup;
+			children = (
+				BA1B170A272DB98600E67E9F /* UDPClient.swift */,
+				BA7370F7273298A1000C9FBD /* UDPClientProtocol.swift */,
+			);
+			name = client;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		BA1B1691272B1FEC00E67E9F /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BA1B16A5272B1FEC00E67E9F /* ecn_bits_w.h in Headers */,
+				BA1B16C7272B251C00E67E9F /* ecn-bits.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		BA1B1695272B1FEC00E67E9F /* ecn-bits-w */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BA1B16A8272B1FEC00E67E9F /* Build configuration list for PBXNativeTarget "ecn-bits-w" */;
+			buildPhases = (
+				BA1B1691272B1FEC00E67E9F /* Headers */,
+				BA1B1692272B1FEC00E67E9F /* Sources */,
+				BA1B1693272B1FEC00E67E9F /* Frameworks */,
+				BA1B1694272B1FEC00E67E9F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "ecn-bits-w";
+			productName = "ecn-bits-w";
+			productReference = BA1B1696272B1FEC00E67E9F /* ecn_bits_w.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		BA1B169D272B1FEC00E67E9F /* ecn-bits-wTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BA1B16AB272B1FEC00E67E9F /* Build configuration list for PBXNativeTarget "ecn-bits-wTests" */;
+			buildPhases = (
+				BA1B169A272B1FEC00E67E9F /* Sources */,
+				BA1B169B272B1FEC00E67E9F /* Frameworks */,
+				BA1B169C272B1FEC00E67E9F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BA1B16A1272B1FEC00E67E9F /* PBXTargetDependency */,
+			);
+			name = "ecn-bits-wTests";
+			productName = "ecn-bits-wTests";
+			productReference = BA1B169E272B1FEC00E67E9F /* ecn-bits-wTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BA1B168D272B1FEC00E67E9F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1300;
+				LastUpgradeCheck = 1300;
+				TargetAttributes = {
+					BA1B1695272B1FEC00E67E9F = {
+						CreatedOnToolsVersion = 13.0;
+						LastSwiftMigration = 1300;
+					};
+					BA1B169D272B1FEC00E67E9F = {
+						CreatedOnToolsVersion = 13.0;
+					};
+				};
+			};
+			buildConfigurationList = BA1B1690272B1FEC00E67E9F /* Build configuration list for PBXProject "ecn-bits-w" */;
+			compatibilityVersion = "Xcode 13.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = BA1B168C272B1FEC00E67E9F;
+			productRefGroup = BA1B1697272B1FEC00E67E9F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BA1B1695272B1FEC00E67E9F /* ecn-bits-w */,
+				BA1B169D272B1FEC00E67E9F /* ecn-bits-wTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		BA1B1694272B1FEC00E67E9F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BA1B169C272B1FEC00E67E9F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BA1B1692272B1FEC00E67E9F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BA1B16C3272B204800E67E9F /* desc.c in Sources */,
+				BA1B16C1272B204800E67E9F /* short.c in Sources */,
+				BA1B16BE272B204800E67E9F /* prep.c in Sources */,
+				BA1B16BB272B204800E67E9F /* tc.c in Sources */,
+				BA7370F8273298A1000C9FBD /* UDPClientProtocol.swift in Sources */,
+				BA1B16BA272B204800E67E9F /* recvfrom.c in Sources */,
+				BA571624273344E2005CF8AC /* SocketHelper.swift in Sources */,
+				BA1B170B272DB98600E67E9F /* UDPClient.swift in Sources */,
+				BA1B16C0272B204800E67E9F /* recvmsg.c in Sources */,
+				BAEAD077273BBDD900BBE6C8 /* ECNStats.swift in Sources */,
+				BA1B16BF272B204800E67E9F /* stoaf.c in Sources */,
+				BA57162627334534005CF8AC /* ECNBits.swift in Sources */,
+				BA1B16C2272B204800E67E9F /* rdmsg.c in Sources */,
+				BA1B16BC272B204800E67E9F /* mkcmsg.c in Sources */,
+				BA1B16BD272B204800E67E9F /* recv.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BA1B169A272B1FEC00E67E9F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BA1B16A4272B1FEC00E67E9F /* ecn_bits_wTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BA1B16A1272B1FEC00E67E9F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BA1B1695272B1FEC00E67E9F /* ecn-bits-w */;
+			targetProxy = BA1B16A0272B1FEC00E67E9F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		BA1B16A6272B1FEC00E67E9F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		BA1B16A7272B1FEC00E67E9F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		BA1B16A9272B1FEC00E67E9F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/ecn-bits-w",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.endava.ecn-bits.ecn-bits-w";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BA1B16AA272B1FEC00E67E9F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/ecn-bits-w",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.endava.ecn-bits.ecn-bits-w";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BA1B16AC272B1FEC00E67E9F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.endava.ecn-bits.ecn-bits-wTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BA1B16AD272B1FEC00E67E9F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.endava.ecn-bits.ecn-bits-wTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BA1B1690272B1FEC00E67E9F /* Build configuration list for PBXProject "ecn-bits-w" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BA1B16A6272B1FEC00E67E9F /* Debug */,
+				BA1B16A7272B1FEC00E67E9F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BA1B16A8272B1FEC00E67E9F /* Build configuration list for PBXNativeTarget "ecn-bits-w" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BA1B16A9272B1FEC00E67E9F /* Debug */,
+				BA1B16AA272B1FEC00E67E9F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BA1B16AB272B1FEC00E67E9F /* Build configuration list for PBXNativeTarget "ecn-bits-wTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BA1B16AC272B1FEC00E67E9F /* Debug */,
+				BA1B16AD272B1FEC00E67E9F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BA1B168D272B1FEC00E67E9F /* Project object */;
+}
