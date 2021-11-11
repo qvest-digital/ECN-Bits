@@ -88,18 +88,17 @@ public class ECNUDPclient {
     }
     
     /**
-     Sends data to a host
-     If this fails send or recv calls will also fail
+     Sends data to a host, uses the current ecn value
      
      - Parameters:
-        data:  The data that will be sent as Data
+        payload:  The data that will be sent as String
         completion:  A callback (with a result parameter of type Result) cand be success or failure with error type
      */
     public func sendData(payload: String) {
         let sendResult =  addr.withSockAddr { (sa, saLen) -> Int in
             let ai_family = Int32(sa.pointee.sa_family)
             let msghdr = UnsafeMutablePointer<msghdr>.allocate(capacity: 64)
-           
+
             let intBuffer = UnsafeMutablePointer<Int>.allocate(capacity: 1)
             let unsafePointer = UnsafeMutablePointer(mutating: intBuffer)
                     
