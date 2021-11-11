@@ -65,9 +65,9 @@ public class ECNUDPclient {
      - Parameters:
         completion:  A callback (with a result parameter of type Result) cand be success or failure with error type
      */
-    public func connectSock(completion: (Result<Bool, ECNUDPClientError>) -> Void) {
+    public func connect(completion: (Result<Bool, ECNUDPClientError>) -> Void) {
         let connectResult = addr.withSockAddr { sa, saLen in
-            return  connect(socketfd, sa, saLen)
+            return  ecn_bits_w.connect(socketfd, sa, saLen)
         }
         
         if (connectResult >= 0) {
@@ -98,18 +98,20 @@ public class ECNUDPclient {
     public func sendData(payload: String) {
         let sendResult =  addr.withSockAddr { (sa, saLen) -> Int in
             let ai_family = Int32(sa.pointee.sa_family)
-            let msghdr = UnsafeMutablePointer<msghdr>.allocate(capacity: 512)
-            let iovec = UnsafeMutablePointer<iovec>.allocate(capacity: 16)
+            let msghdr = UnsafeMutablePointer<msghdr>.allocate(capacity: 64)
+           
             let intBuffer = UnsafeMutablePointer<Int>.allocate(capacity: 1)
             let unsafePointer = UnsafeMutablePointer(mutating: intBuffer)
-            
-            let msg = UnsafeMutablePointer<CChar>(mutating:payload.cString(using: .utf8))
-  
-            iovec.pointee.iov_base = UnsafeMutableRawPointer.init(msg)
+                    
+            let iovec = payload.withCString { cpayload -> UnsafeMutablePointer<iovec> in
+                let iovec = UnsafeMutablePointer<iovec>.allocate(capacity: 1)
+                iovec.pointee.iov_base = UnsafeMutableRawPointer.init(mutating: cpayload)
+                return iovec
+            }
+        
             iovec.pointee.iov_len = payload.utf8.count
             msghdr.pointee.msg_iov = iovec
             msghdr.pointee.msg_iovlen = 1
-            
             
             let ecnPrepResult = ecnbits_prep(socketfd, ai_family)
             guard ecnPrepResult >= 0 else {
@@ -161,7 +163,7 @@ public class ECNUDPclient {
     
     /**
      Waits to receive data
-     If this fails send or recv calls will also fail, this method awaits 4 packets (should be change but our test server works like this) then calls didFinishTransmision
+     If this fails send or recv calls will also fail, this method awaits 4 packets (should be changed but our test server works like this) then calls didFinishTransmission
      
      - Parameters:
         expectedLength:  The size of data you are expecting
@@ -169,11 +171,14 @@ public class ECNUDPclient {
     public func setupReceive(expectedLength: Int) {
         var packetCount = 0
         while (packetCount < 4) {
-            let buffer = [CChar](repeating: 0, count: expectedLength)
-            let unsafeBuff = UnsafeMutableRawPointer(mutating: buffer)
+            
+            var buffer = [CChar](repeating: 0, count: expectedLength)
             let ecnresult = UnsafeMutablePointer<UInt16>.allocate(capacity: 1)
-            let bytesRead = ecnbits_recv(self.socketfd, unsafeBuff, buffer.count, O_NONBLOCK, ecnresult)
-        
+
+            let bytesRead = buffer.withUnsafeMutableBytes { unsafeMutablePointer in
+                return ecnbits_recv(self.socketfd, unsafeMutablePointer.baseAddress!, unsafeMutablePointer.count, O_NONBLOCK, ecnresult)
+            }
+
             if bytesRead == -1 {
                 let errString = String(utf8String: strerror(errno)) ?? "Unknown error code"
                 let message = "Recv error = \(errno) (\(errString))"
@@ -196,7 +201,7 @@ public class ECNUDPclient {
                     self.delegate?.didReceiveRecvError(error: "fatal can't be converted to string")
                 }
             }
-        
+    
             free(ecnresult)
             packetCount += 1
         }
@@ -211,7 +216,7 @@ public class ECNUDPclient {
      
      - Parameters:
         host:  host data as String
-        port:  Port value as Int
+        port:  port value as Int
      */
     func addressesFor(host: String, port: Int) throws -> [sockaddr_storage] {
         var hints = addrinfo()

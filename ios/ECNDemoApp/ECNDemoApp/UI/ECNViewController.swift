@@ -77,10 +77,10 @@ class ECNViewController: UIViewController {
     @IBAction func sendPacketAction(_ sender: Any) {
         updateClientIfNeeded()
         DispatchQueue.global(qos: .userInitiated).async {
-            self.udpClient?.connectSock { result in
+            self.udpClient?.connect { result in
                 switch result {
                 case .success(_):
-                    self.udpClient?.sendData(payload: "Hi From The iOS side!")
+                    self.udpClient?.sendData(payload: "Hi From T")
                     self.udpClient?.setupReceive(expectedLength: 512)
                 case .failure(let error):
                     print("error\(error)")
@@ -118,10 +118,10 @@ class ECNViewController: UIViewController {
     
     func updateDataWithTextField(textField:UITextField) {
         if (textField == hostTextField) {
-            paramsWereUpdated =  !(self.ip != textField.text)
+            paramsWereUpdated =  (self.ip == textField.text)
             self.ip = textField.text
         } else if (textField == portTextField) {
-            paramsWereUpdated =  !(self.port != textField.text)
+            paramsWereUpdated =  (self.port == textField.text)
             self.port = textField.text
         }
     }
@@ -147,6 +147,7 @@ class ECNViewController: UIViewController {
 }
 
 extension ECNViewController : UDPClientDelegate {
+    
     func didReceieveResponse(data: String, ecnResult: ECNBit?) {
         if let ecn_res = ecnResult {
             ecnStats.addECNRsult(result: ecn_res)
@@ -155,7 +156,6 @@ extension ECNViewController : UDPClientDelegate {
         } else {
             results.append(data)
         }
-
         tableView.reloadData()
     }
     
@@ -170,12 +170,14 @@ extension ECNViewController : UDPClientDelegate {
 }
 
 extension ECNViewController : UITableViewDelegate {
+    
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 60 // make it nicer
     }
 }
 
 extension ECNViewController : UITableViewDataSource {
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return results.count
     }

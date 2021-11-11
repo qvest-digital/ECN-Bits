@@ -16,4 +16,4 @@ ecn-bits-w.framework,  contains the c sources and provides and the ECNUDPCLient 
 Start the server from the ../c/server on a port
 Open the app fill in the host and port  and hit Send Packet button
 
-*Make sure you hit the done button on keyboard when changing the host and port
+*Make sure you hit the done button on keyboard when changing the host or port
