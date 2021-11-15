@@ -81,9 +81,9 @@ public class ECNUDPclient {
      Updates the ecn value, this  will be sent to the server with every send call
      
      - Parameters:
-        ecn:  The ecn value that will be sent to the server 0 (no ECN), 1 (ECT 0),  2 (ECT 1),  3 (ECT CE)
+        ecn:  The ecn value that will be sent to the server 0 (no ECN), 1 (ECT 0),  2 (ECT 0),  3 (ECT CE)
      */
-    public func updateECN(ecn : Int) {
+    public func updateECN(ecn: Int) {
         self.ecn = ecn
     }
     
@@ -178,7 +178,7 @@ public class ECNUDPclient {
                 return ecnbits_recv(self.socketfd, unsafeMutablePointer.baseAddress!, unsafeMutablePointer.count, O_NONBLOCK, ecnresult)
             }
 
-            if bytesRead == -1 {
+            if bytesRead <= 0   {
                 let errString = String(utf8String: strerror(errno)) ?? "Unknown error code"
                 let message = "Recv error = \(errno) (\(errString))"
                 print(message)
