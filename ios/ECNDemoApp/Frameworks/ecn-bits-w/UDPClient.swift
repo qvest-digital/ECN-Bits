@@ -101,10 +101,11 @@ public class ECNUDPclient {
 
             let intBuffer = UnsafeMutablePointer<Int>.allocate(capacity: 1)
             let unsafePointer = UnsafeMutablePointer(mutating: intBuffer)
-                    
-            let iovec = payload.withCString { cpayload -> UnsafeMutablePointer<iovec> in
+            
+            let iovec = payload.withCString(encodedAs:Unicode.UTF8.self) { cpayload -> UnsafeMutablePointer<iovec> in
                 let iovec = UnsafeMutablePointer<iovec>.allocate(capacity: 1)
-                iovec.pointee.iov_base = UnsafeMutableRawPointer.init(mutating: cpayload)
+                // use the cpayload here
+                iovec.pointee.iov_base = UnsafeMutableRawPointer.init(mutating: payload.cString(using: .utf8))
                 return iovec
             }
         

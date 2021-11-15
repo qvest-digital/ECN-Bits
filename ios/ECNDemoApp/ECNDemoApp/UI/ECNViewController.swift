@@ -80,7 +80,7 @@ class ECNViewController: UIViewController {
             self.udpClient?.connect { result in
                 switch result {
                 case .success(_):
-                    self.udpClient?.sendData(payload: "Hi From T")
+                    self.udpClient?.sendData(payload: "Hi From iOS")
                     self.udpClient?.setupReceive(expectedLength: 512)
                 case .failure(let error):
                     print("error\(error)")
