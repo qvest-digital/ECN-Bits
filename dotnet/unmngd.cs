@@ -23,6 +23,7 @@
 #define PROPER_DISPOSED_CHECK
 
 using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
@@ -55,6 +56,56 @@ public static class ECNBits {
 		if (rv >= 2)
 			ThrowSocketException(socket);
 		return rv;
+	}
+
+	public static int ReceiveFrom(Socket socket, Span<byte> buffer,
+	    SocketFlags flags, ref EndPoint remoteEP) {
+		Span<Unmanaged.ecnhll_rcv> p = stackalloc Unmanaged.ecnhll_rcv[1];
+
+p[0].addrD=1;
+
+Console.WriteLine("nbytes<"+p[0].nbytes+"> flags<"+p[0].flags+"> ipscope<"+p[0].ipscope+
+"> port=<"+p[0].port+"> tos<"+p[0].tosvalid+"|"+p[0].tosbyte+"> addr=<"+
+p[0].addr0+" "+p[0].addr1+" "+p[0].addr2+" "+p[0].addr3+" "+
+p[0].addr4+" "+p[0].addr5+" "+p[0].addr6+" "+p[0].addr7+" "+
+p[0].addr8+" "+p[0].addr9+" "+p[0].addrA+" "+p[0].addrB+" "+
+p[0].addrC+" "+p[0].addrD+" "+p[0].addrE+" "+p[0].addrF+">");
+
+		p.Clear();
+
+Console.WriteLine("nbytes<"+p[0].nbytes+"> flags<"+p[0].flags+"> ipscope<"+p[0].ipscope+
+"> port=<"+p[0].port+"> tos<"+p[0].tosvalid+"|"+p[0].tosbyte+"> addr=<"+
+p[0].addr0+" "+p[0].addr1+" "+p[0].addr2+" "+p[0].addr3+" "+
+p[0].addr4+" "+p[0].addr5+" "+p[0].addr6+" "+p[0].addr7+" "+
+p[0].addr8+" "+p[0].addr9+" "+p[0].addrA+" "+p[0].addrB+" "+
+p[0].addrC+" "+p[0].addrD+" "+p[0].addrE+" "+p[0].addrF+">");
+
+		p[0].addr0=6;
+
+Console.WriteLine("nbytes<"+p[0].nbytes+"> flags<"+p[0].flags+"> ipscope<"+p[0].ipscope+
+"> port=<"+p[0].port+"> tos<"+p[0].tosvalid+"|"+p[0].tosbyte+"> addr=<"+
+p[0].addr0+" "+p[0].addr1+" "+p[0].addr2+" "+p[0].addr3+" "+
+p[0].addr4+" "+p[0].addr5+" "+p[0].addr6+" "+p[0].addr7+" "+
+p[0].addr8+" "+p[0].addr9+" "+p[0].addrA+" "+p[0].addrB+" "+
+p[0].addrC+" "+p[0].addrD+" "+p[0].addrE+" "+p[0].addrF+">");
+
+		Unmanaged.ecnhll_recv(SocketHandle(socket), ref buffer[0], ref p[0]);
+
+Console.WriteLine("nbytes<"+p[0].nbytes+"> flags<"+p[0].flags+"> ipscope<"+p[0].ipscope+
+"> port=<"+p[0].port+"> tos<"+p[0].tosvalid+"|"+p[0].tosbyte+"> addr=<"+
+p[0].addr0+" "+p[0].addr1+" "+p[0].addr2+" "+p[0].addr3+" "+
+p[0].addr4+" "+p[0].addr5+" "+p[0].addr6+" "+p[0].addr7+" "+
+p[0].addr8+" "+p[0].addr9+" "+p[0].addrA+" "+p[0].addrB+" "+
+p[0].addrC+" "+p[0].addrD+" "+p[0].addrE+" "+p[0].addrF+">");
+
+		// v4
+		//remoteEP = new IPEndPoint((Int64)p[0].ipscope, p[0].port);
+		// v6
+		var pbytes = MemoryMarshal.Cast<Unmanaged.ecnhll_rcv, byte>(p);
+		var paddr = pbytes.Slice(16, 16);
+		remoteEP = new IPEndPoint(new IPAddress(paddr, (Int64)p[0].ipscope), p[0].port);
+
+		return -1;
 	}
 	#endregion
 
@@ -115,6 +166,9 @@ internal static class Unmanaged {
 	 * Once-only setup to load the correct DLL on Windows®
 	 */
 	static Unmanaged() {
+		// assert correct types
+		CheckTypes();
+
 		// if not Windows assume LD_LIBRARY_PATH was set up properly
 		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			return;
@@ -146,6 +200,65 @@ internal static class Unmanaged {
 	}
 	#endregion
 
+	#region interoptype
+	/*
+	 * Parameter block for ecnhll_recv
+	 */
+	[StructLayout(LayoutKind.Sequential)]
+	internal struct ecnhll_rcv {
+		public UInt32 nbytes;	// in+out
+		public UInt32 flags;	// in
+		public UInt32 ipscope;	// out (v4: address, v6: scope)
+		public UInt16 port;	// out
+		public Byte tosvalid;	// out (1 or 0)
+		public Byte tosbyte;	// out
+		public Byte addr0;	// out, [16]
+		public Byte addr1;
+		public Byte addr2;
+		public Byte addr3;
+		public Byte addr4;
+		public Byte addr5;
+		public Byte addr6;
+		public Byte addr7;
+		public Byte addr8;
+		public Byte addr9;
+		public Byte addrA;
+		public Byte addrB;
+		public Byte addrC;
+		public Byte addrD;
+		public Byte addrE;
+		public Byte addrF;
+	};
+
+	/*
+	 * Checks for that
+	 */
+#if !__MonoCS__
+	internal static class BlittableHelper<T> where T : unmanaged {
+		public static readonly bool IsBlittable = true;
+	}
+#endif
+
+	private static void CheckTypes() {
+		var t = typeof(ecnhll_rcv);
+
+		if (
+#if !__MonoCS__
+		    !BlittableHelper<ecnhll_rcv>.IsBlittable ||
+#endif
+		    Marshal.OffsetOf(t, "nbytes") != (IntPtr)0 ||
+		    Marshal.OffsetOf(t, "flags") != (IntPtr)4 ||
+		    Marshal.OffsetOf(t, "ipscope") != (IntPtr)8 ||
+		    Marshal.OffsetOf(t, "port") != (IntPtr)12 ||
+		    Marshal.OffsetOf(t, "tosvalid") != (IntPtr)14 ||
+		    Marshal.OffsetOf(t, "tosbyte") != (IntPtr)15 ||
+		    Marshal.OffsetOf(t, "addr0") != (IntPtr)16 ||
+		    Marshal.OffsetOf(t, "addrF") != (IntPtr)31 ||
+		    Marshal.SizeOf(t) != 32)
+			throw new BadImageFormatException("ecnhll_rcv size mismatch");
+	}
+	#endregion
+
 	#region native
 	/*
 	 * Mapper for actual production code
@@ -155,6 +268,8 @@ internal static class Unmanaged {
 
 	[DllImport(LIB, ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, SetLastError=true)]
 	internal static extern int ecnhll_prep(IntPtr socketfd, int af);
+	[DllImport(LIB, ExactSpelling=true, CallingConvention=CallingConvention.Cdecl, SetLastError=true)]
+	internal static extern int ecnhll_recv(IntPtr socketfd, ref byte buf, ref ecnhll_rcv p);
 	#endregion
 }
 
