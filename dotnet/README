@@ -200,4 +200,44 @@ When using the ECNBits namespace, the ECNBits static class containing
 the full API as well as a number of classes providing extension methods
 will be imported.
 
-XXX to be continued
+Simple usage with the Socket class works as follows:
+
+• before receiving, call once:
+  sock.ECNBitsPrepare();
+
+• use the Receive or ReceiveFrom overloads with out Nullable<Byte> iptos
+  at the end to receive
+
+The iptos out variable will be assigned the IP TOS value if it could
+be determined, null otherwise.
+
+Simple usage with the UdpClient works as follows:
+
+• after initialisation, call once:
+  client.ECNBitsPrepare();
+
+• to receive, call:
+  byte[] resultbuffer = client.Receive(ref remoteEP, out iptos);
+
+Limitations of the current implementation:
+
+• the Socket.Receive overloads for IList<ArraySegment<Byte>> are
+  absent, only byte[] and Span<Byte> buffers are supported
+
+• only synchronous communication is supported; this is unlikely to change
+
+• UdpClient.Receive is a slow API because it resizes the receive buffer
+  allocated at 64 KiB each time; the Socket API is much more performant
+
+• ThrowIfDisposed() can only be checked on a Socket, including the
+  one underlying UdpClient; however, the UdpClient itself cannot be
+  checked, and the Socket check has a slight overhead because the
+  things needed for a better check are private
+
+• When compiling for Mono (which does not provide some features) the
+  library will run less optimal and requires one “unsafe” block for
+  stackalloc
+
+• Extension methods cannot add state to a class so auto-counting methods
+  like getMeasurement in the Android/Java™ implementation are currently
+  not available

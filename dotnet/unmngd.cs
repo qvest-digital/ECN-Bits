@@ -58,54 +58,56 @@ public static class ECNBits {
 		return rv;
 	}
 
-	public static int ReceiveFrom(Socket socket, Span<byte> buffer,
-	    SocketFlags flags, out EndPoint remoteEP) {
+	public static int ReceiveFrom(Socket socket, Span<Byte> buffer,
+	    SocketFlags flags, out EndPoint remoteEP,
+	    out Nullable<Byte> iptos) {
+#if !__MonoCS__
 		Span<Unmanaged.ecnhll_rcv> p = stackalloc Unmanaged.ecnhll_rcv[1];
-
-p[0].addrD=1;
-
-Console.WriteLine("nbytes<"+p[0].nbytes+"> flags<"+p[0].flags+"> ipscope<"+p[0].ipscope+
-"> port=<"+p[0].port+"> tos<"+p[0].tosvalid+"|"+p[0].tosbyte+"> addr=<"+
-p[0].addr0+" "+p[0].addr1+" "+p[0].addr2+" "+p[0].addr3+" "+
-p[0].addr4+" "+p[0].addr5+" "+p[0].addr6+" "+p[0].addr7+" "+
-p[0].addr8+" "+p[0].addr9+" "+p[0].addrA+" "+p[0].addrB+" "+
-p[0].addrC+" "+p[0].addrD+" "+p[0].addrE+" "+p[0].addrF+">");
+#else
+		Span<Unmanaged.ecnhll_rcv> p;
+		unsafe {
+			Unmanaged.ecnhll_rcv *tmp = stackalloc Unmanaged.ecnhll_rcv[1];
+			p = new Span<Unmanaged.ecnhll_rcv>(tmp, 1);
+		}
+#endif
 
 		p.Clear();
+		p[0].nbytes = (UInt32)buffer.Length;
+		if ((flags & SocketFlags.OutOfBand) == SocketFlags.OutOfBand)
+			p[0].flags |= 1;
+		if ((flags & SocketFlags.Peek) == SocketFlags.Peek)
+			p[0].flags |= 2;
 
-Console.WriteLine("nbytes<"+p[0].nbytes+"> flags<"+p[0].flags+"> ipscope<"+p[0].ipscope+
-"> port=<"+p[0].port+"> tos<"+p[0].tosvalid+"|"+p[0].tosbyte+"> addr=<"+
-p[0].addr0+" "+p[0].addr1+" "+p[0].addr2+" "+p[0].addr3+" "+
-p[0].addr4+" "+p[0].addr5+" "+p[0].addr6+" "+p[0].addr7+" "+
-p[0].addr8+" "+p[0].addr9+" "+p[0].addrA+" "+p[0].addrB+" "+
-p[0].addrC+" "+p[0].addrD+" "+p[0].addrE+" "+p[0].addrF+">");
+		int rv = Unmanaged.ecnhll_recv(SocketHandle(socket),
+		    ref buffer[0], ref p[0]);
 
-		p[0].addr0=6;
-
-Console.WriteLine("nbytes<"+p[0].nbytes+"> flags<"+p[0].flags+"> ipscope<"+p[0].ipscope+
-"> port=<"+p[0].port+"> tos<"+p[0].tosvalid+"|"+p[0].tosbyte+"> addr=<"+
-p[0].addr0+" "+p[0].addr1+" "+p[0].addr2+" "+p[0].addr3+" "+
-p[0].addr4+" "+p[0].addr5+" "+p[0].addr6+" "+p[0].addr7+" "+
-p[0].addr8+" "+p[0].addr9+" "+p[0].addrA+" "+p[0].addrB+" "+
-p[0].addrC+" "+p[0].addrD+" "+p[0].addrE+" "+p[0].addrF+">");
-
-		Unmanaged.ecnhll_recv(SocketHandle(socket), ref buffer[0], ref p[0]);
-
-Console.WriteLine("nbytes<"+p[0].nbytes+"> flags<"+p[0].flags+"> ipscope<"+p[0].ipscope+
-"> port=<"+p[0].port+"> tos<"+p[0].tosvalid+"|"+p[0].tosbyte+"> addr=<"+
-p[0].addr0+" "+p[0].addr1+" "+p[0].addr2+" "+p[0].addr3+" "+
-p[0].addr4+" "+p[0].addr5+" "+p[0].addr6+" "+p[0].addr7+" "+
-p[0].addr8+" "+p[0].addr9+" "+p[0].addrA+" "+p[0].addrB+" "+
-p[0].addrC+" "+p[0].addrD+" "+p[0].addrE+" "+p[0].addrF+">");
-
-		// v4
-		//remoteEP = new IPEndPoint((Int64)p[0].ipscope, p[0].port);
-		// v6
-		var pbytes = MemoryMarshal.Cast<Unmanaged.ecnhll_rcv, byte>(p);
-		var paddr = pbytes.Slice(16, 16);
-		remoteEP = new IPEndPoint(new IPAddress(paddr, (Int64)p[0].ipscope), p[0].port);
-
-		return -1;
+		switch (rv) {
+		case 4:
+			remoteEP = new IPEndPoint((Int64)p[0].ipscope,
+			    p[0].port);
+			break;
+		case 6:
+			var b = MemoryMarshal.Cast<Unmanaged.ecnhll_rcv, Byte>(p);
+#if !__MonoCS__
+			var paddr = b.Slice(16, 16);
+#else
+			var paddr = b.Slice(16, 16).ToArray();
+#endif
+			var addr = new IPAddress(paddr, (Int64)p[0].ipscope);
+			remoteEP = new IPEndPoint(addr, p[0].port);
+			break;
+		default:
+			/* 0 = bad address family, -1 = error */
+			ThrowSocketException(socket);
+			// for Roslyn
+			remoteEP = null;
+			break;
+		}
+		if (p[0].tosvalid == 1)
+			iptos = p[0].tosbyte;
+		else
+			iptos = null;
+		return (int)p[0].nbytes;
 	}
 	#endregion
 
@@ -142,15 +144,87 @@ p[0].addrC+" "+p[0].addrD+" "+p[0].addrE+" "+p[0].addrF+">");
 
 #region Socket extension
 public static class SocketExtension {
+	internal static EndPoint dummyEP;
+
 	public static int ECNBitsPrepare(this Socket socket) =>
 		ECNBits.Prepare(socket);
+
+	public static int Receive(this Socket socket, Byte[] buffer,
+	    Int32 offset, Int32 size, SocketFlags socketFlags,
+	    out Nullable<Byte> iptos) =>
+		ECNBits.ReceiveFrom(socket, new Span<Byte>(buffer, offset, size),
+		    socketFlags, out dummyEP, out iptos);
+
+	public static int Receive(this Socket socket, Byte[] buffer,
+	    Int32 size, SocketFlags socketFlags,
+	    out Nullable<Byte> iptos) =>
+		ECNBits.ReceiveFrom(socket, new Span<Byte>(buffer, 0, size),
+		    socketFlags, out dummyEP, out iptos);
+
+	public static int Receive(this Socket socket, Byte[] buffer,
+	    SocketFlags socketFlags,
+	    out Nullable<Byte> iptos) =>
+		ECNBits.ReceiveFrom(socket, new Span<Byte>(buffer),
+		    socketFlags, out dummyEP, out iptos);
+
+	public static int Receive(this Socket socket, Span<Byte> buffer,
+	    out Nullable<Byte> iptos) =>
+		ECNBits.ReceiveFrom(socket, buffer,
+		    SocketFlags.None, out dummyEP, out iptos);
+
+	public static int Receive(this Socket socket, Span<Byte> buffer,
+	    SocketFlags socketFlags,
+	    out Nullable<Byte> iptos) =>
+		ECNBits.ReceiveFrom(socket, buffer,
+		    socketFlags, out dummyEP, out iptos);
+
+	public static int ReceiveFrom(this Socket socket, Byte[] buffer,
+	    ref EndPoint remoteEP,
+	    out Nullable<Byte> iptos) =>
+		ECNBits.ReceiveFrom(socket, new Span<Byte>(buffer),
+		    SocketFlags.None, out remoteEP, out iptos);
+
+	public static int ReceiveFrom(this Socket socket, Byte[] buffer,
+	    Int32 offset, Int32 size, SocketFlags socketFlags,
+	    ref EndPoint remoteEP,
+	    out Nullable<Byte> iptos) =>
+		ECNBits.ReceiveFrom(socket, new Span<Byte>(buffer, offset, size),
+		    socketFlags, out remoteEP, out iptos);
+
+	public static int ReceiveFrom(this Socket socket, Byte[] buffer,
+	    Int32 size, SocketFlags socketFlags, ref EndPoint remoteEP,
+	    out Nullable<Byte> iptos) =>
+		ECNBits.ReceiveFrom(socket, new Span<Byte>(buffer, 0, size),
+		    socketFlags, out remoteEP, out iptos);
+
+	public static int ReceiveFrom(this Socket socket, Byte[] buffer,
+	    SocketFlags socketFlags, ref EndPoint remoteEP,
+	    out Nullable<Byte> iptos) =>
+		ECNBits.ReceiveFrom(socket, new Span<Byte>(buffer),
+		    socketFlags, out remoteEP, out iptos);
 }
 #endregion
 
 #region UdpClient extension
 public static class UdpClientExtension {
+	private const int MaxUDPSize = 0x10000;
+
 	public static int ECNBitsPrepare(this UdpClient client) =>
 		ECNBits.Prepare(client.Client);
+
+	public static byte[] Receive(this UdpClient client,
+	    ref IPEndPoint remoteEP, out Nullable<Byte> iptos) {
+		EndPoint tempRemoteEP;
+		byte[] buf = new byte[MaxUDPSize];
+		int len;
+
+		len = ECNBits.ReceiveFrom(client.Client, new Span<Byte>(buf),
+		    SocketFlags.None, out tempRemoteEP, out iptos);
+		if (len < MaxUDPSize)
+			Array.Resize(ref buf, len);
+		remoteEP = (IPEndPoint)tempRemoteEP;
+		return buf;
+	}
 }
 #endregion
 

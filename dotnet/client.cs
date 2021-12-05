@@ -55,22 +55,18 @@ public static void Main(string[] args) {
 private static bool Do(IPAddress addr, Int32 port) {
 	bool ok = false;
 	using (var client = new UdpClient(addr.AddressFamily)) {
+		Nullable<Byte> tos;
 		IPEndPoint ep = null;
 		client.ECNBitsPrepare();
 		var sock = client.Client;
-System.Net.EndPoint remoteEP;
-Byte[] bbf = new Byte[2];
-Console.WriteLine("buf<" + bbf[0] + "." + bbf[1] + "> ep=undef");
-ECNBits.ECNBits.ReceiveFrom(sock, bbf, 0, out remoteEP);
-Console.WriteLine("buf<" + bbf[0] + "." + bbf[1] + "> ep=" + remoteEP);
 
 		client.Connect(addr, port);
 		Byte[] sendbuf = utf8enc.GetBytes("hi!");
 		client.Send(sendbuf, sendbuf.Length);
 		while (sock.Poll(1000000, SelectMode.SelectRead)) {
 			ok = true;
-			Byte[] recvbuf = client.Receive(ref ep);
-			Console.WriteLine("received message from " + ep);
+			Byte[] recvbuf = client.Receive(ref ep, out tos);
+			Console.WriteLine("received message from " + ep + " tos:" + tos);
 			Console.WriteLine("content: " + utf8enc.GetString(recvbuf));
 		}
 	}

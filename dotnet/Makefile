@@ -156,7 +156,7 @@ dotnetrun:
 mono: monobuild monorun
 
 monobuild: gnudll.stp
-	mcs -nologo $(LIB_BUILD)
+	mcs -nologo /unsafe $(LIB_BUILD)
 	mcs -nologo $(PROG_BUILD)
 
 monorun:

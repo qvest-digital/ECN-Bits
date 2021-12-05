@@ -114,8 +114,20 @@ ECNBITS_EXPORTAPI SSIZE_T ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
 #define ecnbits_read(socketfd,buf,buflen,ecnresult) \
 	ecnbits_recv((socketfd), (buf), (buflen), 0, (ecnresult))
 
+/* parameter block for HLL function */
+struct ecnhll_rcv {
+	unsigned int nbytes;	/* in/out, keep <= INT_MAX */
+	unsigned int flags;	/* in 1=OutOfBand 2=Peek */
+	unsigned int ipscope;	/* out (v6: scope; v4: sin_addr.s_addr) */
+	unsigned short port;	/* out (host endianness) */
+	unsigned char tosvalid;	/* out (1=valid) */
+	unsigned char tosbyte;	/* out */
+	unsigned char addr[16];	/* out (v6: address) */
+};
+
 /* extra functions for better support for high-level languages */
 ECNBITS_EXPORTAPI int ecnhll_prep(SOCKET fd, int af);
+ECNBITS_EXPORTAPI int ecnhll_recv(SOCKET fd, void *buf, struct ecnhll_rcv *p);
 /* support code for Mono */
 ECNBITS_EXPORTAPI void ecnhll_mono_test(void);
 ECNBITS_EXPORTAPI int ecnhll_mono_map(int errno_code);

@@ -103,6 +103,7 @@ git clone -c core.symlinks=true https://github.com/tarent/ECN-Bits.git
 – Windows/Linux, C♯/.net including Mono (also VB.net and other CLR languages)
   ‣ see dotnet/README
   • being under development
+  : Status: Extension Method API works under GNU/Linux
 
 – iOS (Apple)
   • pre-planning
