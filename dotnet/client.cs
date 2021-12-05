@@ -42,11 +42,11 @@ public static void Main(string[] args) {
 
 	foreach (IPAddress addr in Dns.GetHostAddresses(args[0])) {
 		try {
-			Console.WriteLine("trying: " + addr);
+			Console.Write("Trying [{0}]:{1}...", addr, port);
 			if (Do(addr, port))
 				rv = 0;
 		} catch (Exception e) {
-			Console.WriteLine("error trying " + addr + ": " + e);
+			Console.WriteLine("error: " + e);
 		}
 	}
 	Environment.Exit(rv);
@@ -61,13 +61,26 @@ private static bool Do(IPAddress addr, Int32 port) {
 		var sock = client.Client;
 
 		client.Connect(addr, port);
+		Console.WriteLine(" connected");
 		Byte[] sendbuf = utf8enc.GetBytes("hi!");
 		client.Send(sendbuf, sendbuf.Length);
 		while (sock.Poll(1000000, SelectMode.SelectRead)) {
 			ok = true;
 			Byte[] recvbuf = client.Receive(ref ep, out tos);
-			Console.WriteLine("received message from " + ep + " tos:" + tos);
-			Console.WriteLine("content: " + utf8enc.GetString(recvbuf));
+			var ts = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'",
+			    System.Globalization.CultureInfo.InvariantCulture);
+			var msg = utf8enc.GetString(recvbuf).TrimEnd('\r', '\n');
+
+			StringBuilder sb = new StringBuilder(ts);
+			sb.Append(' ');
+			sb.Append(ECNUtil.Desc(tos));
+			if (tos == null)
+				sb.Append("{??}");
+			else
+				sb.AppendFormat("{0}{1:X2}{2}", '{', tos, '}');
+			sb.AppendFormat(" <{0}>", msg);
+			//Console.WriteLine("received message from " + ep);
+			Console.WriteLine(sb);
 		}
 	}
 	return ok;

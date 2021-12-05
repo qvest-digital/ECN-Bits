@@ -198,7 +198,7 @@ targetting Android, for example.
 
 When using the ECNBits namespace, the ECNBits static class containing
 the full API as well as a number of classes providing extension methods
-will be imported.
+will be imported. The ECNUtil static class provides extra utilities.
 
 Simple usage with the Socket class works as follows:
 

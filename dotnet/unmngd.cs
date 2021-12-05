@@ -29,6 +29,20 @@ using System.Runtime.InteropServices;
 
 namespace ECNBits {
 
+#region ECNUtil
+public static class ECNUtil {
+	public readonly static System.Collections.Generic.IReadOnlyList<string> shortnames = new []{
+		"no ECN", "ECT(1)", "ECT(0)", "ECN CE"
+	};
+
+	public static String Desc(Nullable<Byte> iptos) {
+		if (iptos == null)
+			return "??ECN?";
+		return shortnames[(int)iptos & 3];
+	}
+}
+#endregion
+
 public static class ECNBits {
 	#region wrappers
 	/*
