@@ -59,7 +59,7 @@ public static class ECNBits {
 	}
 
 	public static int ReceiveFrom(Socket socket, Span<byte> buffer,
-	    SocketFlags flags, ref EndPoint remoteEP) {
+	    SocketFlags flags, out EndPoint remoteEP) {
 		Span<Unmanaged.ecnhll_rcv> p = stackalloc Unmanaged.ecnhll_rcv[1];
 
 p[0].addrD=1;

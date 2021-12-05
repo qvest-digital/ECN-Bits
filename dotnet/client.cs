@@ -58,10 +58,10 @@ private static bool Do(IPAddress addr, Int32 port) {
 		IPEndPoint ep = null;
 		client.ECNBitsPrepare();
 		var sock = client.Client;
-System.Net.EndPoint remoteEP = null;
+System.Net.EndPoint remoteEP;
 Byte[] bbf = new Byte[2];
-Console.WriteLine("buf<" + bbf[0] + "." + bbf[1] + "> ep=" + remoteEP);
-ECNBits.ECNBits.ReceiveFrom(sock, bbf, 0, ref remoteEP);
+Console.WriteLine("buf<" + bbf[0] + "." + bbf[1] + "> ep=undef");
+ECNBits.ECNBits.ReceiveFrom(sock, bbf, 0, out remoteEP);
 Console.WriteLine("buf<" + bbf[0] + "." + bbf[1] + "> ep=" + remoteEP);
 
 		client.Connect(addr, port);
