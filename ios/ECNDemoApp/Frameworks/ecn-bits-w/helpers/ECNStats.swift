@@ -49,14 +49,14 @@ public struct ECNStats {
         }
     }
     
-    public func packetsCount() -> Int {
+    public func packetCount() -> Int {
         return noECN + ect0 + ect1 + ectCE + errors
     }
     
     public func getStats() -> String {
         var result = "Success!\n"
-        let percent: Double = (Double(self.ectCE) / Double(packetsCount())) * 100.0
-        result += "\(percent)% of \(packetsCount()) packets were congested"
+        let percent: Double = (Double(self.ectCE) / Double(packetCount())) * 100.0
+        result += "\(percent)% of \(packetCount()) packets were congested"
         return result
     }
 }

@@ -85,7 +85,7 @@
                                         <rect key="frame" x="0.0" y="130" width="394" height="50"/>
                                         <subviews>
                                             <button clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nYL-Aa-qwi">
-                                                <rect key="frame" x="0.0" y="0.0" width="124.5" height="50"/>
+                                                <rect key="frame" x="0.0" y="0.0" width="394" height="50"/>
                                                 <color key="backgroundColor" systemColor="systemGray3Color"/>
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="filled" title="Send Packet" cornerStyle="large">
@@ -95,27 +95,6 @@
                                                 <connections>
                                                     <action selector="sendPacketAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="ZJ9-t8-4QR"/>
                                                 </connections>
-                                            </button>
-                                            <button clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IJJ-4b-QIJ">
-                                                <rect key="frame" x="134.5" y="0.0" width="125" height="50"/>
-                                                <color key="backgroundColor" systemColor="systemGray3Color"/>
-                                                <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="filled" title="Start Channel" cornerStyle="large">
-                                                    <color key="baseForegroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                    <color key="baseBackgroundColor" name="AccentColor"/>
-                                                </buttonConfiguration>
-                                                <connections>
-                                                    <action selector="startChannellAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="P5Y-mx-rX8"/>
-                                                </connections>
-                                            </button>
-                                            <button clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="XBX-b1-l6I">
-                                                <rect key="frame" x="269.5" y="0.0" width="124.5" height="50"/>
-                                                <color key="backgroundColor" systemColor="systemGray3Color"/>
-                                                <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="filled" title="Licenses" cornerStyle="large">
-                                                    <color key="baseForegroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                    <color key="baseBackgroundColor" name="AccentColor"/>
-                                                </buttonConfiguration>
                                             </button>
                                         </subviews>
                                         <constraints>
@@ -154,7 +133,6 @@
                         <outlet property="portTextField" destination="Jl6-TC-CcR" id="qLv-Hj-2Ii"/>
                         <outlet property="segmentedControl" destination="rkZ-8q-xEx" id="7jf-sv-Dum"/>
                         <outlet property="sendPacketButton" destination="nYL-Aa-qwi" id="x7e-uo-tyx"/>
-                        <outlet property="startChannelButton" destination="IJJ-4b-QIJ" id="NxB-nf-fRU"/>
                         <outlet property="tableView" destination="XYl-Zj-UJg" id="d1b-qx-3YE"/>
                     </connections>
                 </viewController>

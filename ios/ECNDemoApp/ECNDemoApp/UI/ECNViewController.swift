@@ -20,15 +20,14 @@
  */
 
 import UIKit
+import Network
 import ecn_bits_w
 
 
 class ECNViewController: UIViewController {
-        
     @IBOutlet weak var hostTextField: UITextField!
     @IBOutlet weak var portTextField: UITextField!
     @IBOutlet weak var sendPacketButton: UIButton!
-    @IBOutlet weak var startChannelButton: UIButton!
     @IBOutlet weak var segmentedControl: UISegmentedControl!
     @IBOutlet weak var tableView: UITableView!
     
@@ -38,13 +37,30 @@ class ECNViewController: UIViewController {
     var selectedECN: Int = 0
     var ecnStats = ECNStats()
     var results : [String] = []
-    var paramsWereUpdated: Bool = false
+    var paramsDidUpdate: Bool = false
+    let monitor = NWPathMonitor()
+    var hasInternetConnection = true
     
     /// MARK - UI Life Cycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        
+        // monitor internet connection
+        monitor.pathUpdateHandler = { path in
+            if path.status == .satisfied {
+                self.hasInternetConnection = true
+            } else {
+                self.hasInternetConnection = false
+            }
+            DispatchQueue.main.async {
+                self.updateButtons()
+            }
+        }
+        
+        let queue = DispatchQueue(label: "Monitor")
+        monitor.start(queue: queue)
     }
     
     
@@ -54,15 +70,24 @@ class ECNViewController: UIViewController {
         self.title = "ECN-Client"
         hostTextField.delegate = self
         portTextField.delegate = self
-        
-        startChannelButton.isEnabled = false
-        
+                
         segmentedControl.setTitle("no ECN", forSegmentAt: 0)
         segmentedControl.setTitle("ECT(1)", forSegmentAt: 1)
         segmentedControl.setTitle("ECT(0)", forSegmentAt: 2)
         segmentedControl.setTitle("ECT CE", forSegmentAt: 3)
+        self.sendPacketButton.setTitleColor(UIColor.systemBlue, for: UIControl.State.normal)
         
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "kCellReuseD")
+    }
+    
+    func updateButtons() {
+        self.sendPacketButton.isEnabled = self.hasInternetConnection
+        self.sendPacketButton.alpha = self.hasInternetConnection ? 1.0 : 0.2
+        if (self.hasInternetConnection == false) {
+            let alert = UIAlertController(title: "Oops", message: "It seams you do not have a internet connection.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Ok", style: .cancel, handler: nil))
+            self.present(alert, animated: true)
+        }
     }
     
     func resetUI() {
@@ -80,7 +105,7 @@ class ECNViewController: UIViewController {
             self.udpClient?.connect { result in
                 switch result {
                 case .success(_):
-                    self.udpClient?.sendData(payload: "Hi From iOS")
+                    self.udpClient?.sendData(payload: "Hi From iOS X")
                     self.udpClient?.setupReceive(expectedLength: 512)
                 case .failure(let error):
                     print("error\(error)")
@@ -107,21 +132,21 @@ class ECNViewController: UIViewController {
     
     func startClientWithCurrentSettings() {
         resetUI()
-        if (paramsWereUpdated) {
+        if (paramsDidUpdate) {
             if let port = self.port, let host = self.ip {
                 let portInt = (port as NSString).integerValue
                 self.udpClient = ECNUDPclient(host: host, port: portInt, delegate: self)
-                paramsWereUpdated = false
+                paramsDidUpdate = false
             }
         }
     }
     
     func updateDataWithTextField(textField:UITextField) {
         if (textField == hostTextField) {
-            paramsWereUpdated =  (self.ip == textField.text)
+            paramsDidUpdate =  (self.ip == textField.text)
             self.ip = textField.text
         } else if (textField == portTextField) {
-            paramsWereUpdated =  (self.port == textField.text)
+            paramsDidUpdate =  (self.port == textField.text)
             self.port = textField.text
         }
     }
@@ -179,14 +204,14 @@ extension ECNViewController : UITableViewDelegate {
 extension ECNViewController : UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return results.count
+        return (results.count == 0) ? 0 : results.count + 1
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell:UITableViewCell = self.tableView.dequeueReusableCell(withIdentifier: "kCellReuseD") as UITableViewCell? ?? UITableViewCell()
         cell.textLabel?.numberOfLines = 4 // should be dynamic
         cell.textLabel?.font = UIFont.systemFont(ofSize: 14)
-        cell.textLabel?.text = results[indexPath.item]
+        cell.textLabel?.text = (results.count == indexPath.item && results.count > 0) ? ecnStats.getStats() : results[indexPath.item]
         return cell
     }
 }

@@ -103,7 +103,6 @@ public class ECNUDPclient {
             let unsafePointer = UnsafeMutablePointer(mutating: intBuffer)
             
             let iovec = UnsafeMutablePointer<iovec>.allocate(capacity: 1)
-            
             let rawPointer = UnsafeMutableRawPointer.allocate(
                 byteCount: payload.count,
                 alignment: MemoryLayout<Int8>.stride)
@@ -118,7 +117,6 @@ public class ECNUDPclient {
             })
             
             iovec.pointee.iov_base = rawPointer
-        
             iovec.pointee.iov_len = payload.utf8.count
             msghdr.pointee.msg_iov = iovec
             msghdr.pointee.msg_iovlen = 1
@@ -180,7 +178,7 @@ public class ECNUDPclient {
      */
     public func setupReceive(expectedLength: Int) {
         var packetCount = 0
-        while (packetCount < 4) {
+        while (true) {
             
             var buffer = [CChar](repeating: 0, count: expectedLength)
             let ecnresult = UnsafeMutablePointer<UInt16>.allocate(capacity: 1)
@@ -222,7 +220,7 @@ public class ECNUDPclient {
     }
         
     /**
-     Provides sockaddr_storage for host and port, we get the adress of the host
+     Provides sockaddr_storage  adress , get the adress of the host
      
      - Parameters:
         host:  host data as String

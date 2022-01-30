@@ -23,7 +23,7 @@
 		BA1B16C7272B251C00E67E9F /* ecn-bits.h in Headers */ = {isa = PBXBuildFile; fileRef = BA1B16C6272B251C00E67E9F /* ecn-bits.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		BA1B170B272DB98600E67E9F /* UDPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA1B170A272DB98600E67E9F /* UDPClient.swift */; };
 		BA571624273344E2005CF8AC /* SocketHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA571623273344E2005CF8AC /* SocketHelper.swift */; };
-		BA57162627334534005CF8AC /* ECNBits.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA57162527334534005CF8AC /* ECNBits.swift */; };
+		BA57162627334534005CF8AC /* ECNBit.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA57162527334534005CF8AC /* ECNBit.swift */; };
 		BA7370F8273298A1000C9FBD /* UDPClientProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA7370F7273298A1000C9FBD /* UDPClientProtocol.swift */; };
 		BAEAD077273BBDD900BBE6C8 /* ECNStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAEAD074273BBDD900BBE6C8 /* ECNStats.swift */; };
 /* End PBXBuildFile section */
@@ -56,7 +56,7 @@
 		BA1B16C6272B251C00E67E9F /* ecn-bits.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ecn-bits.h"; sourceTree = "<group>"; };
 		BA1B170A272DB98600E67E9F /* UDPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPClient.swift; sourceTree = "<group>"; };
 		BA571623273344E2005CF8AC /* SocketHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketHelper.swift; sourceTree = "<group>"; };
-		BA57162527334534005CF8AC /* ECNBits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ECNBits.swift; sourceTree = "<group>"; };
+		BA57162527334534005CF8AC /* ECNBit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ECNBit.swift; sourceTree = "<group>"; };
 		BA7370F7273298A1000C9FBD /* UDPClientProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPClientProtocol.swift; sourceTree = "<group>"; };
 		BAEAD074273BBDD900BBE6C8 /* ECNStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ECNStats.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -130,7 +130,7 @@
 		BA57162727334557005CF8AC /* helpers */ = {
 			isa = PBXGroup;
 			children = (
-				BA57162527334534005CF8AC /* ECNBits.swift */,
+				BA57162527334534005CF8AC /* ECNBit.swift */,
 				BAEAD074273BBDD900BBE6C8 /* ECNStats.swift */,
 				BA571623273344E2005CF8AC /* SocketHelper.swift */,
 			);
@@ -268,7 +268,7 @@
 				BA1B16C0272B204800E67E9F /* recvmsg.c in Sources */,
 				BAEAD077273BBDD900BBE6C8 /* ECNStats.swift in Sources */,
 				BA1B16BF272B204800E67E9F /* stoaf.c in Sources */,
-				BA57162627334534005CF8AC /* ECNBits.swift in Sources */,
+				BA57162627334534005CF8AC /* ECNBit.swift in Sources */,
 				BA1B16C2272B204800E67E9F /* rdmsg.c in Sources */,
 				BA1B16BC272B204800E67E9F /* mkcmsg.c in Sources */,
 				BA1B16BD272B204800E67E9F /* recv.c in Sources */,
