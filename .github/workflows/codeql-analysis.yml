@@ -1,80 +1,58 @@
-# For most projects, this workflow file will not need changing; you simply need
-# to commit it to your repository.
-#
-# You may wish to alter this file to override the set of languages analyzed,
-# or to provide custom queries or build logic.
-name: "CodeQL"
-
-on:
-  push:
-    branches: [master, unity]
-
-jobs:
-  analyze:
-    name: Analyse
-    runs-on: ubuntu-20.04
-
-    strategy:
-      fail-fast: true
-        # Learn more...
-        # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3.3.0
-
-    - name: Cache Maven repository
-      uses: actions/cache@v3.2.3
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ runner.os }}-maven-
-
-    - name: Cache Gradle downloads
-      uses: actions/cache@v3.2.3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: ${{ runner.os }}-gradle-
-
-    # Initializes the CodeQL tools for scanning.
-    - name: Initialise CodeQL
-      uses: github/codeql-action/init@codeql-bundle-20230105
-      #with:
-      #  languages: ['cpp', 'java']
-        # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file.
-        # Prefix the list here with "+" to use these queries and those in the config file.
-        # queries: ./path/to/local/query, your-org/your-repo/queries@main
-
-    # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
-    # If this step fails, then you should remove it and run the build manually (see below)
-    #- name: Autobuild
-    #  uses: github/codeql-action/autobuild@v1
-
-    # ℹ️ Command-line programs to run using the OS shell.
-    # 📚 https://git.io/JvXDl
-    - name: install dependencies
-      run: |
-        sudo apt-get --purge -y install mksh
-
-    # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
-    #    and modify them (or add more) to build your code if your project
-    #    uses a compiled language
-
-    - run: |
-       : build jobs
-       ANDROID_NDK_HOME=x; unset ANDROID_NDK_HOME
-       set -x +e
-       rv=0
-       (cd c && make clean && make) || rv=1
-       (cd ws2 && make clean && make) || rv=1
-       (cd ws2/android/ && ./gradlew clean && ./gradlew build) || rv=1
-       (cd android && ./gradlew clean && ./gradlew build test) || rv=1
-       (cd jdk-linux && mvn clean install) || rv=1
-       exit $rv
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@codeql-bundle-20230105
+{
+  "jobs": {
+    "analyse": {
+      "runs-on": "ubuntu-20.04",
+      "steps": [
+        {
+          "uses": "actions/checkout@v3.3.0"
+        },
+        {
+          "name": "Cache Maven repository",
+          "uses": "actions/cache@v3.2.3",
+          "with": {
+            "key": "${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}",
+            "path": "~/.m2/repository",
+            "restore-keys": "${{ runner.os }}-maven-"
+          }
+        },
+        {
+          "name": "Cache Gradle downloads",
+          "uses": "actions/cache@v3.2.3",
+          "with": {
+            "key": "${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}",
+            "path": "~/.gradle/caches\n~/.gradle/wrapper\n",
+            "restore-keys": "${{ runner.os }}-gradle-"
+          }
+        },
+        {
+          "name": "Initialise CodeQL",
+          "uses": "github/codeql-action/init@codeql-bundle-20230105"
+        },
+        {
+          "name": "install dependencies",
+          "run": "sudo apt-get --purge -y install mksh\n"
+        },
+        {
+          "run": ": build jobs\nANDROID_NDK_HOME=x; unset ANDROID_NDK_HOME\nset -x +e\nrv=0\n(cd c && make clean && make) || rv=1\n(cd ws2 && make clean && make) || rv=1\n(cd ws2/android/ && ./gradlew clean && ./gradlew build) || rv=1\n(cd android && ./gradlew clean && ./gradlew build test) || rv=1\n(cd jdk-linux && mvn clean install) || rv=1\nexit $rv\n"
+        },
+        {
+          "name": "Perform CodeQL Analysis",
+          "uses": "github/codeql-action/analyze@codeql-bundle-20230105"
+        }
+      ],
+      "strategy": {
+        "fail-fast": true
+      }
+    }
+  },
+  "name": "CodeQL",
+  "on": {
+    "push": {
+      "branches": [
+        "master",
+        "unity"
+      ]
+    },
+    "workflow_dispatch": null
+  }
+}
