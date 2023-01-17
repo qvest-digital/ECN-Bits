@@ -10,6 +10,10 @@ specific to the Linux kernel, including WSL 2, because it’s
 been written for Android originally, but should also work on
 WSL 1, with the usual caveat of setting outgoing bits there.
 
+This library has been tested with OpenJDK 11 but should run on
+JRE 8 and above but below 15, which changes the DatagramSocket
+implementation in an incompatible way.
+
 This library mostly offers the following entry points:
 • de.telekom.llcto.ecn_bits.android.lib.Bits
 • de.telekom.llcto.ecn_bits.android.lib.ECNBitsDatagramChannel
