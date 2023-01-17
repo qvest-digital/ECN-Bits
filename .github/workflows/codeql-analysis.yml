@@ -21,17 +21,17 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3.3.0
 
     - name: Cache Maven repository
-      uses: actions/cache@v2
+      uses: actions/cache@v3.2.3
       with:
         path: ~/.m2/repository
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-maven-
 
     - name: Cache Gradle downloads
-      uses: actions/cache@v2
+      uses: actions/cache@v3.2.3
       with:
         path: |
           ~/.gradle/caches
@@ -41,7 +41,7 @@ jobs:
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialise CodeQL
-      uses: github/codeql-action/init@v1
+      uses: github/codeql-action/init@codeql-bundle-20230105
       #with:
       #  languages: ['cpp', 'java']
         # If you wish to specify custom queries, you can do so here or in a config file.
@@ -77,4 +77,4 @@ jobs:
        exit $rv
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
+      uses: github/codeql-action/analyze@codeql-bundle-20230105
