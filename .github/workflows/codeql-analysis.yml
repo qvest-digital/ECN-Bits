@@ -1,7 +1,7 @@
 {
   "jobs": {
     "analyse": {
-      "runs-on": "ubuntu-20.04",
+      "runs-on": "ubuntu-22.04",
       "steps": [
         {
           "uses": "actions/checkout@v3.3.0"
@@ -30,7 +30,7 @@
         },
         {
           "name": "install dependencies",
-          "run": "sudo apt-get --purge -y install mksh\n"
+          "run": "sudo apt-get --purge -y install cmake mksh\n"
         },
         {
           "run": ": build jobs\nANDROID_NDK_HOME=x; unset ANDROID_NDK_HOME\nset -x +e\nrv=0\n(cd c && make clean && make) || rv=1\n(cd ws2 && make clean && make) || rv=1\n(cd ws2/android/ && ./gradlew clean && ./gradlew build) || rv=1\n(cd android && ./gradlew clean && ./gradlew build test) || rv=1\n(cd jdk-linux && mvn clean install) || rv=1\nexit $rv\n"
