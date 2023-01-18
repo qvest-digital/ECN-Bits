@@ -9,7 +9,7 @@
         {
           "uses": "nttld/setup-ndk@v1.2.0",
           "with": {
-            "ndk-version": "22.1.7171670"
+            "ndk-version": "r22b"
           }
         },
         {
