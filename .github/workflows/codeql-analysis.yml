@@ -7,6 +7,12 @@
           "uses": "actions/checkout@v3.3.0"
         },
         {
+          "uses": "nttld/setup-ndk@v1",
+          "with": {
+            "ndk-version": "22.1.7171670"
+          }
+        },
+        {
           "name": "Cache Maven repository",
           "uses": "actions/cache@v3.2.3",
           "with": {
