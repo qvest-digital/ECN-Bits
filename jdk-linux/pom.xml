@@ -35,7 +35,7 @@
 		<archiver.copyright.firstyear>2020</archiver.copyright.firstyear>
 		<archiver.copyright.lastyear>2021</archiver.copyright.lastyear>
 		<!-- ‣ maven plugins -->
-		<maven.owasp.dependency-check.version>6.1.5</maven.owasp.dependency-check.version>
+		<maven.owasp.dependency-check.version>8.0.0</maven.owasp.dependency-check.version>
 		<!-- ‣ dependency management -->
 		<junit.version>5.7.1</junit.version>
 		<lombok.version>1.18.20</lombok.version>
