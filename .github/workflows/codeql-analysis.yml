@@ -7,7 +7,7 @@
           "uses": "actions/checkout@v3.3.0"
         },
         {
-          "uses": "nttld/setup-ndk@v1",
+          "uses": "nttld/setup-ndk@v1.2.0",
           "with": {
             "ndk-version": "22.1.7171670"
           }
