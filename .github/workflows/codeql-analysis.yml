@@ -39,10 +39,7 @@
           "run": "sudo apt-get --purge -y install mksh\n"
         },
         {
-          "env": {
-            "ANDROID_NDK_HOME": "${{ steps.setup-ndk.outputs.ndk-path }}"
-          },
-          "run": ": build jobs\nset -x +e\nrv=0\n(cd c && make clean && make) || rv=1\n(cd ws2 && make clean && make) || rv=1\n(cd ws2/android/ && ./gradlew clean && ./gradlew build) || rv=1\n(cd android && ./gradlew clean && ./gradlew build test) || rv=1\n(cd jdk-linux && mvn -B clean install) || rv=1\nexit $rv\n"
+          "run": ": build jobs\nANDROID_NDK_HOME=x; unset ANDROID_NDK_HOME\nset -x +e\nrv=0\n(cd c && make clean && make) || rv=1\n(cd ws2 && make clean && make) || rv=1\n(cd ws2/android/ && ./gradlew clean && ./gradlew build) || rv=1\n(cd android && ./gradlew clean && ./gradlew build test) || rv=1\n(cd jdk-linux && mvn -B clean install) || rv=1\nexit $rv\n"
         },
         {
           "name": "Perform CodeQL Analysis",
