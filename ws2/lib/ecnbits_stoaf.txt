@@ -1,7 +1,7 @@
 ECNBITS_STOAF(3)         BSD Library Functions Manual         ECNBITS_STOAF(3)
 
 NAME
-     ecnbits_stoaf -- ECN-Bits utility function
+     ecnbits_mkcmsg, ecnbits_stoaf -- ECN-Bits utility functions
 
 SYNOPSIS
      #include <sys/types.h>
@@ -16,20 +16,33 @@ SYNOPSIS
      int
      ecnbits_stoaf(SOCKET handle);
 
-     Outside of Winsock2, the SOCKET type is just an int.
+     void *
+     ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc);
 
-     There is no equivalent for the UNIX variant ecnbits_mkcmsg() function.
+     Outside of Winsock2, the SOCKET type is just an int.
 
 DESCRIPTION
      The ecnbits_stoaf() function determins the address family for a given
      socket used with the ECN-Bits library.  Note that v4-mapped IPv6 sockets
      will (correctly) report as AF_INET6, not AF_INET.
 
-     This function is thread-safe.
+     The ecnbits_mkcmsg() function fills in a buffer with control messages
+     suitable for use with sendmsg(2) to set the traffic class octet on an
+     outgoing packet to tc.  The af argument is expected to be the traffic
+     class on the socket.  If the buf argument is NULL, a buffer of suitable
+     length is allocated dynamically, which the caller must free(3); other-
+     wise, its length is expected in *lenp.  In both cases, *lenp will be
+     overwritten with the actual length of the data stored into the buffer.
+
+     These functions are thread-safe (as long as the buffer is not shared).
 
 RETURN VALUES
      The ecnbits_stoaf() function returns the socket address family (either
      AF_INET or AF_INET6) if successful; otherwise the value -1 is returned
+     and the global variable errno is set to indicate the error.
+
+     The ecnbits_mkcmsg() function returns the buffer (either its buf argument
+     or the allocated one) if successful; otherwise the value NULL is returned
      and the global variable errno is set to indicate the error.
 
      On Winsock2, WSAGetLastError() must be used to retrieve the error code.
@@ -38,8 +51,19 @@ ERRORS
      ecnbits_stoaf() returns any errors returned by getsockname(2) as well as
      WSAEAFNOSUPPORT if the socket is not of a supported address family.
 
+     ecnbits_mkcmsg() returns any errors returned by calloc(3) as well as
+     ERANGE if the passed *lenp is too small and EAFNOSUPPORT if the socket is
+     not of a supported address family (AF_INET or AF_INET6).
+
+     Note: except on Winsock, ecnbits_mkcmsg() is guaranteed to not fail if
+     the address family is correct, a buffer is given and of the appropriate
+     size.  If a previous call to ecnbits_mkcmsg() with the same address fam-
+     ily allocated a buffer, and that buffer and its size are reused, these
+     conditions are fulfilled.  Within one program, the buffer size depends
+     only on the address family.
+
 SEE ALSO
-     getsockname(2), ecnbits_prep(3)
+     getsockname(2), cmsg(3), ecnbits_prep(3), ip(4), ip6(4), ip(7), ipv6(7)
 
 AUTHORS
      mirabilos <t.glaser@tarent.de> for Deutsche Telekom.
@@ -47,4 +71,4 @@ AUTHORS
 LICENCE
      The MirOS Licence (short name: MirBSD)
 
-ECN-Bits                      September 25, 2020                      ECN-Bits
+ECN-Bits                         April 4, 2023                        ECN-Bits

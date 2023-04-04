@@ -26,11 +26,12 @@ CPPFLAGS+=	-DECNBITS_INTERNAL
 
 LIB=		ecn-bitw
 HDRS+=		ecn-bitw.h
-SHLIB_VERSION=	2.0
+SHLIB_VERSION=	2.1
 
 SRCS+=		desc.c
 SRCS+=		hll.c
 SRCS+=		hll_mono.c
+SRCS+=		mkcmsg.c
 SRCS+=		prep.c
 SRCS+=		rdmsg.c
 SRCS+=		recv.c
@@ -53,6 +54,7 @@ MLINKS+=	ECNBITS_VALID.3 ECNBITS_TCOCT.3
 MLINKS+=	ecnbits_rdmsg.3 ecnbits_recvmsg.3
 MLINKS+=	ecnbits_recvfrom.3 ecnbits_read.3
 MLINKS+=	ecnbits_recvfrom.3 ecnbits_recv.3
+MLINKS+=	ecnbits_stoaf.3 ecnbits_mkcmsg.3
 MLINKS+=	ecnws2_recvmsg.3 ecnws2_sendmsg.3
 
 CATS:=		$(addsuffix .txt,$(basename ${MAN}))
