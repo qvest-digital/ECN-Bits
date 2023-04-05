@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2021
+ * Copyright © 2021, 2023
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -101,7 +101,7 @@ public static class ECNBits {
 		case 6:
 			var b = MemoryMarshal.Cast<Unmanaged.ecnhll_rcv, Byte>(p);
 #if !__MonoCS__
-			var paddr = b.Slice(16, 16);
+			ReadOnlySpan<Byte> paddr = b.Slice(16, 16);
 #else
 			var paddr = b.Slice(16, 16).ToArray();
 #endif
