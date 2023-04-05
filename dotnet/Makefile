@@ -38,9 +38,10 @@ dotnet_cscopts=-lib:$(dotnetlib) -r:netstandard.dll -r:Microsoft.CSharp.dll \
 LIB_NAME=	ecn-bitn.dll
 LIB_SRCS=	unmngd.cs monosupp.cs
 LIB_BUILD=	-t:library -out:$(LIB_NAME) $(LIB_SRCS)
-PROG_NAME=	client
+PROG_BASENAME=	client
+PROG_NAME=	$(PROG_BASENAME).dll
 PROG_SRCS=	client.cs
-PROG_BUILD=	-r:$(LIB_NAME) $(PROG_SRCS)
+PROG_BUILD=	-out:$(PROG_NAME) -r:$(LIB_NAME) $(PROG_SRCS)
 
 # path slash
 SLASHPRE=/
@@ -124,10 +125,10 @@ winbuild: windll.stp
 	dncsc -nologo $(LIB_BUILD)
 	dncsc -nologo $(PROG_BUILD)
 	rem or: dncsc -platform:anycpu32bitpreferred $(PROG_BUILD)
-	dnmkrtcf >$(PROG_NAME).runtimeconfig.json
+	dnmkrtcf >$(PROG_BASENAME).runtimeconfig.json
 
 winrun:
-	if not "$(args: =)"=="" dotnet $(PROG_NAME).exe $(args)
+	if not "$(args: =)"=="" dotnet $(PROG_NAME) $(args)
 
 gnudll:
 	-cd ../ws2/lib && $(MAKE) clean
@@ -147,12 +148,12 @@ dotnetbuild: gnudll.stp
 	$(dotnet_csc) -nologo $(dotnet_cscopts) \
 	    -r:Microsoft.Win32.Primitives.dll $(PROG_BUILD)
 	echo '{"runtimeOptions":{"framework":{"name":"Microsoft.NETCore.App","version":"$(fwkver)"}}}' \
-	    >$(PROG_NAME).runtimeconfig.json
+	    >$(PROG_BASENAME).runtimeconfig.json
 
 dotnetrun:
 	test -z '$(args:'='\'')' || \
 	    LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
-	    dotnet $(PROG_NAME).exe $(args)
+	    dotnet $(PROG_NAME) $(args)
 
 mono: monobuild monorun
 
@@ -163,7 +164,7 @@ monobuild: gnudll.stp
 monorun:
 	test -z '$(args:'='\'')' || \
 	    LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
-	    mono $(PROG_NAME).exe $(args)
+	    mono $(PROG_NAME) $(args)
 
 dotnethelp:
 	$(dotnet_csc) -help
