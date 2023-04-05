@@ -154,11 +154,11 @@ dotnetbuild: gnudll.stp
 	printf '%s\n' '#!/bin/sh' 'mydir=$$(dirname "$$0")' \
 	    'LD_LIBRARY_PATH=$$mydir$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH}' \
 	    'export LD_LIBRARY_PATH' \
-	    'exec dotnet "$$mydir/$(PROG_NAME)" "$$@"' >$(PROG_BASENAME).bat
-	chmod a+x $(PROG_BASENAME).bat
+	    'exec dotnet "$$mydir/$(PROG_NAME)" "$$@"' >$(PROG_BASENAME).sh
+	chmod a+x $(PROG_BASENAME).sh
 
 dotnetrun:
-	test -z '$(args:'='\'')' || ./$(PROG_BASENAME).bat $(args)
+	test -z '$(args:'='\'')' || ./$(PROG_BASENAME).sh $(args)
 
 mono: monobuild monorun
 
@@ -168,11 +168,11 @@ monobuild: gnudll.stp
 	printf '%s\n' '#!/bin/sh' 'mydir=$$(dirname "$$0")' \
 	    'LD_LIBRARY_PATH=$$mydir$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH}' \
 	    'export LD_LIBRARY_PATH' \
-	    'exec mono "$$mydir/$(PROG_NAME)" "$$@"' >$(PROG_BASENAME).bat
-	chmod a+x $(PROG_BASENAME).bat
+	    'exec mono "$$mydir/$(PROG_NAME)" "$$@"' >$(PROG_BASENAME)-mono.sh
+	chmod a+x $(PROG_BASENAME)-mono.sh
 
 monorun:
-	test -z '$(args:'='\'')' || ./$(PROG_BASENAME).bat $(args)
+	test -z '$(args:'='\'')' || ./$(PROG_BASENAME)-mono.sh $(args)
 
 dotnethelp:
 	$(dotnet_csc) -help
