@@ -83,17 +83,19 @@ Numeric and NSS values are supported.)
 Run the client on another (or same) system: client.exe host post
 (The arguments are for what system to connect to.)
 
-Unlike the standard Unix variant, this client and server do not
+Unlike the standard Unix variant, this client program does not
 have an extra argument for setting the outgoing traffic class octets
-as Windows lacks support for doing so.
+as Windows lacks support for setting them on a connection.
 
 The client will send a “hello” packet to the server, which
 receives it, displays a line with the timestamp it received
 the packet, whether it was truncated, which ECN bits were set,
 and its content.
 
-The server then sends a packets back, with almost the same
+The server then sends four packets back, with almost the same
 content (truncation, server timestamp, received ECN bits).
+They vary by ECN bits like the Unix ones; Windows disallows some
+combinations, though ☹
 
 The client (after sending the initial packet it waits for up
 to a second for responses) displays the packet data received

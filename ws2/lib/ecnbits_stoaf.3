@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: September 25 2020 $
+.Dd $Mdocdate: April 4 2023 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -98,8 +98,9 @@
 .Dt ECNBITS_STOAF 3
 .Os ECN-Bits
 .Sh NAME
+.Nm ecnbits_mkcmsg ,
 .Nm ecnbits_stoaf
-.Nd ECN-Bits utility function
+.Nd ECN-Bits utility functions
 .Sh SYNOPSIS
 .In sys/types.h
 .br
@@ -117,6 +118,8 @@
 .In ecn\-bitw.h
 .Ft int
 .Fn ecnbits_stoaf "SOCKET handle"
+.Ft "void *"
+.Fn ecnbits_mkcmsg "void *buf" "size_t *lenp" "int af" "unsigned char tc"
 .Pp
 .ie "\*(tT"gnu" .nr in-synopsis-section 0
 .el .if "\*(tT"gnp" .nr doc-in-synopsis-section 0
@@ -126,12 +129,6 @@ Outside of Winsock2, the
 .Vt SOCKET
 type is just an
 .Vt int .
-.Pp
-There is no equivalent for the
-.Ux
-variant
-.Fn ecnbits_mkcmsg
-function.
 .Sh DESCRIPTION
 The
 .Fn ecnbits_stoaf
@@ -142,7 +139,28 @@ Note that v4-mapped IPv6 sockets will (correctly) report as
 not
 .Dv AF_INET .
 .Pp
-This function is thread-safe.
+The
+.Fn ecnbits_mkcmsg
+function fills in a buffer with control messages suitable for use with
+.Xr sendmsg 2
+to set the traffic class octet on an outgoing packet to
+.Ar tc .
+The
+.Ar af
+argument is expected to be the traffic class on the socket.
+If the
+.Ar buf
+argument is
+.Dv NULL ,
+a buffer of suitable length is allocated dynamically, which the caller must
+.Xr free 3 ;
+otherwise, its length is expected in
+.Ar *lenp .
+In both cases,
+.Ar *lenp
+will be overwritten with the actual length of the data stored into the buffer.
+.Pp
+These functions are thread-safe (as long as the buffer is not shared).
 .Sh RETURN VALUES
 The
 .Fn ecnbits_stoaf
@@ -151,6 +169,16 @@ function returns the socket address family (either
 or
 .Dv AF_INET6 )
 if successful; otherwise the value \-1 is returned and the global variable
+.Va errno
+is set to indicate the error.
+.Pp
+The
+.Fn ecnbits_mkcmsg
+function returns the buffer (either its
+.Ar buf
+argument or the allocated one) if successful; otherwise the value
+.Dv NULL
+is returned and the global variable
 .Va errno
 is set to indicate the error.
 .Pp
@@ -164,9 +192,36 @@ returns any errors returned by
 as well as
 .Er WSAEAFNOSUPPORT
 if the socket is not of a supported address family.
+.Pp
+.Fn ecnbits_mkcmsg
+returns any errors returned by
+.Xr calloc 3
+as well as
+.Er ERANGE
+if the passed
+.Ar *lenp
+is too small and
+.Er EAFNOSUPPORT
+if the socket is not of a supported address family
+.Pq Li AF_INET No or Li AF_INET6 .
+.Pp
+Note: except on Winsock,
+.Fn ecnbits_mkcmsg
+is guaranteed to not fail if the address family is correct,
+a buffer is given and of the appropriate size.
+If a previous call to
+.Fn ecnbits_mkcmsg
+with the same address family allocated a buffer, and that buffer
+and its size are reused, these conditions are fulfilled.
+Within one program, the buffer size depends only on the address family.
 .Sh SEE ALSO
 .Xr getsockname 2 ,
-.Xr ecnbits_prep 3
+.Xr cmsg 3 ,
+.Xr ecnbits_prep 3 ,
+.Xr ip 4 ,
+.Xr ip6 4 ,
+.Xr ip 7 ,
+.Xr ipv6 7
 .Sh AUTHORS
 .An mirabilos Aq t.glaser@tarent.de
 for Deutsche Telekom.
