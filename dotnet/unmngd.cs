@@ -65,7 +65,7 @@ public static class ECNBits {
 
 		rv = Unmanaged.ecnhll_prep(sockfd, af);
 		if (rv >= 2)
-			// cf. commit XXX
+			// cf. commit 350c2a93f8b87be546befbba88311b2161ce6b1b
 			throw MonoSocketException.NewSocketException();
 		return rv;
 	}
@@ -110,7 +110,7 @@ public static class ECNBits {
 			break;
 		default:
 			/* 0 = bad address family, -1 = error */
-			// cf. commit XXX
+			// cf. commit 350c2a93f8b87be546befbba88311b2161ce6b1b
 			throw MonoSocketException.NewSocketException();
 		}
 		if (p[0].tosvalid == 1)
@@ -127,7 +127,7 @@ public static class ECNBits {
 		// GetSocketOption as first cause, but better than not doing it
 		socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Type);
 		return socket.Handle;
-		// vgl. commit XXX
+		// vgl. commit 5194db698df89ee31f3364e341d358655bde5901
 	}
 	#endregion
 }
