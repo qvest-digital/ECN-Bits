@@ -29,7 +29,8 @@ The MirOS Licence (short name: MirBSD):
 # damage or existence of a defect, except proven that it results out
 # of said person’s immediate fault when using the work as intended.
 
-The ws2 library’s HLL support contains code for Mono under the MIT licence:
+The ws2 library’s HLL support and the dotnet library contain code for
+Mono under the MIT licence:
 
  * Copyright (c) .NET Foundation and Contributors
  * Copyright 2016 Microsoft

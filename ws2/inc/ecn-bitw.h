@@ -121,7 +121,7 @@ struct ecnhll_rcv {
 	unsigned int nbytes;	/* in/out, keep <= INT_MAX */
 	unsigned int flags;	/* in 1=OutOfBand 2=Peek */
 	unsigned int ipscope;	/* out (v6: scope; v4: sin_addr.s_addr) */
-	unsigned short port;	/* out (host endianness) */
+	unsigned short port;	/* out (host endianness, "  " as well) */
 	unsigned char tosvalid;	/* out (1=valid) */
 	unsigned char tosbyte;	/* out */
 	unsigned char addr[16];	/* out (v6: address) */
