@@ -126,9 +126,11 @@ winbuild: windll.stp
 	dncsc -nologo $(PROG_BUILD)
 	rem or: dncsc -platform:anycpu32bitpreferred $(PROG_BUILD)
 	dnmkrtcf >$(PROG_BASENAME).runtimeconfig.json
+	echo @echo off >$(PROG_BASENAME).bat
+	echo dotnet "%~dp0$Y$(PROG_NAME)" %* >>$(PROG_BASENAME).bat
 
 winrun:
-	if not "$(args: =)"=="" dotnet $(PROG_NAME) $(args)
+	if not "$(args: =)"=="" .$Y$(PROG_BASENAME).bat $(args)
 
 gnudll:
 	-cd ../ws2/lib && $(MAKE) clean
@@ -149,22 +151,28 @@ dotnetbuild: gnudll.stp
 	    -r:Microsoft.Win32.Primitives.dll $(PROG_BUILD)
 	echo '{"runtimeOptions":{"framework":{"name":"Microsoft.NETCore.App","version":"$(fwkver)"}}}' \
 	    >$(PROG_BASENAME).runtimeconfig.json
+	printf '%s\n' '#!/bin/sh' 'mydir=$$(dirname "$$0")' \
+	    'LD_LIBRARY_PATH=$$mydir$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH}' \
+	    'export LD_LIBRARY_PATH' \
+	    'exec dotnet "$$mydir/$(PROG_NAME)" "$$@"' >$(PROG_BASENAME).bat
+	chmod a+x $(PROG_BASENAME).bat
 
 dotnetrun:
-	test -z '$(args:'='\'')' || \
-	    LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
-	    dotnet $(PROG_NAME) $(args)
+	test -z '$(args:'='\'')' || ./$(PROG_BASENAME).bat $(args)
 
 mono: monobuild monorun
 
 monobuild: gnudll.stp
 	mcs -nologo /unsafe $(LIB_BUILD)
 	mcs -nologo $(PROG_BUILD)
+	printf '%s\n' '#!/bin/sh' 'mydir=$$(dirname "$$0")' \
+	    'LD_LIBRARY_PATH=$$mydir$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH}' \
+	    'export LD_LIBRARY_PATH' \
+	    'exec mono "$$mydir/$(PROG_NAME)" "$$@"' >$(PROG_BASENAME).bat
+	chmod a+x $(PROG_BASENAME).bat
 
 monorun:
-	test -z '$(args:'='\'')' || \
-	    LD_LIBRARY_PATH=.$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
-	    mono $(PROG_NAME) $(args)
+	test -z '$(args:'='\'')' || ./$(PROG_BASENAME).bat $(args)
 
 dotnethelp:
 	$(dotnet_csc) -help
