@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020, 2021
+ * Copyright © 2020, 2021, 2023
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -51,6 +51,13 @@ extern "C" {
  * twice that for recvmsg where chances for more cmsgs are higher
  */
 #define ECNBITS_CMSGBUFLEN 64
+/*
+ * not exposed by default because that API is only used interfacing
+ * ecn-bitw.dll and ecn-bitn.dll from ../../dotnet/ and, while
+ * possibly useful elsewhere, not a stable API (currently; however
+ * ask if you would like to use them so we’ll know)
+ */
+#define ECNBITS_HLL_APIDEF
 #endif
 
 /* operations on the result value */
@@ -116,6 +123,7 @@ ECNBITS_EXPORTAPI SSIZE_T ecnbits_recv(SOCKET fd, void *buf, size_t buflen,
 #define ecnbits_read(socketfd,buf,buflen,ecnresult) \
 	ecnbits_recv((socketfd), (buf), (buflen), 0, (ecnresult))
 
+#ifdef ECNBITS_HLL_APIDEF
 /* parameter block for HLL function */
 struct ecnhll_rcv {
 	unsigned int nbytes;	/* in/out, keep <= INT_MAX */
@@ -133,6 +141,7 @@ ECNBITS_EXPORTAPI int ecnhll_recv(SOCKET fd, void *buf, struct ecnhll_rcv *p);
 /* support code for Mono */
 ECNBITS_EXPORTAPI void ecnhll_mono_test(void);
 ECNBITS_EXPORTAPI int ecnhll_mono_map(int errno_code);
+#endif /* ECNBITS_HLL_APIDEF */
 
 #ifdef __cplusplus
 }
