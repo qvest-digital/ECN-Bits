@@ -19,9 +19,6 @@
  * of said person’s immediate fault when using the work as intended.
  */
 
-// incurs a performance penalty, alternative is not available everywhere though
-#define PROPER_DISPOSED_CHECK
-
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -127,19 +124,11 @@ public static class ECNBits {
 
 	#region helpers
 	internal static IntPtr SocketHandle(Socket socket) {
-#if PROPER_DISPOSED_CHECK
 		// this calls ThrowIfDisposed(); the backtrace will show
 		// GetSocketOption as first cause, but better than not doing it
 		socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Type);
 		return socket.Handle;
-#else
-		SafeSocketHandle handle = socket.SafeHandle;
-
-		// Socket.Disposed is unfortunately internal/private ☹
-		if (handle.IsInvalid /* || socket.Disposed */)
-			throw new ObjectDisposedException(socket.GetType().FullName);
-		return handle.DangerousGetHandle();
-#endif
+		// vgl. commit XXX
 	}
 
 	internal static void ThrowSocketException(Socket socket) {
