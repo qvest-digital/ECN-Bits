@@ -121,12 +121,13 @@ win: winbuild winrun
 
 winbuild: windll.stp
 	..$Ytest-git /q
-	csc -nologo $(LIB_BUILD)
-	csc -nologo $(PROG_BUILD)
-	rem or: csc -platform:anycpu32bitpreferred $(PROG_BUILD)
+	dncsc -nologo $(LIB_BUILD)
+	dncsc -nologo $(PROG_BUILD)
+	rem or: dncsc -platform:anycpu32bitpreferred $(PROG_BUILD)
+	dnmkrtcf >$(PROG_NAME).runtimeconfig.json
 
 winrun:
-	if not "$(args: =)"=="" $(PROG_NAME) $(args)
+	if not "$(args: =)"=="" dotnet $(PROG_NAME).exe $(args)
 
 gnudll:
 	-cd ../ws2/lib && $(MAKE) clean
