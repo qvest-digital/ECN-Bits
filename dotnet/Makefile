@@ -1,6 +1,6 @@
 # -*- mode: make -*-
 #-
-# Copyright © 2021
+# Copyright © 2021, 2023
 #	mirabilos <t.glaser@tarent.de>
 # Licensor: Deutsche Telekom
 #
@@ -23,7 +23,7 @@
 
 # sdkver=$(dotnet --version)
 sdkver=5.0.201
-# fwkver=$(dotnet --list-runtimes | sed --posix -n '/^Microsoft.NETCore.App \([^ ]*\) .*$/{s//\1/p;q;}')
+# fwkver=$(dotnet --list-runtimes | sed --posix -n '/^Microsoft.NETCore.App \([^ ]*\) .*$/s//\1/p' | tail -n 1)
 fwkver=5.0.4
 
 # dotnet-sdk-5.0 installed via .deb package
