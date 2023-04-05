@@ -65,7 +65,8 @@ public static class ECNBits {
 
 		rv = Unmanaged.ecnhll_prep(sockfd, af);
 		if (rv >= 2)
-			ThrowSocketException(socket);
+			// cf. commit XXX
+			throw MonoSocketException.NewSocketException();
 		return rv;
 	}
 
@@ -109,10 +110,8 @@ public static class ECNBits {
 			break;
 		default:
 			/* 0 = bad address family, -1 = error */
-			ThrowSocketException(socket);
-			// for Roslyn
-			remoteEP = null;
-			break;
+			// cf. commit XXX
+			throw MonoSocketException.NewSocketException();
 		}
 		if (p[0].tosvalid == 1)
 			iptos = p[0].tosbyte;
@@ -129,18 +128,6 @@ public static class ECNBits {
 		socket.GetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Type);
 		return socket.Handle;
 		// vgl. commit XXX
-	}
-
-	internal static void ThrowSocketException(Socket socket) {
-		var e = MonoSocketException.NewSocketException();
-
-		// internal/private as well…
-		//if (NetEventSource.Log.IsEnabled())
-		//	NetEventSource.Error(socket, e);
-		// here, we *really* must do…
-		//socket.UpdateStatusAfterSocketError(e.SocketErrorCode);
-		// … which we cannot because it’s internal/private ☹
-		throw e;
 	}
 	#endregion
 }
