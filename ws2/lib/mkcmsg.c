@@ -57,18 +57,17 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 #else
 	struct msghdr mh;
 #endif
-	size_t mlen;
 	int i = (int)(unsigned int)tc;
 
 	/* determine minimum buffer size */
 	switch (af) {
 	case AF_INET6:
 #if defined(__linux__)
-		mlen = 2 * CMSG_SPACE(sizeof(int));
+		mh.msg_controllen = 2 * CMSG_SPACE(sizeof(int));
 		break;
 #endif
 	case AF_INET:
-		mlen = CMSG_SPACE(sizeof(int));
+		mh.msg_controllen = CMSG_SPACE(sizeof(int));
 		break;
 	default:
 #if defined(_WIN32) || defined(WIN32)
@@ -79,18 +78,18 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 	}
 
 	if (buf) {
-		if (*lenp < mlen) {
+		if (*lenp < mh.msg_controllen) {
 #if defined(_WIN32) || defined(WIN32)
 			WSASetLastError(ERANGE);
 #endif
 			errno = ERANGE;
 			return (NULL);
 		}
-	} else if (!(buf = calloc(1, mlen)))
+	} else if (!(buf = calloc(1, mh.msg_controllen)))
 		return (NULL);
 
 	mh.msg_control = buf;
-	mh.msg_controllen = *lenp = mlen;
+	*lenp = mh.msg_controllen;
 	cmsg = CMSG_FIRSTHDR(&mh);
 
 	switch (af) {
