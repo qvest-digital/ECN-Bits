@@ -76,7 +76,7 @@ clean: $(CLEAN:^unix=dos)
 	@..$Ytest-git /q
 
 unixclean:
-	rm -f *.stp
+	rm -f *.bat *.stp
 	-cd ../ws2/lib && $(MAKE) clean
 	rm -rf bin/armhf bin/arm64 bin/amd64 bin/i386
 	rm -f bin/*.bat bin/*.dll bin/*.runtimeconfig.json \
@@ -86,7 +86,7 @@ dosclean:
 	if exist *.stp (del *.stp)
 	-cd ..$Yws2$Ylib && $(MAKE) /nologo clean
 	-rd /s /q bin$Yarmhf bin$Yarm64 bin$Yamd64 bin$Yi386 2>nul
-	rem (later once we generate them) if exist *.bat (del *.bat)
+	if exist *.bat (del *.bat)
 	if exist bin$Y*.bat (del bin$Y*.bat)
 	if exist bin$Y*.dll (del bin$Y*.dll)
 	if exist bin$Y*.runtimeconfig.json (del bin$Y*.runtimeconfig.json)
@@ -123,9 +123,15 @@ windll:
 windll.stp:
 	$(MAKE) /nologo windll
 
+dncsc.stp: mkdncsc.vbs
+	dotnet --info | cscript /nologo mkdncsc.vbs
+	ren dncsc.ba_ dncsc.bat
+	ren dnmkrtcf.ba_ dnmkrtcf.bat
+	@echo stamp >dncsc.stp
+
 win: winbuild winrun
 
-winbuild: windll.stp
+winbuild: dncsc.stp windll.stp
 	..$Ytest-git /q
 	dncsc -nologo $(LIB_BUILD)
 	dncsc -nologo $(PROG_BUILD)
