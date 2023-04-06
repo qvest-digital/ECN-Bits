@@ -104,10 +104,10 @@ git clone -c core.symlinks=true https://github.com/tarent/ECN-Bits.git
 – Windows/Linux, C♯/.net including Mono (also VB.net and other CLR languages)
   ‣ see dotnet/README
   • being under development
-  : Status: Extension Method API works under GNU/Linux
+  : Status: Extension Method API works but this needs more eyes, actual users
 
 – iOS (Apple)
-  • being under development
+  • needs development
 
 – Windows/Android, Unity (game engine)/C♯/Mono
   • needs development
