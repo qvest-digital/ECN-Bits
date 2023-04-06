@@ -19,21 +19,7 @@
 # damage or existence of a defect, except proven that it results out
 # of said person’s immediate fault when using the work as intended.
 #-
-# GNU make and nmake compatible except clean (Unix) vs. del (CMD)
-
-# sdkver=$(dotnet --version)
-sdkver=5.0.201
-# fwkver=$(dotnet --list-runtimes | sed --posix -n '/^Microsoft.NETCore.App \([^ ]*\) .*$/s//\1/p' | tail -n 1)
-fwkver=5.0.4
-
-# dotnet-sdk-5.0 installed via .deb package
-dotnethome=/usr/share/dotnet
-dotnetlib=$(dotnethome)/shared/Microsoft.NETCore.App/$(fwkver)
-dotnet_csc=dotnet $(dotnethome)/sdk/$(sdkver)/Roslyn/bincore/csc.dll
-dotnet_cscopts=-lib:$(dotnetlib) -r:netstandard.dll -r:Microsoft.CSharp.dll \
-		-r:System.dll $$(cd $(dotnetlib) && for x in System.*.dll; do \
-			echo -r:$$x; \
-		done)
+# GNU make and nmake compatible
 
 # path slash
 SLASHPRE=/
@@ -123,15 +109,15 @@ windll:
 windll.stp:
 	$(MAKE) /nologo windll
 
-dncsc.stp: mkdncsc.vbs
+dncscw.stp: mkdncsc.vbs
 	dotnet --info | cscript /nologo mkdncsc.vbs
 	ren dncsc.ba_ dncsc.bat
 	ren dnmkrtcf.ba_ dnmkrtcf.bat
-	@echo stamp >dncsc.stp
+	@echo stamp >dncscw.stp
 
 win: winbuild winrun
 
-winbuild: dncsc.stp windll.stp
+winbuild: dncscw.stp windll.stp
 	..$Ytest-git /q
 	dncsc -nologo $(LIB_BUILD)
 	dncsc -nologo $(PROG_BUILD)
@@ -153,15 +139,18 @@ gnudll:
 gnudll.stp:
 	$(MAKE) gnudll
 
+dncscu.stp: mkdncsc.awk mkdncsc.sh
+	dotnet --info | mksh mkdncsc.sh
+	mv dncsc.ba_ dncsc.bat
+	mv dnmkrtcf.ba_ dnmkrtcf.bat
+	@echo stamp >dncscu.stp
+
 dotnet: dotnetbuild dotnetrun
 
-dotnetbuild: gnudll.stp
-	$(dotnet_csc) -nologo $(dotnet_cscopts) \
-	    -r:Microsoft.Win32.Primitives.dll $(LIB_BUILD)
-	$(dotnet_csc) -nologo $(dotnet_cscopts) \
-	    -r:Microsoft.Win32.Primitives.dll $(PROG_BUILD)
-	echo '{"runtimeOptions":{"framework":{"name":"Microsoft.NETCore.App","version":"$(fwkver)"}}}' \
-	    >bin$Y$(PROG_BASENAME).runtimeconfig.json
+dotnetbuild: dncscu.stp gnudll.stp
+	./dncsc.bat -nologo $(LIB_BUILD)
+	./dncsc.bat -nologo $(PROG_BUILD)
+	./dnmkrtcf.bat >bin$Y$(PROG_BASENAME).runtimeconfig.json
 	printf '%s\n' '#!/bin/sh' 'mydir=$$(dirname "$$0")' \
 	    'LD_LIBRARY_PATH=$$mydir$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH}' \
 	    'export LD_LIBRARY_PATH' \
@@ -186,9 +175,6 @@ monobuild: gnudll.stp
 
 monorun:
 	test -z '$(args:'='\'')' || bin/$(PROG_BASENAME)-mono.sh $(args)
-
-dotnethelp:
-	$(dotnet_csc) -help
 
 LSL=ls -l
 DIR=$(LSL:^ls -l=dir)

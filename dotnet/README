@@ -135,10 +135,6 @@ $ make dotnet
 compile the library (resulting file ecn-bitn.dll will be placed in
 this directory) as well as an example client (client.exe).
 
-GNUmakefile automatically sets sdkver/fwkver, overriding the values
-from Makefile. The default values assume dotnet-sdk-5.0 installed
-via Microsoft-provided .deb packages (APT repository).
-
 $ make dotnet args="host port"
 
 … will do the same, then execute the example client with the given
