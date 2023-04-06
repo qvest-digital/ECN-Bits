@@ -20,7 +20,8 @@ facilitating such high-level language integration.
 On a source code level, the files unmngd.cs and monosupp.cs contain
 the actual (managed) library, client.cs contains example code.
 
-Unity support is handled slightly differently; see ../unity/README.
+Unity support is handled slightly differently; see ../unity/README
+once available.
 
 ┌─────────────┐
 │ Compilation │

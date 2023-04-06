@@ -4,7 +4,7 @@
 #	mirabilos <tg@mirbsd.org>
 # Copyright © 2013
 #	mirabilos <thorsten.glaser@teckids.org>
-# Copyright © 2020
+# Copyright © 2020, 2023
 #	mirabilos <t.glaser@tarent.de>
 # Licensor: Deutsche Telekom
 #
@@ -36,6 +36,10 @@ ifeq (,$(filter %/TOP.mk,$(wildcard ${TOP}/TOP.mk)))
 $(error cannot determine top-level directory ${TOP} from cwd ${CWD})
 endif
 CLEANFILES:=	*.i *.o
+$(shell ${TOP}/../test-git /q)
+ifneq (0,${.SHELLSTATUS})
+$(error git repository clone consistency check failed)
+endif
 
 shellescape='$(subst ','\'',$(1))'
 shellexport=$(1)=$(call shellescape,${$(1)})
