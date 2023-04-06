@@ -109,6 +109,7 @@ windll:
 windll.stp:
 	$(MAKE) /nologo windll
 
+# cf. https://stackoverflow.com/q/70238734/2171120
 dncscw.stp: mkdncsc.vbs
 	dotnet --info | cscript /nologo mkdncsc.vbs
 	ren dncsc.ba_ dncsc.bat
@@ -139,6 +140,7 @@ gnudll:
 gnudll.stp:
 	$(MAKE) gnudll
 
+# cf. https://stackoverflow.com/q/70238734/2171120
 dncscu.stp: mkdncsc.awk mkdncsc.sh
 	dotnet --info | mksh mkdncsc.sh
 	mv dncsc.ba_ dncsc.bat
