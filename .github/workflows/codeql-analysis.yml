@@ -29,7 +29,7 @@
         },
         {
           "name": "Initialise CodeQL",
-          "uses": "github/codeql-action/init@codeql-bundle-20230105"
+          "uses": "github/codeql-action/init@v2"
         },
         {
           "name": "install dependencies",
@@ -40,7 +40,7 @@
         },
         {
           "name": "Perform CodeQL Analysis",
-          "uses": "github/codeql-action/analyze@codeql-bundle-20230105"
+          "uses": "github/codeql-action/analyze@v2"
         }
       ],
       "strategy": {
