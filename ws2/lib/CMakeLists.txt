@@ -61,6 +61,7 @@ add_library(ecn-bitw SHARED
 	# MirBSD licenced
 	desc.c
 	hll.c
+	mkcmsg.c
 	prep.c
 	rdmsg.c
 	recv.c

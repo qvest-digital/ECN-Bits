@@ -14,13 +14,16 @@ apply plugin: 'de.mannodermaus.android-junit5'
 // apparently, there’s no standardised way to declare the project licence in Gradle:
 // https://discuss.gradle.org/t/how-to-declare-a-license-for-a-gradle-project/26114
 
-if (DefaultNativePlatform.currentOperatingSystem.windows) {
+def checkGitChckedOutWithSymlinks() {
     def repoRoot = project.layout.projectDirectory.asFile.parentFile.parentFile.absolutePath
-    def proc = ("cmd /c " + repoRoot + "\\test-git.bat /q").execute()
+    def proccmd = DefaultNativePlatform.currentOperatingSystem.windows ?
+        ("cmd /c " + repoRoot + "\\test-git.bat /q") : (repoRoot + "/test-git");
+    def proc = proccmd.execute()
     proc.waitForProcessOutput(System.out, System.err)
     if (proc.exitValue() != 0)
         throw new GradleScriptException("git repository clone consistency check failed", null)
 }
+checkGitChckedOutWithSymlinks()
 
 static def checkPathSameness(final File f, final String s, final String msg) {
     if (!Files.isSameFile(f.toPath(), Paths.get(s)))

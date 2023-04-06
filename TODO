@@ -21,3 +21,25 @@
   https://github.com/jeremylong/dependency-check-gradle/issues/206
 
 • Android/Unity
+  – import the four generated shared objects into Unity, assigning
+    Android support and the correct CPU to each, according to
+    https://docs.unity3d.com/Manual/AndroidNativePlugins.html
+    ‣ maybe we can just import the AAR instead?
+  – Unity should not (currently) use stackalloc, apparently it’s
+    problematic in its VM; use #ifdef to heap-allocate (maybe use
+    a pool?) only on Unity, keeping stackalloc in proper .net/CLR?
+  – now [DllImport("ecn-bitw")] “should just work”, let’s hope it
+    selects the correct .so according to what platform it’s running on
+  - numerical	SocketFlags		flags
+	2	OutOfBand		MSG_OOB
+	1	Peek			MSG_PEEK
+  - Span<byte> bytes = stackalloc byte[length];
+  - ReadOnlySpan<int> span = new int[bufferSize];
+    fixed (int* ptr = &MemoryMarshal.GetReference(span)) {
+        return Native.Sum(Unsafe.AsRef<int>(ptr), (UIntPtr)span.Length);
+    }
+ vs fixed (int* ptr = span) {
+        return Native.Sum(ptr, span.Length);
+  - receive(0) → receive(1,|MSG_PEEK,&dummy_buf)
+  – Unity: might need to copy out built DLLs to Unity directory
+    structure, probably keep it there even through (n)make clean

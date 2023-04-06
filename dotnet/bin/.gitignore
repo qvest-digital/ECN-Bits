@@ -1,0 +1,5 @@
+# The results of compilation are placed in this directory.
+
+client-mono.sh
+client.bat
+client.sh

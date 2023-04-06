@@ -1,0 +1,248 @@
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ECN-Bits • Library for .NET including Mono ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+┌───────────┐
+│ Structure │
+└───────────┘
+
+This library is comprised of a .NET library which compiles into a
+platform-independent DLL (“managed code”), and (one or more) builds
+of the C library which compiles into “unmanaged code” as (platform-
+specific) DLLs or shared objects. The managed DLL will, at runtime,
+load the unmanaged DLL and provide its interface to managed code.
+Assemblies using this library will need to reference (-r) only the
+managed DLL, using the namespace ECNBits.
+
+The C solution from ../ws2/ is used because it includes helper code
+facilitating such high-level language integration.
+
+On a source code level, the files unmngd.cs and monosupp.cs contain
+the actual (managed) library, client.cs contains example code.
+
+Unity support is handled slightly differently; see ../unity/README.
+
+┌─────────────┐
+│ Compilation │
+└─────────────┘
+
+There’s a Makefile which makes most of the compilation easy enough.
+It’s based on csc as compiler (including Roslyn). All binary output
+intended to be distributed ends up in the bin subdirectory.
+
+‣‣‣ Windows®
+
+Using the .NET SDK, the Makefile contains targets to build the libraries
+and example code under a VsDevCmd (“Developer Command Prompt”), using
+Roslyn directly-invoked as csc.dll and generating a runtime config dumbly
+like the GNU/Linux dotnet does.
+
+C>nmake windll
+
+… will force (re‑)compilation of the native (“unmanaged”) DLL for all
+four platforms. Resulting ecn-bitw.dll files will be copied into the
+subdirectories amd64, arm64, armhf, i386 (matching the architecture).
+
+C>nmake win
+
+… will cause DLL compilation only if it’s not yet present, and then
+compile the library (resulting file ecn-bitn.dll will be placed in
+this directory) as well as an example client (client.bat/dll).
+
+C>nmake win args="host port"
+
+… will do the same, then execute the example client with the given
+arguments.
+
+C>nmake clean
+
+… will erase all created files.
+
+The directory structure of built files is thus:
+
+├─ dotnet\
+│  └─ bin\
+│     ├─ amd64\
+│     │  └─ ecn-bitw.dll
+│     ├─ arm64\
+│     │  └─ ecn-bitw.dll
+│     ├─ armhf\
+│     │  └─ ecn-bitw.dll
+│     ├─ i386\
+│     │  └─ ecn-bitw.dll
+│     ├─ ecn-bitn.dll  (searches for ecn-bitw.dll in a subdirectory)
+│     ├─ client.dll    (searches for ecn-bitn.dll in the same directory)
+╵     └─ client.bat    (searches for client.dll in the same directory)
+
+This is how the files must eventually be installed.
+
+‣‣‣ GNU/Linux and FreeBSD/MidnightBSD, Mono
+
+Here, the Makefile uses mono-csc from $PATH.
+
+$ make gnudll
+
+… will force (re‑)compilation of the native (“unmanaged”) DLL for the
+*current* platform, i.e. using the host-native compiler. Resulting files
+libecn-bitw.so and libecn-bitw.so.* will be copied into the bin directory.
+
+$ make mono
+
+… will cause DLL compilation only if it’s not yet present, and then
+compile the library (resulting file ecn-bitn.dll will be placed in
+this directory) as well as an example client (client.dll) plus a
+corresponding shell wrapper also setting up LD_LIBRARY_PATH: client-mono.sh
+
+$ make mono args="host port"
+
+… will do the same, then execute the example client with the given
+arguments, with mono as runtime/loader.
+
+$ make clean
+
+… will remove all created files.
+
+The directory structure of built files is thus:
+
+├─ dotnet/
+│  └─ bin/
+│     ├─ libecn-bitw.so         (symbolic link)
+│     ├─ libecn-bitw.so.M       (symbolic link)
+│     ├─ libecn-bitw.so.M.m.p   (actual library)
+│     ├─ ecn-bitn.dll
+│     ├─ client.dll
+╵     └─ client-mono.sh
+
+Here ecn-bitn.dll searches for libecn-bitw.so in the system shared
+library path, i.e. it assumes $LD_LIBRARY_PATH is set up correctly
+or the native/unmanaged library was installed to /usr/local/lib or
+thereabouts. For client.dll locating ecn-bitn.dll apparently Win32
+conventions (i.e. same directory) seem to be used. For installing,
+this means libecn-bitw.so should be placed in the system DLL path,
+/usr/local/lib or similar, and ecn-bitn.dll should be put together
+with the executable that uses it, or a solution akin to the script
+setting LD_LIBRARY_PATH like client-mono.sh should be employed.
+
+‣‣‣ GNU/Linux, Microsoft® .NET SDK
+
+Here, the Makefile goes quite a way to invoke Roslyn directly, as
+the “dotnet” wrapper command does not offer csc. No MSBuild file
+is provided currently.
+
+$ make gnudll
+
+… will force (re‑)compilation of the native (“unmanaged”) DLL for the
+*current* platform, i.e. using the host-native compiler. Resulting files
+libecn-bitw.so and libecn-bitw.so.* will be copied into the bin directory.
+
+$ make dotnet
+
+… will cause DLL compilation only if it’s not yet present, and then
+compile the library (resulting file ecn-bitn.dll will be placed in
+this directory) as well as an example client (client.dll/sh).
+
+$ make dotnet args="host port"
+
+… will do the same, then execute the example client with the given
+arguments, with dotnet as runtime/loader. For the runtime/loader
+invocation, LD_LIBRARY_PATH is set up to contain the current directory.
+
+$ make clean
+
+… will remove all created files.
+
+The directory structure of built files is thus:
+
+├─ dotnet/
+│  └─ bin/
+│     ├─ libecn-bitw.so         (symbolic link)
+│     ├─ libecn-bitw.so.M       (symbolic link)
+│     ├─ libecn-bitw.so.M.m.p   (actual library)
+│     ├─ ecn-bitn.dll
+│     ├─ client.runtimeconfig.json
+│     ├─ client.dll
+╵     └─ client.sh
+
+Here ecn-bitn.dll searches for libecn-bitw.so in the system shared
+library path, i.e. it assumes $LD_LIBRARY_PATH is set up correctly
+or the native/unmanaged library was installed to /usr/local/lib or
+thereabouts. For client.dll locating ecn-bitn.dll apparently Win32
+conventions (i.e. same directory) seem to be used. For installing,
+this means libecn-bitw.so should be placed in the system DLL path,
+/usr/local/lib or similar, and ecn-bitn.dll should be put together
+with the executable that uses it and that executable’s JSON config
+(which the dotnet command needs to be able to run the executable),
+or a script like client.sh can be used.
+
+‣‣‣ GNU/Linux multi-architecture support considerations
+
+On GNU/Linux we build the native/unmanaged DLL (shared object) with
+the native toolchain so it’ll target the native architecture. For
+multi-architecture support, that part must be (cross‑)compiled for
+each architecture to support. This can be achieved by compiling it
+manually: go to ../ws2/lib/ and run make clean followed by…
+
+$ make NOSTATIC=Yes CC=arm-linux-gnueabi-gcc
+
+… or a similar command suitable to invoke the cross toolchain.
+
+Install the shared objects to suitable directories each. On Debian
+and derivatives (such as Ubuntu), use the Multi-Arch directories, e.g.
+/usr/local/lib/i386-linux-gnu/ and /usr/local/lib/x86_64-linux-gnu/
+and /usr/local/lib/arm-linux-gnueabi/ etc. so that the system dynamic
+loader will find them.
+
+For Android, an AAR containing NDK-built shared objects suitable for
+autoloading by the bionic shared loader on all Android architectures
+can be built by “make aar” (or “nmake aar”). This is used by Unity
+targetting Android, for example.
+
+┌───────────────────┐
+│ Using the library │
+└───────────────────┘
+
+When using the ECNBits namespace, the ECNBits static class containing
+the full API as well as a number of classes providing extension methods
+will be imported. The ECNUtil static class provides extra utilities.
+
+Simple usage with the Socket class works as follows:
+
+• before receiving, call once:
+  sock.ECNBitsPrepare();
+
+• use the Receive or ReceiveFrom overloads with out Nullable<Byte> iptos
+  at the end to receive
+
+The iptos out variable will be assigned the IP TOS value if it could
+be determined, null otherwise.
+
+Simple usage with the UdpClient works as follows:
+
+• after initialisation, call once:
+  client.ECNBitsPrepare();
+
+• to receive, call:
+  byte[] resultbuffer = client.Receive(ref remoteEP, out iptos);
+
+Limitations of the current implementation:
+
+• the Socket.Receive overloads for IList<ArraySegment<Byte>> are
+  absent, only byte[] and Span<Byte> buffers are supported
+
+• only synchronous communication is supported; this is unlikely to change
+
+• UdpClient.Receive is a slow API because it resizes the receive buffer
+  allocated at 64 KiB each time; the Socket API is much more performant
+
+• ThrowIfDisposed() can only be checked on a Socket, including the
+  one underlying UdpClient; however, the UdpClient itself cannot be
+  checked, and the Socket check has a slight overhead because the
+  things needed for a better check are private
+
+• When compiling for Mono (which does not provide some features) the
+  library will run less optimal and requires one “unsafe” block for
+  stackalloc
+
+• Extension methods cannot add state to a class so auto-counting methods
+  like getMeasurement in the Android/Java™ implementation are currently
+  not available

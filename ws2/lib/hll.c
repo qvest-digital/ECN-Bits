@@ -31,8 +31,28 @@
 #include <netinet/ip.h>
 #endif
 #include <errno.h>
+#include <stddef.h>
+#include <string.h>
 
 #include "ecn-bitw.h"
+
+#define FIELD_SIZEOF(t,f) (sizeof(((t*)0)->f))
+
+/* compile-time assert */
+struct ecnhll_rcv_cta_size {
+	/* size of ecnhll_rcv must be known for C and C# and match */
+	char size_correct[sizeof(struct ecnhll_rcv) == 32 ? 1 : -1];
+	/* test various offsets */
+	char offsets_correct[(
+		offsetof(struct ecnhll_rcv, nbytes) == 0 &&
+		offsetof(struct ecnhll_rcv, flags) == 4 &&
+		offsetof(struct ecnhll_rcv, ipscope) == 8 &&
+		offsetof(struct ecnhll_rcv, port) == 12 &&
+		offsetof(struct ecnhll_rcv, tosvalid) == 14 &&
+		offsetof(struct ecnhll_rcv, tosbyte) == 15 &&
+		offsetof(struct ecnhll_rcv, addr) == 16 &&
+	    FIELD_SIZEOF(struct ecnhll_rcv, addr) == 16) ? 1 : -1];
+};
 
 #if (AF_INET != 0) && (AF_INET6 != 0)
 /*
@@ -52,3 +72,56 @@ ecnhll_prep(SOCKET socketfd, int af)
 #else
 # error AF_INET or AF_INET6 conflict with the error af value
 #endif
+
+/*
+ * Wraps ecnbits_recvfrom() for .net
+ *
+ * Returns -1 on error, 4 if src_addr is AF_INET, 6 for AF_INET6,
+ * and 0 otherwise setting errno suitably.
+ */
+ECNBITS_EXPORTAPI int
+ecnhll_recv(SOCKET socketfd, void *buf, struct ecnhll_rcv *p)
+{
+	int flags = 0;
+	struct sockaddr_storage ss;
+	socklen_t slen = sizeof(ss);
+	SSIZE_T len;
+	unsigned short ecn;
+
+	if (p->flags & 1)
+		flags |= MSG_OOB;
+	if (p->flags & 2)
+		flags |= MSG_PEEK;
+	if ((len = ecnbits_recvfrom(socketfd, buf, p->nbytes, flags,
+	    (struct sockaddr *)&ss, &slen, &ecn)) == -1)
+		return (-1);
+	p->nbytes = (unsigned int)len;
+	if (ECNBITS_VALID(ecn)) {
+		p->tosbyte = ECNBITS_TCOCT(ecn);
+		p->tosvalid = 1;
+	} else
+		p->tosvalid = 0;
+	switch (ss.ss_family) {
+	case AF_INET6: {
+		struct sockaddr_in6 *sin6 = (void *)&ss;
+
+		p->ipscope = ntohl(sin6->sin6_scope_id);
+		p->port = ntohs(sin6->sin6_port);
+		memcpy(p->addr, sin6->sin6_addr.s6_addr, 16);
+		return (6);
+	    }
+	case AF_INET: {
+		struct sockaddr_in *sin = (void *)&ss;
+
+		p->ipscope = sin->sin_addr.s_addr;
+		p->port = ntohs(sin->sin_port);
+		return (4);
+	    }
+	default:
+#if defined(_WIN32) || defined(WIN32)
+		WSASetLastError(WSAEAFNOSUPPORT);
+#endif
+		errno = WSAEAFNOSUPPORT;
+		return (0);
+	}
+}
