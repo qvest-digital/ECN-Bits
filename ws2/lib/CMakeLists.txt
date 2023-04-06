@@ -2,7 +2,7 @@
 # THIS IS *ONLY* USED FOR NDK COMPILATION VIA android/ BUT NO PROPER
 # BUILD OF THE ecn-bitw LIBRARY FOR GENERIC USE!
 #-
-# Copyright © 2020, 2021
+# Copyright © 2020, 2021, 2023
 #	mirabilos <t.glaser@tarent.de>
 # Licensor: Deutsche Telekom
 #
@@ -32,6 +32,9 @@ if (NOT TOPLEV)
 	message(FATAL_ERROR "setting the top-level directory is mandatory")
 endif (NOT TOPLEV)
 include(CheckCCompilerFlag)
+
+execute_process(COMMAND ${TOPLEV}/../test-git CTgitcheck)
+add_custom_target(RTgitcheck ALL ${TOPLEV}/../test-git RTgitcheck)
 
 add_definitions(-D_REENTRANT)
 include_directories(BEFORE ${TOPLEV}/inc)
