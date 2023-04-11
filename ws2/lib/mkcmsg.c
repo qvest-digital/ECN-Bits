@@ -38,6 +38,14 @@
 #include "ecn-bitw.h"
 
 #if defined(_WIN32) || defined(WIN32)
+/* from: https://learn.microsoft.com/en-us/windows/win32/winsock/winsock-ecn */
+#ifndef IP_ECN
+#define IP_ECN		50
+#endif
+#ifndef IPV6_ECN
+#define IPV6_ECN	50
+#endif
+
 #define msg_control	Control.buf
 #define msg_controllen	Control.len
 #else
@@ -95,7 +103,11 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 	switch (af) {
 	case AF_INET6:
 		cmsg->cmsg_level = IPPROTO_IPV6;
+#if defined(_WIN32) || defined(WIN32)
+		cmsg->cmsg_type = IPV6_ECN;
+#else
 		cmsg->cmsg_type = IPV6_TCLASS;
+#endif
 		cmsg->cmsg_len = CMSG_LEN(sizeof(i));
 		memcpy(WSA_CMSG_DATA(cmsg), &i, sizeof(i));
 #if defined(__linux__)
@@ -108,7 +120,11 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 		/* FALLTHROUGH */
 	case AF_INET:
 		cmsg->cmsg_level = IPPROTO_IP;
+#if defined(_WIN32) || defined(WIN32)
+		cmsg->cmsg_type = IP_ECN;
+#else
 		cmsg->cmsg_type = IP_TOS;
+#endif
 #if defined(__linux__) || defined(__APPLE__) || \
     defined(_WIN32) || defined(WIN32)
 		/*
