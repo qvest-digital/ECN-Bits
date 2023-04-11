@@ -286,6 +286,6 @@ do_packet(int s, unsigned int dscp)
 		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,
 		    dscp | (data[len - 1] - '0'));
 		if (sendmsg(s, &mh, 0) == (ssize_t)-1)
-			warn("sendmsg");
+			warn("sendmsg for %s", data + (len - 6));
 	} while (++data[len - 1] < '4');
 }

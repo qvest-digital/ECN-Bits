@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020, 2021
+ * Copyright © 2020, 2021, 2023
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -395,8 +395,13 @@ do_packet(int s, unsigned int dscp)
 	do {
 		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,
 		    (unsigned char)(dscp | (data[len - 1] - '0')));
-		if (sendmsg(s, &mh, 0) == (SSIZE_T)-1)
-			ws2warn("sendmsg");
+		if (sendmsg(s, &mh, 0) == (SSIZE_T)-1) {
+			char errmsgbuf[19];
+
+			memcpy(errmsgbuf, "sendmsg for ", 12);
+			memcpy(errmsgbuf + 12, data + (len - 6), 7);
+			ws2warn(errmsgbuf);
+		}
 	} while (++data[len - 1] < '4');
 }
 
