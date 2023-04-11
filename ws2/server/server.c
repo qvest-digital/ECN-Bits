@@ -69,8 +69,8 @@
 typedef int SOCKET;
 #define INVALID_SOCKET	(-1)
 #define closesocket	close
-#define ws2warn		warn
-#define ws2err		err
+#define ws2warn(s)	warn("%s", s)	/* could be more efficient, but… */
+#define ws2err(n,s)	err(n, "%s", s)	/* … this is a demo for ECN-Bits */
 #endif
 
 #ifdef __APPLE__
