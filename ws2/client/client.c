@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020, 2021
+ * Copyright © 2020, 2021, 2023
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -52,19 +52,32 @@
 #include "ecn-bitw.h"
 
 #if defined(_WIN32) || defined(WIN32)
+#define iov_base	buf
+#define iov_len		len
+#define msg_name	name
+#define msg_namelen	namelen
+#define msg_iov		lpBuffers
+#define msg_iovlen	dwBufferCount
+#define msg_control	Control.buf
+#define msg_controllen	Control.len
+#define msg_flags	dwFlags
+#define sendmsg		ecnws2_sendmsg
 typedef int SOCKIOT;
 #else
 #define SSIZE_T		ssize_t
 typedef int SOCKET;
 #define INVALID_SOCKET	(-1)
 #define closesocket	close
-#define ws2warn		warn
+#define ws2warn(s)	warn("%s", s)	/* could be more efficient, but… */
 typedef SSIZE_T SOCKIOT;
 #define SOCKET_ERROR	((SOCKIOT)-1)
 #endif
 
 static int do_resolve(const char *host, const char *service);
-static int do_connect(int sfd);
+static int do_connect(SOCKET sfd, int af);
+
+static unsigned char out_tc = ECNBITS_ECT0;
+static unsigned char use_sendmsg = 0;
 
 #if defined(_WIN32) || defined(WIN32)
 static WSADATA wsaData;
@@ -200,7 +213,7 @@ do_resolve(const char *host, const char *service)
 		}
 
 		fprintf(stderr, " connected\n");
-		if (do_connect(s)) {
+		if (do_connect(s, ap->ai_family)) {
 			closesocket(s);
 			continue;
 		}
@@ -215,7 +228,7 @@ do_resolve(const char *host, const char *service)
 }
 
 static int
-do_connect(int s)
+do_connect(SOCKET s, int af)
 {
 	char buf[512];
 	SOCKIOT nsend;

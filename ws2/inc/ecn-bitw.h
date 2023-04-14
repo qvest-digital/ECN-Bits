@@ -99,9 +99,9 @@ ECNBITS_EXPORTAPI SSIZE_T ecnbits_rdmsg(SOCKET fd, LPWSAMSG msg, int flags,
     unsigned short *ecnresult);
 
 /* utility functions */
-ECNBITS_EXPORTAPI int ecnbits_stoaf(SOCKET fd);
 ECNBITS_EXPORTAPI void *ecnbits_mkcmsg(void *buf, size_t *lenp, int af,
     unsigned char tc);
+ECNBITS_EXPORTAPI int ecnbits_stoaf(SOCKET fd);
 
 #if defined(_WIN32) || defined(WIN32)
 /* convenience functions: POSIXish sendmsg(2) and recvmsg(2) over Winsock2 */
