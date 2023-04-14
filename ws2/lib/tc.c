@@ -115,7 +115,7 @@ ecnbits_tcfatal(int rv)
 #endif
 
 int
-ecnbits_tc(SOCKET fd, int af, unsigned char iptos)
+ecnbits_tc(SOCKET socketfd, int af, unsigned char iptos)
 {
 	int tos = (int)(unsigned int)iptos;
 
@@ -127,18 +127,18 @@ ecnbits_tc(SOCKET fd, int af, unsigned char iptos)
 		errno = ENOSYS;
 		return (3);
 #else
-		if (setsockopt(fd, IPPROTO_IP, IP_TOS,
+		if (setsockopt(socketfd, IPPROTO_IP, IP_TOS,
 		    (const void *)&tos, sizeof(tos))) {
 			return (2);
 		}
 #endif
 		break;
 	case AF_INET6:
-		if (setsockopt(fd, IPPROTO_IPV6, IPV6_TCLASS,
+		if (setsockopt(socketfd, IPPROTO_IPV6, IPV6_TCLASS,
 		    (const void *)&tos, sizeof(tos))) {
 			return (2);
 		}
-		if (setsockopt(fd, IPPROTO_IP, IP_TOS,
+		if (setsockopt(socketfd, IPPROTO_IP, IP_TOS,
 		    (const void *)&tos, sizeof(tos))) {
 			return (1);
 		}

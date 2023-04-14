@@ -90,7 +90,7 @@ do_resolve(const char *host, const char *service)
 	case EAI_SYSTEM:
 		err(1, "getaddrinfo");
 	default:
-		errx(1, "%s returned %s", "getaddrinfo", gai_strerror(i));
+		errx(1, "%s: %s", "getaddrinfo", gai_strerror(i));
 	case 0:
 		break;
 	}
@@ -105,8 +105,7 @@ do_resolve(const char *host, const char *service)
 			if (0)
 				/* FALLTHROUGH */
 		default:
-			  warnx("%s returned %s", "getnameinfo",
-			    gai_strerror(i));
+			  warnx("%s: %s", "getnameinfo", gai_strerror(i));
 			fprintf(stderr, "Trying (unknown)...");
 			break;
 		case 0:
@@ -178,7 +177,7 @@ static int
 do_connect(int s, int af)
 {
 	char buf[512];
-	ssize_t n;
+	ssize_t nsend, nrecv;
 	struct pollfd pfd;
 	int rv = 1;
 	unsigned short ecn;
@@ -205,18 +204,19 @@ do_connect(int s, int af)
 		mh.msg_iovlen = 1;
 		mh.msg_control = cmsgbuf;
 		mh.msg_controllen = cmsgsz;
-		n = sendmsg(s, &mh, 0);
+		nsend = sendmsg(s, &mh, 0);
 		e = errno;
 		free(cmsgbuf);
 		errno = e;
-	} else
-		n = write(s, buf, 3);
-	if (n == (ssize_t)-1) {
+	} else {
+		nsend = write(s, buf, 3);
+	}
+	if (nsend == (ssize_t)-1) {
 		warn("send");
 		return (1);
 	}
-	if (n != 3)
-		warnx("wrote %zu bytes but got %zd", (size_t)3, n);
+	if (nsend != 3)
+		warnx("wrote %zu bytes but got %zd", (size_t)3, nsend);
 
  loop:
 	pfd.fd = s;
@@ -233,16 +233,17 @@ do_connect(int s, int af)
 		return (1);
 	}
 
-	if ((n = ecnbits_read(s, buf, sizeof(buf) - 1, &ecn)) == (ssize_t)-1) {
+	if ((nrecv = ecnbits_read(s, buf, sizeof(buf) - 1,
+	    &ecn)) == (ssize_t)-1) {
 		warn("recv");
 		return (1);
 	}
 	now2buf(tm, sizeof(tm));
-	buf[n] = '\0';
-	if (n > 2 && buf[n - 1] == '\n') {
-		buf[n - 1] = '\0';
-		if (buf[n - 2] == '\r')
-			buf[n - 2] = '\0';
+	buf[nrecv] = '\0';
+	if (nrecv > 2 && buf[nrecv - 1] == '\n') {
+		buf[nrecv - 1] = '\0';
+		if (buf[nrecv - 2] == '\r')
+			buf[nrecv - 2] = '\0';
 	}
 	if (ECNBITS_VALID(ecn))
 		snprintf(tcs, sizeof(tcs), "%02X", ECNBITS_TCOCT(ecn));

@@ -38,6 +38,7 @@
 #include "ecn-bitw.h"
 
 #if defined(_WIN32) || defined(WIN32)
+
 /* from: https://learn.microsoft.com/en-us/windows/win32/winsock/winsock-ecn */
 #ifndef IP_ECN
 #define IP_ECN		50
@@ -46,6 +47,7 @@
 #define IPV6_ECN	50
 #endif
 
+/* usual portability defines */
 #define msg_control	Control.buf
 #define msg_controllen	Control.len
 #else

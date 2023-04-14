@@ -113,8 +113,7 @@ revlookup(const struct sockaddr *addr, socklen_t addrlen)
 		if (0)
 			/* FALLTHROUGH */
 	default:
-		  warnx("%s returned %s", "getnameinfo",
-		    gai_strerror(i));
+		  warnx("%s: %s", "getnameinfo", gai_strerror(i));
 		memcpy(buf, "(unknown)", sizeof("(unknown)"));
 		break;
 	case 0:
@@ -140,7 +139,7 @@ do_resolve(const char *host, const char *service)
 	case EAI_SYSTEM:
 		err(1, "getaddrinfo");
 	default:
-		errx(1, "%s returned %s", "getaddrinfo", gai_strerror(i));
+		errx(1, "%s: %s", "getaddrinfo", gai_strerror(i));
 	case 0:
 		break;
 	}
@@ -188,7 +187,8 @@ do_resolve(const char *host, const char *service)
 		/*
 		 * ecnbits_tc not needed, as this server uses sendmsg(2) with
 		 * explicit tc setting exclusively, but it would be called
-		 * here if we used it
+		 * here if we used it (note that porting to Winsock2 requires
+		 * use of sendmsg with explicit ECN bit setting anyway)
 		 */
 
 		if (bind(s, ap->ai_addr, ap->ai_addrlen)) {
@@ -291,7 +291,7 @@ do_packet(int s, unsigned int dscp)
 	io.iov_len = len;
 	do {
 		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,
-		    dscp | (data[len - 1] - '0'));
+		    (unsigned char)(dscp | (data[len - 1] - '0')));
 		if (sendmsg(s, &mh, 0) == (ssize_t)-1)
 			warn("sendmsg for %s", data + (len - 6));
 	} while (++data[len - 1] < '4');

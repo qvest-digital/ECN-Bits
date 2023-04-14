@@ -155,8 +155,9 @@ revlookup(const struct sockaddr *addr, socklen_t addrlen)
 			warnx("%s: %s", "getnameinfo", gai_strerror(i));
 #endif
 		memcpy(buf, "(unknown)", sizeof("(unknown)"));
-	} else
+	} else {
 		snprintf(buf, sizeof(buf), "[%s]:%s", nh, np);
+	}
 	return (buf);
 }
 
@@ -225,6 +226,12 @@ do_resolve(const char *host, const char *service)
 			closesocket(s);
 			continue;
 		}
+		/*
+		 * ecnbits_tc not needed, as this server uses sendmsg(2) with
+		 * explicit tc setting exclusively, but it would be called
+		 * here if we used it (note that porting to Winsock2 requires
+		 * use of sendmsg with explicit ECN bit setting anyway)
+		 */
 
 		if (bind(s, ap->ai_addr, ap->ai_addrlen)) {
 			i = errno;

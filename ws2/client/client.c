@@ -161,8 +161,9 @@ do_resolve(const char *host, const char *service)
 				warnx("%s: %s", "getnameinfo", gai_strerror(i));
 #endif
 			fprintf(stderr, "Trying (unknown)...");
-		} else
+		} else {
 			fprintf(stderr, "Trying [%s]:%s...", nh, np);
+		}
 
 		if ((s = socket(ap->ai_family, ap->ai_socktype,
 		    ap->ai_protocol)) == INVALID_SOCKET) {
@@ -275,8 +276,9 @@ do_connect(SOCKET s, int af)
 		free(cmsgbuf);
 		errno = e;
 		nsend = nsmsg == (SSIZE_T)-1 ? SOCKET_ERROR : (SOCKIOT)nsmsg;
-	} else
+	} else {
 		nsend = send(s, buf, 3, 0);
+	}
 	if (nsend == SOCKET_ERROR) {
 		ws2warn("send");
 		return (1);
