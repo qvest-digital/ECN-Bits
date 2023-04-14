@@ -26,9 +26,11 @@
 #include <Windows.h>
 #endif
 
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "rpl_err.h"
 
 #if defined(_WIN32) || defined(WIN32)
@@ -43,6 +45,10 @@ extern const char *__progname;
 
 #if defined(_WIN32) || defined(WIN32)
 static const char sEAF[] = "Address family not supported by protocol family";
+#endif
+
+#ifdef _MSC_VER
+#pragma warning(disable:4706)
 #endif
 
 static void
