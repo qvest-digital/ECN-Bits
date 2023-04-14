@@ -4,7 +4,7 @@
 #	mirabilos <tg@mirbsd.org>
 # Copyright © 2013
 #	mirabilos <thorsten.glaser@teckids.org>
-# Copyright © 2020, 2021
+# Copyright © 2020, 2021, 2023
 #	mirabilos <t.glaser@tarent.de>
 # Licensor: Deutsche Telekom
 #
@@ -70,11 +70,11 @@ WINVERFLAGS=	-DWINVER=0x0602 -D_WIN32_WINNT=0x0602 -DNTDDI_VERSION=NTDDI_WIN8
 # 2027-01-12 EOL: Windows Server 2016 (NTDDI_WIN10_RS1)
 #WINVERFLAGS=	-DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 -DNTDDI_VERSION=NTDDI_WIN10
 
-CPPFLAGS=	$(CPPFLAGS) -D_REENTRANT $(WINVERFLAGS) -I../inc
+CPPFLAGS=	$(CPPFLAGS) -D_REENTRANT $(WINVERFLAGS) -I..$(BKSL)inc
 !IFNDEF NOPIC
 CPPFLAGS=	$(CPPFLAGS) -DECNBITS_WIN32_DLL
 !ENDIF
-CPPFLAGS=	$(CPPFLAGS) -I../util
+CPPFLAGS=	$(CPPFLAGS) -I..$(BKSL)util
 CFLAGS=		$(CFLAGS) /utf-8
 CFLAGS=		$(CFLAGS) /Wall
 CFLAGS=		$(CFLAGS) /Qspectre /wd5045
@@ -91,7 +91,7 @@ CPPFLAGS=	$(CPPFLAGS) -DDEBUG
 !IFNDEF SRCS
 SRCS=		$(PROG).c
 !ENDIF
-LINKFLAGS=	$(LINKFLAGS) /LIBPATH:../lib
+LINKFLAGS=	$(LINKFLAGS) /LIBPATH:..$(BKSL)lib
 !ENDIF
 
 !IFNDEF OBJS
@@ -112,14 +112,14 @@ CLEANFILES=	$(CLEANFILES) ..$(BKSL)BIN$(BKSL)$(PROG).exe
 !ENDIF
 !IFNDEF DPADD
 !IFNDEF NOPIC
-DPADD=		../lib/ecn-bitw_imp.lib
+DPADD=		..$(BKSL)lib$(BKSL)ecn-bitw_imp.lib
 !ELSE
-DPADD=		../lib/ecn-bitw.lib
+DPADD=		..$(BKSL)lib$(BKSL)ecn-bitw.lib
 !ENDIF
 !ENDIF
 all: $(PROG).exe
 $(PROG).exe: $(OBJS) $(DPADD)
-	if exist ..$(BKSL)BIN$(BKSL)$@ (del ..$(BKSL)BIN$(BKSL)$@)
+	@for %f in ($@ ..$(BKSL)BIN$(BKSL)$@) do @if exist %f (del %f)
 	$(CC) $(CFLAGS) $(LDFLAGS) /Fe$@ $(OBJS) $(LIBS) /link $(LINKFLAGS)
 	copy $@ ..$(BKSL)BIN$(BKSL)$@
 !ENDIF
@@ -147,12 +147,13 @@ DPADD=
 LIBS=		$(LIBS) Ws2_32.lib
 all: $(MKLIB).dll
 $(MKLIB).dll: $(OBJS) $(MKLIB).def $(DPADD)
-	if exist ..$(BKSL)BIN$(BKSL)$@ (del ..$(BKSL)BIN$(BKSL)$@)
+	@for %f in ($(MKLIB)_imp.exp $(MKLIB)_imp.lib $@ ..$(BKSL)BIN$(BKSL)$@) do @if exist %f (del %f)
 	$(CC) $(CFLAGS) $(LDFLAGS) /LD /Fe$@ $(OBJS) $(LIBS) /link /DEF:$(MKLIB).def /IMPLIB:$(MKLIB)_imp.lib $(LINKFLAGS)
 	copy $@ ..$(BKSL)BIN$(BKSL)$@
 !ELSE
 all: $(MKLIB).lib
 $(MKLIB).lib: $(OBJS) $(DPADD)
+	@for %f in ($@ ..$(BKSL)BIN$(BKSL)$@) do @if exist %f (del %f)
 	lib.exe /OUT:$@ $(OBJS)
 !ENDIF
 !ENDIF

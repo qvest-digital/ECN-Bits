@@ -1,6 +1,6 @@
 # -*- mode: make -*-
 #-
-# Copyright © 2020
+# Copyright © 2020, 2023
 #	mirabilos <t.glaser@tarent.de>
 # Licensor: Deutsche Telekom
 #
@@ -23,4 +23,5 @@ PROG=	client
 
 !include ../NMAKE.mak
 
-client.obj: ../util/rpl_err.h ../util/rpl_err.c
+$(OBJS): ..$(BKSL)inc$(BKSL)ecn-bitw.h
+client.obj: ..$(BKSL)util$(BKSL)rpl_err.h ..$(BKSL)util$(BKSL)rpl_err.c

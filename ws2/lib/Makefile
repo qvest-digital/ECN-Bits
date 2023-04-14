@@ -1,6 +1,6 @@
 # -*- mode: make -*-
 #-
-# Copyright © 2020, 2021
+# Copyright © 2020, 2021, 2023
 #	mirabilos <t.glaser@tarent.de>
 # Licensor: Deutsche Telekom
 #
@@ -38,3 +38,5 @@ SRCS=		$(SRCS) winrecv.c
 SRCS=		$(SRCS) winsend.c
 
 !include ../NMAKE.mak
+
+$(OBJS): ..$(BKSL)inc$(BKSL)ecn-bitw.h
