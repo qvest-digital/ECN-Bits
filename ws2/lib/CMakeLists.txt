@@ -72,6 +72,7 @@ add_library(ecn-bitw SHARED
 	recvmsg.c
 	short.c
 	stoaf.c
+	tc.c
 
 	# MIT licenced
 	hll_mono.c

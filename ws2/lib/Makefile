@@ -34,6 +34,7 @@ SRCS=		$(SRCS) recvfrom.c
 SRCS=		$(SRCS) recvmsg.c
 SRCS=		$(SRCS) short.c
 SRCS=		$(SRCS) stoaf.c
+SRCS=		$(SRCS) tc.c
 SRCS=		$(SRCS) winrecv.c
 SRCS=		$(SRCS) winsend.c
 

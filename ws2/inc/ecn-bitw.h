@@ -93,8 +93,27 @@ extern ECNBITS_EXPORTAPI const char *ecnbits_shortnames[4];
 #define ECNBITS_PREP_FATAL(rv) ((rv) >= 1)
 #endif
 
+#if defined(_WIN32) || defined(WIN32)
+/* setting a default outgoing tc is not possible on Winsock */
+#define ECNBITS_TC_FATAL(rv) (rv)
+#elif defined(__linux__) && !defined(__ANDROID__)
+/* ignore failure to set outgoing tc on WSL 1 only (see tc.c) */
+#ifdef ECNBITS_INTERNAL
+#define ECNBITS_WSLCHECK
+#endif
+ECNBITS_EXPORTAPI int ecnbits_tcfatal(int);
+#define ECNBITS_TC_FATAL(rv) ecnbits_tcfatal(rv)
+#elif !defined(__linux__)
+/* ignore v4-mapped setup failure */
+#define ECNBITS_TC_FATAL(rv) ((rv) >= 2)
+#else
+/* require v4-mapped setup */
+#define ECNBITS_TC_FATAL(rv) ((rv) >= 1)
+#endif
+
 /* socket operations */
 ECNBITS_EXPORTAPI int ecnbits_prep(SOCKET fd, int af);
+ECNBITS_EXPORTAPI int ecnbits_tc(SOCKET fd, int af, unsigned char iptos);
 ECNBITS_EXPORTAPI SSIZE_T ecnbits_rdmsg(SOCKET fd, LPWSAMSG msg, int flags,
     unsigned short *ecnresult);
 

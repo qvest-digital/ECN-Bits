@@ -89,8 +89,30 @@ main(int argc, char *argv[])
 	if (WSAStartup(MAKEWORD(2,2), &wsaData))
 		errx(100, "could not initialise Winsock2");
 #endif
-	if (argc != 3)
-		errx(1, "Usage: %s servername port", argv[0]);
+	if (argc == 4) {
+		long mnum;
+		char *mep;
+
+		if (argv[3][0] == '!') {
+			use_sendmsg = 1;
+			++argv[3];
+		}
+
+		if (!strcmp(argv[3], "NO"))
+			out_tc = ECNBITS_NON;
+		else if (!strcmp(argv[3], "ECT0"))
+			out_tc = ECNBITS_ECT0;
+		else if (!strcmp(argv[3], "ECT1"))
+			out_tc = ECNBITS_ECT1;
+		else if (!strcmp(argv[3], "CE"))
+			out_tc = ECNBITS_CE;
+		else if ((mnum = strtol(argv[3], &mep, 0)) >= 0L &&
+		    mnum < 0x100L && mep != argv[3] && !*mep)
+			out_tc = (unsigned char)mnum;
+		else
+			errx(1, "Unknown traffic class: %s", argv[3]);
+	} else if (argc != 3)
+		errx(1, "Usage: %s servername port [tc]", argv[0]);
 
 	if (do_resolve(argv[1], argv[2]))
 		errx(1, "Could not connect to server or received no response");
@@ -162,6 +184,15 @@ do_resolve(const char *host, const char *service)
 			closesocket(s);
 			continue;
 		}
+		if (!use_sendmsg &&
+		    ECNBITS_TC_FATAL(ecnbits_tc(s, ap->ai_family, out_tc))) {
+			i = errno;
+			putc('\n', stderr);
+			errno = i;
+			ws2warn("ecnbits_setup: outgoing traffic class");
+			closesocket(s);
+			continue;
+		}
 
 		if (connect(s, ap->ai_addr, ap->ai_addrlen)) {
 			i = errno;
@@ -207,7 +238,38 @@ do_connect(SOCKET s, int af)
 #endif
 
 	memcpy(buf, "hi!", 3);
-	nsend = send(s, buf, 3, 0);
+	if (use_sendmsg) {
+#if defined(_WIN32) || defined(WIN32)
+		WSAMSG mh = {0};
+		WSABUF io;
+#else
+		struct msghdr mh = {0};
+		struct iovec io;
+#endif
+		void *cmsgbuf;
+		size_t cmsgsz;
+		SSIZE_T nsmsg;
+		int e;
+
+		if (!(cmsgbuf = ecnbits_mkcmsg(NULL, &cmsgsz, af, out_tc))) {
+			warn("ecnbits_mkcmsg");
+			return (1);
+		}
+
+		io.iov_base = buf;
+		io.iov_len = 3;
+
+		mh.msg_iov = &io;
+		mh.msg_iovlen = 1;
+		mh.msg_control = cmsgbuf;
+		mh.msg_controllen = cmsgsz;
+		nsmsg = sendmsg(s, &mh, 0);
+		e = errno;
+		free(cmsgbuf);
+		errno = e;
+		nsend = nsmsg == (SSIZE_T)-1 ? SOCKET_ERROR : (SOCKIOT)nsmsg;
+	} else
+		nsend = send(s, buf, 3, 0);
 	if (nsend == SOCKET_ERROR) {
 		ws2warn("send");
 		return (1);
