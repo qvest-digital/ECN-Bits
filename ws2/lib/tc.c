@@ -123,8 +123,8 @@ ecnbits_tc(SOCKET socketfd, int af, unsigned char iptos)
 	case AF_INET:
 #if defined(_WIN32) || defined(WIN32)
 		/* setsockopt is silently ignored */
-		WSASetLastError(ENOSYS);
-		errno = ENOSYS;
+		WSASetLastError(WSAEOPNOTSUPP);
+		errno = WSAEOPNOTSUPP;
 		return (3);
 #else
 		if (setsockopt(socketfd, IPPROTO_IP, IP_TOS,
