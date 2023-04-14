@@ -152,8 +152,7 @@ revlookup(const struct sockaddr *addr, socklen_t addrlen)
 		if (i == EAI_SYSTEM)
 			warn("getnameinfo");
 		else
-			warnx("%s returned %s", "getnameinfo",
-			    gai_strerror(i));
+			warnx("%s: %s", "getnameinfo", gai_strerror(i));
 #endif
 		memcpy(buf, "(unknown)", sizeof("(unknown)"));
 	} else
@@ -174,15 +173,16 @@ do_resolve(const char *host, const char *service)
 	ap->ai_family = AF_UNSPEC;
 	ap->ai_socktype = SOCK_DGRAM;
 	ap->ai_flags = AI_ADDRCONFIG | AI_PASSIVE; /* no AI_V4MAPPED either */
-	switch ((i = getaddrinfo(host, service, ap, &ai))) {
-#if !(defined(_WIN32) || defined(WIN32))
-	case EAI_SYSTEM:
-		err(1, "getaddrinfo");
+	i = getaddrinfo(host, service, ap, &ai);
+	if (i) {
+#if defined(_WIN32) || defined(WIN32)
+		ws2err(1, "getaddrinfo");
+#else
+		if (i == EAI_SYSTEM)
+			err(1, "getaddrinfo");
+		else
+			errx(1, "%s: %s", "getaddrinfo", gai_strerror(i));
 #endif
-	default:
-		errx(1, "%s returned %s", "getaddrinfo", gai_strerror(i));
-	case 0:
-		break;
 	}
 	free(ap);
 
