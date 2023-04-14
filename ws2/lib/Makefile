@@ -39,4 +39,4 @@ SRCS=		$(SRCS) winsend.c
 
 !include ../NMAKE.mak
 
-$(OBJS): ..$(BKSL)inc$(BKSL)ecn-bitw.h
+$(OBJS): ..$Yinc$Yecn-bitw.h

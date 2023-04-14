@@ -34,9 +34,15 @@ all:
 !IF [set __VSCMD_ARG_NO_LOGO=1] || [set VSCMD_SKIP_SENDTELEMETRY=1]
 !ENDIF
 
-BKSL=^\
+# path slash
+SLASHPRE=/
+Y=$(SLASHPRE:^/=^\)
 
-!IF [..$(BKSL)..$(BKSL)test-git.bat /q]
+# echo doublequote
+QCHARPRE=\"
+Q=$(QCHARPRE:^\=)
+
+!IF [..$Y..$Ytest-git.bat /q]
 !ERROR git repository clone consistency check failed
 !ENDIF
 
@@ -70,11 +76,11 @@ WINVERFLAGS=	-DWINVER=0x0602 -D_WIN32_WINNT=0x0602 -DNTDDI_VERSION=NTDDI_WIN8
 # 2027-01-12 EOL: Windows Server 2016 (NTDDI_WIN10_RS1)
 #WINVERFLAGS=	-DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 -DNTDDI_VERSION=NTDDI_WIN10
 
-CPPFLAGS=	$(CPPFLAGS) -D_REENTRANT $(WINVERFLAGS) -I..$(BKSL)inc
+CPPFLAGS=	$(CPPFLAGS) -D_REENTRANT $(WINVERFLAGS) -I..$Yinc
 !IFNDEF NOPIC
 CPPFLAGS=	$(CPPFLAGS) -DECNBITS_WIN32_DLL
 !ENDIF
-CPPFLAGS=	$(CPPFLAGS) -I..$(BKSL)util
+CPPFLAGS=	$(CPPFLAGS) -I..$Yutil
 CFLAGS=		$(CFLAGS) /utf-8
 CFLAGS=		$(CFLAGS) /Wall
 CFLAGS=		$(CFLAGS) /Qspectre /wd5045
@@ -91,7 +97,7 @@ CPPFLAGS=	$(CPPFLAGS) -DDEBUG
 !IFNDEF SRCS
 SRCS=		$(PROG).c
 !ENDIF
-LINKFLAGS=	$(LINKFLAGS) /LIBPATH:..$(BKSL)lib
+LINKFLAGS=	$(LINKFLAGS) /LIBPATH:..$Ylib
 !ENDIF
 
 !IFNDEF OBJS
@@ -107,21 +113,21 @@ LIBS=		$(LIBS) ecn-bitw.lib Ws2_32.lib
 !IF EXISTS($(PROG).exe)
 CLEANFILES=	$(CLEANFILES) $(PROG).exe
 !ENDIF
-!IF EXISTS(..$(BKSL)BIN$(BKSL)$(PROG).exe)
-CLEANFILES=	$(CLEANFILES) ..$(BKSL)BIN$(BKSL)$(PROG).exe
+!IF EXISTS(..$Ybin$Y$(PROG).exe)
+CLEANFILES=	$(CLEANFILES) ..$Ybin$Y$(PROG).exe
 !ENDIF
 !IFNDEF DPADD
 !IFNDEF NOPIC
-DPADD=		..$(BKSL)lib$(BKSL)ecn-bitw_imp.lib
+DPADD=		..$Ylib$Yecn-bitw_imp.lib
 !ELSE
-DPADD=		..$(BKSL)lib$(BKSL)ecn-bitw.lib
+DPADD=		..$Ylib$Yecn-bitw.lib
 !ENDIF
 !ENDIF
 all: $(PROG).exe
 $(PROG).exe: $(OBJS) $(DPADD)
-	@for %f in ($@ ..$(BKSL)BIN$(BKSL)$@) do @if exist %f (del %f)
+	@for %f in ($@ ..$Ybin$Y$@) do @if exist %f (del %f)
 	$(CC) $(CFLAGS) $(LDFLAGS) /Fe$@ $(OBJS) $(LIBS) /link $(LINKFLAGS)
-	copy $@ ..$(BKSL)BIN$(BKSL)$@
+	copy $@ ..$Ybin$Y$@
 !ENDIF
 
 !IFDEF MKLIB
@@ -137,8 +143,8 @@ CLEANFILES=	$(CLEANFILES) $(MKLIB)_imp.lib
 !IF EXISTS($(MKLIB).dll)
 CLEANFILES=	$(CLEANFILES) $(MKLIB).dll
 !ENDIF
-!IF EXISTS(..$(BKSL)BIN$(BKSL)$(MKLIB).dll)
-CLEANFILES=	$(CLEANFILES) ..$(BKSL)BIN$(BKSL)$(MKLIB).dll
+!IF EXISTS(..$Ybin$Y$(MKLIB).dll)
+CLEANFILES=	$(CLEANFILES) ..$Ybin$Y$(MKLIB).dll
 !ENDIF
 !IFNDEF DPADD
 DPADD=
@@ -147,13 +153,13 @@ DPADD=
 LIBS=		$(LIBS) Ws2_32.lib
 all: $(MKLIB).dll
 $(MKLIB).dll: $(OBJS) $(MKLIB).def $(DPADD)
-	@for %f in ($(MKLIB)_imp.exp $(MKLIB)_imp.lib $@ ..$(BKSL)BIN$(BKSL)$@) do @if exist %f (del %f)
+	@for %f in ($(MKLIB)_imp.exp $(MKLIB)_imp.lib $@ ..$Ybin$Y$@) do @if exist %f (del %f)
 	$(CC) $(CFLAGS) $(LDFLAGS) /LD /Fe$@ $(OBJS) $(LIBS) /link /DEF:$(MKLIB).def /IMPLIB:$(MKLIB)_imp.lib $(LINKFLAGS)
-	copy $@ ..$(BKSL)BIN$(BKSL)$@
+	copy $@ ..$Ybin$Y$@
 !ELSE
 all: $(MKLIB).lib
 $(MKLIB).lib: $(OBJS) $(DPADD)
-	@for %f in ($@ ..$(BKSL)BIN$(BKSL)$@) do @if exist %f (del %f)
+	@for %f in ($@ ..$Ybin$Y$@) do @if exist %f (del %f)
 	lib.exe /OUT:$@ $(OBJS)
 !ENDIF
 !ENDIF

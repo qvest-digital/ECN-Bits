@@ -23,5 +23,5 @@ PROG=	client
 
 !include ../NMAKE.mak
 
-$(OBJS): ..$(BKSL)inc$(BKSL)ecn-bitw.h
-client.obj: ..$(BKSL)util$(BKSL)rpl_err.h ..$(BKSL)util$(BKSL)rpl_err.c
+$(OBJS): ..$Yinc$Yecn-bitw.h
+client.obj: ..$Yutil$Yrpl_err.h ..$Yutil$Yrpl_err.c
