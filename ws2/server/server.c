@@ -237,15 +237,10 @@ do_resolve(const char *host, const char *service)
 
 		if ((s = socket(ap->ai_family, ap->ai_socktype,
 		    ap->ai_protocol)) == INVALID_SOCKET) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("socket");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
-			warn("socket");
-#endif
+			ws2warn("socket");
 			continue;
 		}
 
@@ -253,44 +248,29 @@ do_resolve(const char *host, const char *service)
 		i = 1;
 		if (setsockopt(s, SOL_SOCKET, ECNBITS_REUSEPORT,
 		    (const void *)&i, sizeof(i))) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("setsockopt");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
-			warn("setsockopt");
-#endif
+			ws2warn("setsockopt");
 			closesocket(s);
 			continue;
 		}
 #endif
 
 		if (ECNBITS_PREP_FATAL(ecnbits_prep(s, ap->ai_family))) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("ecnbits_setup: incoming traffic class");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
-			warn("ecnbits_setup: incoming traffic class");
-#endif
+			ws2warn("ecnbits_setup: incoming traffic class");
 			closesocket(s);
 			continue;
 		}
 
 		if (bind(s, ap->ai_addr, ap->ai_addrlen)) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("bind");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
-			warn("bind");
-#endif
+			ws2warn("bind");
 			closesocket(s);
 			continue;
 		}
