@@ -68,7 +68,6 @@ typedef int SOCKIOT;
 typedef int SOCKET;
 #define INVALID_SOCKET	(-1)
 #define closesocket	close
-#define ws2warn(s)	warn("%s", s)	/* could be more efficient, but… */
 typedef SSIZE_T SOCKIOT;
 #define SOCKET_ERROR	((SOCKIOT)-1)
 #endif
@@ -81,30 +80,6 @@ static unsigned char use_sendmsg = 0;
 
 #if defined(_WIN32) || defined(WIN32)
 static WSADATA wsaData;
-#endif
-
-#if defined(_WIN32) || defined(WIN32)
-static void
-ws2warn(const char *msg)
-{
-	int errcode = WSAGetLastError();
-	wchar_t *errstr = NULL;
-
-	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-	    NULL, errcode, 0, (LPWSTR)&errstr, 1, NULL) && *errstr) {
-		wchar_t wc;
-		size_t ofs = wcslen(errstr);
-		while (--ofs > 0 && ((wc = errstr[ofs]) == L'\r' || wc == L'\n'))
-			errstr[ofs] = L'\0';
-
-		warnx("%s: %S", msg, errstr);	/* would be %ls in POSIX but… */
-		LocalFree(errstr);
-	} else {
-		if (errstr)
-			LocalFree(errstr);
-		warnx("%s: Winsock error %d", msg, errcode);
-	}
-}
 #endif
 
 int

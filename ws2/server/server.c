@@ -69,8 +69,6 @@
 typedef int SOCKET;
 #define INVALID_SOCKET	(-1)
 #define closesocket	close
-#define ws2warn(s)	warn("%s", s)	/* could be more efficient, but… */
-#define ws2err(n,s)	err(n, "%s", s)	/* … this is a demo for ECN-Bits */
 #endif
 
 #ifdef __APPLE__
@@ -94,37 +92,6 @@ static WSADATA wsaData;
 static int do_resolve(const char *host, const char *service);
 static void do_packet(int sockfd, unsigned int dscp);
 static const char *revlookup(const struct sockaddr *addr, socklen_t addrlen);
-
-#if defined(_WIN32) || defined(WIN32)
-static void
-ws2warn(const char *msg)
-{
-	int errcode = WSAGetLastError();
-	wchar_t *errstr = NULL;
-
-	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-	    NULL, errcode, 0, (LPWSTR)&errstr, 1, NULL) && *errstr) {
-		wchar_t wc;
-		size_t ofs = wcslen(errstr);
-		while (--ofs > 0 && ((wc = errstr[ofs]) == L'\r' || wc == L'\n'))
-			errstr[ofs] = L'\0';
-
-		warnx("%s: %S", msg, errstr);	/* would be %ls in POSIX but… */
-		LocalFree(errstr);
-	} else {
-		if (errstr)
-			LocalFree(errstr);
-		warnx("%s: Winsock error %d", msg, errcode);
-	}
-}
-
-static void
-ws2err(int errorlevel, const char *msg)
-{
-	ws2warn(msg);
-	exit(errorlevel);
-}
-#endif
 
 int
 main(int argc, char *argv[])
@@ -375,13 +342,8 @@ do_packet(int s, unsigned int dscp)
 	do {
 		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,
 		    (unsigned char)(dscp | (data[len - 1] - '0')));
-		if (sendmsg(s, &mh, 0) == (SSIZE_T)-1) {
-			char errmsgbuf[19];
-
-			memcpy(errmsgbuf, "sendmsg for ", 12);
-			memcpy(errmsgbuf + 12, data + (len - 6), 7);
-			ws2warn(errmsgbuf);
-		}
+		if (sendmsg(s, &mh, 0) == (SSIZE_T)-1)
+			ws2warn("sendmsg for %s", data + (len - 6));
 	} while (++data[len - 1] < '4');
 }
 
