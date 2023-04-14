@@ -214,6 +214,24 @@ do_resolve(const char *host, const char *service)
 	return (rv);
 }
 
+static void
+now2buf(char *buf, size_t len)
+{
+	time_t tt;
+#if defined(_WIN32) || defined(WIN32)
+	struct tm tmptm;
+#endif
+
+	time(&tt);
+#if defined(_WIN32) || defined(WIN32)
+	if (gmtime_s(&tmptm, &tt) ||
+	    strftime(buf, len, "%FT%TZ", &tmptm) <= 0)
+#else
+	if (strftime(buf, len, "%FT%TZ", gmtime(&tt)) <= 0)
+#endif
+		snprintf(buf, len, "@%08llX", (unsigned long long)tt);
+}
+
 static int
 do_connect(SOCKET s, int af)
 {
@@ -223,15 +241,8 @@ do_connect(SOCKET s, int af)
 	struct pollfd pfd;
 	int rv = 1;
 	unsigned short ecn;
-	time_t tt;
 	char tm[21];
 	char tcs[3];
-#if defined(_WIN32) || defined(WIN32)
-	struct tm tmptm;
-#define brokendowntime &tmptm
-#else
-#define brokendowntime gmtime(&tt)
-#endif
 
 	memcpy(buf, "hi!", 3);
 	if (use_sendmsg) {
@@ -293,13 +304,7 @@ do_connect(SOCKET s, int af)
 		ws2warn("recv");
 		return (1);
 	}
-	time(&tt);
-	if ( /* gaaah! */
-#if defined(_WIN32) || defined(WIN32)
-	    gmtime_s(&tmptm, &tt) ||
-#endif
-	    strftime(tm, sizeof(tm), "%FT%TZ", brokendowntime) <= 0)
-		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
+	now2buf(tm, sizeof(tm));
 	buf[nrecv] = '\0';
 	if (nrecv > 2 && buf[nrecv - 1] == '\n') {
 		buf[nrecv - 1] = '\0';

@@ -211,6 +211,16 @@ do_resolve(const char *host, const char *service)
 }
 
 static void
+now2buf(char *buf, size_t len)
+{
+	time_t tt;
+
+	time(&tt);
+	if (strftime(buf, len, "%FT%TZ", gmtime(&tt)) <= 0)
+		snprintf(buf, len, "@%08llX", (unsigned long long)tt);
+}
+
+static void
 do_packet(int s, unsigned int dscp)
 {
 	static char data[512];
@@ -219,7 +229,6 @@ do_packet(int s, unsigned int dscp)
 	struct msghdr mh = {0};
 	struct iovec io;
 	unsigned short ecn;
-	time_t tt;
 	char tm[21];
 	const char *trc;
 	int af;
@@ -242,9 +251,7 @@ do_packet(int s, unsigned int dscp)
 	}
 	data[len] = '\0';
 
-	time(&tt);
-	if (strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt)) <= 0)
-		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
+	now2buf(tm, sizeof(tm));
 
 	switch (mh.msg_flags & (MSG_TRUNC | MSG_CTRUNC)) {
 	case 0:

@@ -164,6 +164,16 @@ do_resolve(const char *host, const char *service)
 	return (rv);
 }
 
+static void
+now2buf(char *buf, size_t len)
+{
+	time_t tt;
+
+	time(&tt);
+	if (strftime(buf, len, "%FT%TZ", gmtime(&tt)) <= 0)
+		snprintf(buf, len, "@%08llX", (unsigned long long)tt);
+}
+
 static int
 do_connect(int s, int af)
 {
@@ -172,7 +182,6 @@ do_connect(int s, int af)
 	struct pollfd pfd;
 	int rv = 1;
 	unsigned short ecn;
-	time_t tt;
 	char tm[21];
 	char tcs[3];
 
@@ -228,9 +237,7 @@ do_connect(int s, int af)
 		warn("recv");
 		return (1);
 	}
-	time(&tt);
-	if (strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt)) <= 0)
-		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
+	now2buf(tm, sizeof(tm));
 	buf[n] = '\0';
 	if (n > 2 && buf[n - 1] == '\n') {
 		buf[n - 1] = '\0';

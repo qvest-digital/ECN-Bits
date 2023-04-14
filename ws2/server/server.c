@@ -246,6 +246,24 @@ do_resolve(const char *host, const char *service)
 }
 
 static void
+now2buf(char *buf, size_t len)
+{
+	time_t tt;
+#if defined(_WIN32) || defined(WIN32)
+	struct tm tmptm;
+#endif
+
+	time(&tt);
+#if defined(_WIN32) || defined(WIN32)
+	if (gmtime_s(&tmptm, &tt) ||
+	    strftime(buf, len, "%FT%TZ", &tmptm) <= 0)
+#else
+	if (strftime(buf, len, "%FT%TZ", gmtime(&tt)) <= 0)
+#endif
+		snprintf(buf, len, "@%08llX", (unsigned long long)tt);
+}
+
+static void
 do_packet(int s, unsigned int dscp)
 {
 	static char data[512];
@@ -259,19 +277,12 @@ do_packet(int s, unsigned int dscp)
 	struct iovec io;
 #endif
 	unsigned short ecn;
-	time_t tt;
 	char tm[21];
 	const char *trc;
 	int af;
 	void *cmsgbuf;
 	size_t cmsgsz;
 	char tcs[3];
-#if defined(_WIN32) || defined(WIN32)
-	struct tm tmptm;
-#define brokendowntime &tmptm
-#else
-#define brokendowntime gmtime(&tt)
-#endif
 
 	io.iov_base = data;
 	io.iov_len = sizeof(data) - 1;
@@ -288,13 +299,7 @@ do_packet(int s, unsigned int dscp)
 	}
 	data[len] = '\0';
 
-	time(&tt);
-	if ( /* gaaah! */
-#if defined(_WIN32) || defined(WIN32)
-	    gmtime_s(&tmptm, &tt) ||
-#endif
-	    strftime(tm, sizeof(tm), "%FT%TZ", brokendowntime) <= 0)
-		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
+	now2buf(tm, sizeof(tm));
 
 	switch (mh.msg_flags & (MSG_TRUNC | MSG_CTRUNC)) {
 	case 0:
