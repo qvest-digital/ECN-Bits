@@ -1,3 +1,6 @@
+• document ws2 lib return value convention (errno vs. WSAGetLastError)
+  for every individual function…
+
 • Android 11 strict mode prüfen, falls möglich
 
 • Warnungen:
