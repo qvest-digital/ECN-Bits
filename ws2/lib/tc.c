@@ -123,8 +123,8 @@ ecnbits_tc(SOCKET socketfd, int af, unsigned char iptos)
 	case AF_INET:
 #if defined(_WIN32) || defined(WIN32)
 		/* setsockopt is silently ignored */
-		WSASetLastError(WSAEOPNOTSUPP);
-		errno = WSAEOPNOTSUPP;
+		WSASetLastError(WSAENOPROTOOPT);
+		errno = WSAENOPROTOOPT;
 		return (3);
 #else
 		if (setsockopt(socketfd, IPPROTO_IP, IP_TOS,
@@ -134,10 +134,12 @@ ecnbits_tc(SOCKET socketfd, int af, unsigned char iptos)
 #endif
 		break;
 	case AF_INET6:
+		/* fails with WSAENOPROTOOPT on Winsock2 */
 		if (setsockopt(socketfd, IPPROTO_IPV6, IPV6_TCLASS,
 		    (const void *)&tos, sizeof(tos))) {
 			return (2);
 		}
+		/* fails with EINVAL on Winsock2 */
 		if (setsockopt(socketfd, IPPROTO_IP, IP_TOS,
 		    (const void *)&tos, sizeof(tos))) {
 			return (1);
