@@ -39,8 +39,6 @@ RPL_ERR_H_dead
 extern void ws2err(int, const char *, ...);
 RPL_ERR_H_dead
 extern void ws2startuperr(int, int, const char *, ...);
-#else
-#define ws2err err
 #endif
 RPL_ERR_H_dead
 extern void err(int, const char *, ...);
@@ -49,8 +47,6 @@ extern void errx(int, const char *, ...);
 
 #if defined(_WIN32) || defined(WIN32)
 extern void ws2warn(const char *, ...);
-#else
-#define ws2warn warn
 #endif
 extern void warn(const char *, ...);
 extern void warnx(const char *, ...);

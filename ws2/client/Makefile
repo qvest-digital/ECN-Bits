@@ -24,4 +24,4 @@ PROG=	client
 !include ../NMAKE.mak
 
 $(OBJS): ..$Yinc$Yecn-bitw.h
-client.obj: ..$Yutil$Yrpl_err.h ..$Yutil$Yrpl_err.c
+client.obj: ..$Yutil$Yrpl_err.h ..$Yutil$Yrpl_err.c ..$Yutil$Yws2err.h

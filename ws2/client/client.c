@@ -30,11 +30,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #endif
-#if defined(_WIN32) || defined(WIN32)
-#include "rpl_err.h"
-#else
-#include <err.h>
-#endif
 #include <errno.h>
 #if !(defined(_WIN32) || defined(WIN32))
 #include <netdb.h>
@@ -50,6 +45,7 @@
 #include <time.h>
 
 #include "ecn-bitw.h"
+#include "ws2err.h"
 
 #if defined(_WIN32) || defined(WIN32)
 #define iov_base	buf

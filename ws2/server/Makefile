@@ -24,4 +24,4 @@ PROG=	server
 !include ../NMAKE.mak
 
 $(OBJS): ..$Yinc$Yecn-bitw.h
-server.obj: ..$Yutil$Yrpl_err.h ..$Yutil$Yrpl_err.c
+server.obj: ..$Yutil$Yrpl_err.h ..$Yutil$Yrpl_err.c ..$Yutil$Yws2err.h
