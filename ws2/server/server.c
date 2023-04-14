@@ -326,7 +326,7 @@ do_packet(int s, unsigned int dscp)
 	}
 	/* pre-allocate one cmsg buffer to reuse */
 	if (!(cmsgbuf = ecnbits_mkcmsg(NULL, &cmsgsz, af, 0))) {
-		ws2warn("ecnbits_mkcmsg");
+		warn("ecnbits_mkcmsg");
 		return;
 	}
 	mh.msg_control = cmsgbuf;
