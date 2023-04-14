@@ -147,24 +147,21 @@ revlookup(const struct sockaddr *addr, socklen_t addrlen)
 	char nh[INET6_ADDRSTRLEN];
 	char np[/* 0‥65535 + NUL */ 6];
 
-	switch ((i = getnameinfo(addr, addrlen,
-	    nh, sizeof(nh), np, sizeof(np),
-	    NI_NUMERICHOST | NI_NUMERICSERV))) {
-#if !(defined(_WIN32) || defined(WIN32))
-	case EAI_SYSTEM:
-		warn("getnameinfo");
-		if (0)
+	i = getnameinfo(addr, addrlen, nh, sizeof(nh), np, sizeof(np),
+	    NI_NUMERICHOST | NI_NUMERICSERV);
+	if (i) {
+#if defined(_WIN32) || defined(WIN32)
+		ws2warn("getnameinfo");
+#else
+		if (i == EAI_SYSTEM)
+			warn("getnameinfo");
+		else
+			warnx("%s returned %s", "getnameinfo",
+			    gai_strerror(i));
 #endif
-			/* FALLTHROUGH */
-	default:
-		  warnx("%s returned %s", "getnameinfo",
-		    gai_strerror(i));
 		memcpy(buf, "(unknown)", sizeof("(unknown)"));
-		break;
-	case 0:
+	} else
 		snprintf(buf, sizeof(buf), "[%s]:%s", nh, np);
-		break;
-	}
 	return (buf);
 }
 

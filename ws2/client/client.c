@@ -151,24 +151,22 @@ do_resolve(const char *host, const char *service)
 	free(ap);
 
 	for (ap = ai; ap != NULL; ap = ap->ai_next) {
-		switch ((i = getnameinfo(ap->ai_addr, ap->ai_addrlen,
+		i = getnameinfo(ap->ai_addr, ap->ai_addrlen,
 		    nh, sizeof(nh), np, sizeof(np),
-		    NI_NUMERICHOST | NI_NUMERICSERV))) {
-#if !(defined(_WIN32) || defined(WIN32))
-		case EAI_SYSTEM:
-			warn("getnameinfo");
-			if (0)
+		    NI_NUMERICHOST | NI_NUMERICSERV);
+		if (i) {
+#if defined(_WIN32) || defined(WIN32)
+			ws2warn("getnameinfo");
+#else
+			if (i == EAI_SYSTEM)
+				warn("getnameinfo");
+			else
+				warnx("%s returned %s", "getnameinfo",
+				    gai_strerror(i));
 #endif
-				/* FALLTHROUGH */
-		default:
-			  warnx("%s returned %s", "getnameinfo",
-			    gai_strerror(i));
 			fprintf(stderr, "Trying (unknown)...");
-			break;
-		case 0:
+		} else
 			fprintf(stderr, "Trying [%s]:%s...", nh, np);
-			break;
-		}
 
 		if ((s = socket(ap->ai_family, ap->ai_socktype,
 		    ap->ai_protocol)) == INVALID_SOCKET) {
