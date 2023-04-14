@@ -100,8 +100,8 @@ main(int argc, char *argv[])
 	unsigned char dscp = 0;
 
 #if defined(_WIN32) || defined(WIN32)
-	if (WSAStartup(MAKEWORD(2,2), &wsaData))
-		errx(100, "could not initialise Winsock2");
+	if ((nfd = WSAStartup(MAKEWORD(2,2), &wsaData)))
+		ws2startuperr(100, nfd, "could not initialise Winsock2");
 #endif
 	if (argc < 2) {
  earg:

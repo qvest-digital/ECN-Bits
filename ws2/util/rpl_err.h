@@ -37,6 +37,8 @@ extern "C" {
 #if defined(_WIN32) || defined(WIN32)
 RPL_ERR_H_dead
 extern void ws2err(int, const char *, ...);
+RPL_ERR_H_dead
+extern void ws2startuperr(int, int, const char *, ...);
 #else
 #define ws2err err
 #endif

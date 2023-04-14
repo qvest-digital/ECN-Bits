@@ -152,6 +152,19 @@ ws2err(int eval, const char *fmt, ...)
 	va_end(ap);
 	exit(eval);
 }
+
+void
+ws2startuperr(int eval, int ws2code, const char *fmt, ...)
+{
+	int code;
+	va_list ap;
+
+	code = errno;
+	va_start(ap, fmt);
+	vrpl_err(2, code, ws2code, fmt, ap);
+	va_end(ap);
+	exit(eval);
+}
 #endif
 
 void

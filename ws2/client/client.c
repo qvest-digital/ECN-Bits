@@ -86,8 +86,10 @@ int
 main(int argc, char *argv[])
 {
 #if defined(_WIN32) || defined(WIN32)
-	if (WSAStartup(MAKEWORD(2,2), &wsaData))
-		errx(100, "could not initialise Winsock2");
+	int ec;
+
+	if ((ec = WSAStartup(MAKEWORD(2,2), &wsaData)))
+		ws2startuperr(100, ec, "could not initialise Winsock2");
 #endif
 	if (argc == 4) {
 		long mnum;
