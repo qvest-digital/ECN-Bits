@@ -155,8 +155,9 @@ excluding native Windows/Winsock2) and Darwin.
 As of version 2.1, the library is thread-safe except when
 ecnbits_rdmsg() must inject a local control message buffer.
 
-The traffic class for outgoing packets cannot be set under
-Windows®, native or WSL 1, at all. This is a system limitation.
+The traffic class for outgoing packets cannot be set under WSL 1
+at all and any attempts to do so are (silently) ignored; this is
+a system limitation.
 
 Android is best served with the top-level c/ (for console applications,
 maybe statically linked with musl libc, or with bionic) or android/ for

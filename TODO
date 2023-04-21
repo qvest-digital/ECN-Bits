@@ -1,4 +1,3 @@
-• ws2 vs WSL1
 • c vs ws2: manpages
 • document ws2 lib return value convention (errno vs. WSAGetLastError)
   for every individual function…

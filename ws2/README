@@ -168,11 +168,12 @@ which is a Linux virtual machine after all.
 
 Using v4-mapped IPv6 addresses works on WSL 1 but not on native Windows.
 
-The traffic class for outgoing packets cannot be set under
-Windows®, native or WSL 1, at all. This is a system limitation.
-For this reason this version (ws2/ aka libecn-bitw) does not
-ship certain functions dealing with outgoing traffic class
-setting; if needed, the c/ (libecn-bits) version contains them.
+The traffic class for outgoing packets cannot be set under WSL 1
+at all and any attempts to do so are (silently) ignored; this is
+a system limitation. The ecnbits_tc function always fails on native
+Winsock2. However, with ecnbits_mkcmsg and ecnws2_sendmsg, 0x00 no ECN,
+0x02 ECT(0) or 0x01 ECT(1) can be set on outgoing packets (any other
+value causes sendmsg to not send the packet returning an error).
 
 Android is best served with the top-level c/ (for console applications,
 maybe statically linked with musl libc, or with bionic) or android/ for
