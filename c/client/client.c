@@ -86,7 +86,8 @@ do_resolve(const char *host, const char *service)
 	ap->ai_family = AF_UNSPEC;
 	ap->ai_socktype = SOCK_DGRAM;
 	ap->ai_flags = AI_ADDRCONFIG; /* note lack of AI_V4MAPPED */
-	switch ((i = getaddrinfo(host, service, ap, &ai))) {
+	i = getaddrinfo(host, service, ap, &ai);
+	switch (i) {
 	case EAI_SYSTEM:
 		err(1, "getaddrinfo");
 	default:
@@ -97,9 +98,10 @@ do_resolve(const char *host, const char *service)
 	free(ap);
 
 	for (ap = ai; ap != NULL; ap = ap->ai_next) {
-		switch ((i = getnameinfo(ap->ai_addr, ap->ai_addrlen,
+		i = getnameinfo(ap->ai_addr, ap->ai_addrlen,
 		    nh, sizeof(nh), np, sizeof(np),
-		    NI_NUMERICHOST | NI_NUMERICSERV))) {
+		    NI_NUMERICHOST | NI_NUMERICSERV);
+		switch (i) {
 		case EAI_SYSTEM:
 			warn("getnameinfo");
 			if (0)

@@ -105,9 +105,9 @@ revlookup(const struct sockaddr *addr, socklen_t addrlen)
 	char nh[INET6_ADDRSTRLEN];
 	char np[/* 0‥65535 + NUL */ 6];
 
-	switch ((i = getnameinfo(addr, addrlen,
-	    nh, sizeof(nh), np, sizeof(np),
-	    NI_NUMERICHOST | NI_NUMERICSERV))) {
+	i = getnameinfo(addr, addrlen, nh, sizeof(nh), np, sizeof(np),
+	    NI_NUMERICHOST | NI_NUMERICSERV);
+	switch (i) {
 	case EAI_SYSTEM:
 		warn("getnameinfo");
 		if (0)
@@ -135,7 +135,8 @@ do_resolve(const char *host, const char *service)
 	ap->ai_family = AF_UNSPEC;
 	ap->ai_socktype = SOCK_DGRAM;
 	ap->ai_flags = AI_ADDRCONFIG | AI_PASSIVE; /* no AI_V4MAPPED either */
-	switch ((i = getaddrinfo(host, service, ap, &ai))) {
+	i = getaddrinfo(host, service, ap, &ai);
+	switch (i) {
 	case EAI_SYSTEM:
 		err(1, "getaddrinfo");
 	default:

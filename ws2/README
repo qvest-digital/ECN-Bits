@@ -9,12 +9,13 @@
 On unixoid systems, this can be compiled the same way as the C/CLI
 for Darwin/Linux/FreeBSD/MidnightBSD, in ../c/ (see there), and in
 fact, that version makes for a better example on those platforms,
-unless Winsock2 support is a requirement.
+unless Winsock2 support is a requirement, because the extra defines
+necessary to support Winsock2 make the code less legible.
 
 WSL 1 (Windows Subsystem for Linux) counts as Linux for sake of porting.
 WSL 2 is actually a Linux virtual machine and, if one can get networking
 to run inside it good enough for the task, thus can be treated as plain
-unmodified Linux.
+unmodified Linux. (WSL 2 networking is usually badly broken.)
 
 On Windows, run VsDevCmd.bat or similar¹ to ensure all environment
 variables are set up correctly for building, then issue the command…
@@ -76,16 +77,29 @@ These applications demonstrate how to use the ECN-Bits library
 and are deliberately simple. See SCReAM for an actual example
 of how to develop L4Sified bandwidth-adaptive applications.
 
-Run the server on one system: server.exe [host] port
-(The arguments are for what IP/port this should bind to.
-Numeric and NSS values are supported.)
+Run the server on one system: bin\server.exe [+dscp] [host] port
 
-Run the client on another (or same) system: client.exe host post
-(The arguments are for what system to connect to.)
+Arguments are:
+• +dscp: “dscp”, either a decimal or (0x-prefixed) hexadecimal number,
+  sets the DSCP bits — all but the lowest two, which are the ECN bits —
+  in the response packet traffic class (optional, default 0x00)
+• host: IP address or hostname (DNS-resolved) to bind to (default any)
+• port: port to bind to (mandatory)
 
-Unlike the standard Unix variant, this client program does not
-have an extra argument for setting the outgoing traffic class octets
-as Windows lacks support for setting them on a connection.
+Run the client on another (or same) system: client.exe host post [tc]
+
+Arguments are:
+• host: IP address or hostname (DNS-resolved) of server to send to
+  (multiple results are attempted in order)
+• port: (server) port to send to
+• tc: traffic class for sent packets, default: ECT0
+  valid: NO, ECT0, ECT1, CE or a decimal, octal (leading 0) or
+  hexadecimal (leading 0x) integer between 0 and 255, inclusive
+  optionally prefixed with an exclamation mark to force using
+  ecnbits_mkcmsg and sendmsg instead of ecnbits_tc and send/write
+  (needed for DSCP bits on MacOSX with v4-mapped addresses, and on
+  Winsock2, where setting anything other than NO, ECT0 or ECT1 will
+  fail and the DSCP bits must be zero)
 
 The client will send a “hello” packet to the server, which
 receives it, displays a line with the timestamp it received
@@ -113,21 +127,44 @@ SERVER│C>bin\server 1234
 SERVER│Listening on [::]:1234... ok
 SERVER│Listening on [0.0.0.0]:1234... ok
 SERVER│
-CLIENT│C>bin\client localhost 1234
+CLIENT│C>bin\client localhost 1234 !0x01
 CLIENT│Trying [::1]:1234... connected
-SERVER│2020-09-20T17:10:32Z notrunc [::1]:51119 no ECN{00} <hi!>
-CLIENT│2020-09-20T17:10:32Z no ECN{00} <[::1]:51119 2020-09-20T17:10:32Z no ECN{00} notrunc -> default>
+SERVER│2023-04-22T11:59:58Z ECT(1){01} notrunc [::1]:52904 <hi!>
+CLIENT│2023-04-22T11:59:58Z no ECN{00} <[::1]:52904 2023-04-22T11:59:58Z ECT(1){01} notrunc -> 0x00+0>
+CLIENT│2023-04-22T11:59:58Z ECT(1){01} <[::1]:52904 2023-04-22T11:59:58Z ECT(1){01} notrunc -> 0x00+1>
+CLIENT│2023-04-22T11:59:58Z ECT(0){02} <[::1]:52904 2023-04-22T11:59:58Z ECT(1){01} notrunc -> 0x00+2>
+SERVER│server: sendmsg for 0x00+3: An invalid argument was supplied.
 CLIENT│Trying [127.0.0.1]:1234... connected
-SERVER│2020-09-20T17:10:33Z notrunc [127.0.0.1]:51120 no ECN{00} <hi!>
-CLIENT│2020-09-20T17:10:33Z no ECN{00} <[127.0.0.1]:51120 2020-09-20T17:10:33Z no ECN{00} notrunc -> default>
+SERVER│2023-04-22T11:59:59Z ECT(1){01} notrunc [127.0.0.1]:52905 <hi!>
+CLIENT│2023-04-22T11:59:59Z no ECN{00} <[127.0.0.1]:52905 2023-04-22T11:59:59Z ECT(1){01} notrunc -> 0x00+0>
+CLIENT│2023-04-22T11:59:59Z ECT(1){01} <[127.0.0.1]:52905 2023-04-22T11:59:59Z ECT(1){01} notrunc -> 0x00+1>
+CLIENT│2023-04-22T11:59:59Z ECT(0){02} <[127.0.0.1]:52905 2023-04-22T11:59:59Z ECT(1){01} notrunc -> 0x00+2>
+SERVER│server: sendmsg for 0x00+3: An invalid argument was supplied.
 
-See ../c/README for an example session on Unix and extra caveats.
+Some Windows-specific notes here:
+
+• the client m̲u̲s̲t̲ be started with a “tc” argument involving an
+  exclamation mark so that it uses sendmsg(2) instead of trying
+  to set a (per-socket) default traffic class, which is not an
+  available option on Winsock2
+• the only valid tc arguments are !0/!1/!2 or their respective
+  mnemonics; other values (including !3 for CE) will cause an
+  error to be returned from sendmsg(2)
+• for the server, the only suitable +dscp argument is 0 for the
+  same reason
+• the server can for (again) the same reason only send three
+  packets back, the attempt to send the fourth causes the error
+  shown
+• to fully verify operation, test against a server running on Unix
+
+See ../c/README for an example session on Unix as well as extra caveats.
 
 ┌─────────────┐
 │ Portability │
 └─────────────┘
 
-See ../c/README for portability considerations on Unix.
+See ../c/README for portability considerations on Unix and WSL 2,
+which is a Linux virtual machine after all.
 
 Using v4-mapped IPv6 addresses works on WSL 1 but not on native Windows.
 
@@ -136,8 +173,6 @@ Windows®, native or WSL 1, at all. This is a system limitation.
 For this reason this version (ws2/ aka libecn-bitw) does not
 ship certain functions dealing with outgoing traffic class
 setting; if needed, the c/ (libecn-bits) version contains them.
-
-WSL 2, being a Linux virtual machine, suffers from neither restriction.
 
 Android is best served with the top-level c/ (for console applications,
 maybe statically linked with musl libc, or with bionic) or android/ for
@@ -154,4 +189,5 @@ not documented with the other functions in the manual pages; comments
 in the source code (lib/hll*.c) should sufficiently do that and they
 are used by the .NET and Unity integration currently, so that serves
 as another example. These are of interest mainly to integrators who
-work on the ECN-Bits project itself.
+work on the ECN-Bits project itself. The API is currently not yet
+declared stable for them either.

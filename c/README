@@ -65,7 +65,9 @@ Arguments are:
   hexadecimal (leading 0x) integer between 0 and 255, inclusive
   optionally prefixed with an exclamation mark to force using
   ecnbits_mkcmsg and sendmsg instead of ecnbits_tc and send/write
-  (needed for DSCP bits on MacOSX with v4-mapped addresses)
+  (needed for DSCP bits on MacOSX with v4-mapped addresses, and on
+  Winsock2, where setting anything other than NO, ECT0 or ECT1 will
+  fail and the DSCP bits must be zero)
 
 The client will send a “hello” packet to the server, which
 receives it, displays a line with the timestamp it received
@@ -155,3 +157,8 @@ ecnbits_rdmsg() must inject a local control message buffer.
 
 The traffic class for outgoing packets cannot be set under
 Windows®, native or WSL 1, at all. This is a system limitation.
+
+Android is best served with the top-level c/ (for console applications,
+maybe statically linked with musl libc, or with bionic) or android/ for
+regular Java™ applications. The ws2/android/ build is mostly for Unity
+targetting Android; its built AAR can be reused elsewhere, though.
