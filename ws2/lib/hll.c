@@ -36,7 +36,7 @@
 
 #include "ecn-bitw.h"
 
-#define FIELD_SIZEOF(t,f) (sizeof(((t*)0)->f))
+#define FIELD_SIZEOF(t,f) (sizeof(((t){0}).f))
 
 /* compile-time assert */
 struct ecnhll_rcv_cta_size {
