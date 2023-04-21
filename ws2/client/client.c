@@ -260,7 +260,7 @@ do_connect(SOCKET s, int af)
 		int e;
 
 		if (!(cmsgbuf = ecnbits_mkcmsg(NULL, &cmsgsz, af, out_tc))) {
-			warn("ecnbits_mkcmsg");
+			ws2warn("ecnbits_mkcmsg");
 			return (1);
 		}
 

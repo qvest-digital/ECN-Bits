@@ -185,6 +185,12 @@ is set to indicate the error.
 On Winsock2,
 .Fn WSAGetLastError
 must be used to retrieve the error code.
+.Fn ecnbits_mkcmsg
+copies
+.Va errno
+from a failing
+.Xr calloc 3
+there.
 .Sh ERRORS
 .Fn ecnbits_stoaf
 returns any errors returned by

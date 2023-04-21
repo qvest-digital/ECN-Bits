@@ -155,6 +155,7 @@ struct ecnhll_rcv {
 };
 
 /* extra functions for better support for high-level languages */
+/* note error codes via WSAGetLastError and GetLastError (Win32) and errno */
 ECNBITS_EXPORTAPI int ecnhll_prep(SOCKET fd, int af);
 ECNBITS_EXPORTAPI int ecnhll_recv(SOCKET fd, void *buf, struct ecnhll_rcv *p);
 /* support code for Mono */

@@ -2,7 +2,7 @@
  * Copyright (c) .NET Foundation and Contributors
  * Copyright 2016 Microsoft
  * Copyright 2011 Xamarin Inc
- * Copyright © 2021
+ * Copyright © 2021, 2023
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom LLCTO
  *
@@ -50,6 +50,7 @@ ecnhll_mono_test(void)
 {
 #if defined(_WIN32) || defined(WIN32)
 	WSASetLastError(WSAEAFNOSUPPORT);
+	SetLastError(WSAEAFNOSUPPORT);
 #endif
 	errno = WSAEAFNOSUPPORT;
 }
@@ -208,6 +209,8 @@ ecnhll_mono_map(int e)
 		return (10043);
 	case EPROTOTYPE:
 		return (10041);
+	case ERANGE:
+		return (34);
 #ifdef ERESTART
 	case ERESTART:
 		// best match I could find

@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2021
+ * Copyright © 2021, 2023
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -60,14 +60,25 @@ struct ecnhll_rcv_cta_size {
  *
  * af: address family: 4=IPv4, 6=IPv6 (or 0 if unknown, causes an error)
  *
- * Returns errors via WSAGetLastError and errno if the return value
- * is >= 2, 1 on Linux if v4-mapped IPv6 addresses must be supported.
+ * Returns errors via WSAGetLastError, GetLastError and errno if the return
+ * value is >= 2 (1 on Linux if v4-mapped IPv6 addresses must be supported).
  */
 ECNBITS_EXPORTAPI int
 ecnhll_prep(SOCKET socketfd, int af)
 {
-	return (ecnbits_prep(socketfd, af == 6 ? AF_INET6 :
-	    af == 4 ? AF_INET : 0));
+	int res;
+
+	errno = 0;
+	res = ecnbits_prep(socketfd, af == 6 ? AF_INET6 :
+	    af == 4 ? AF_INET : 0);
+#if defined(_WIN32) || defined(WIN32)
+	{
+		int eno = errno;
+		WSASetLastError(eno);
+		SetLastError(eno);
+	}
+#endif
+	return (res);
 }
 #else
 # error AF_INET or AF_INET6 conflict with the error af value
@@ -77,7 +88,7 @@ ecnhll_prep(SOCKET socketfd, int af)
  * Wraps ecnbits_recvfrom() for .net
  *
  * Returns -1 on error, 4 if src_addr is AF_INET, 6 for AF_INET6,
- * and 0 otherwise setting errno suitably.
+ * and 0 otherwise, setting WSAGetLastError, GetLastError and errno.
  */
 ECNBITS_EXPORTAPI int
 ecnhll_recv(SOCKET socketfd, void *buf, struct ecnhll_rcv *p)
@@ -87,14 +98,18 @@ ecnhll_recv(SOCKET socketfd, void *buf, struct ecnhll_rcv *p)
 	socklen_t slen = sizeof(ss);
 	SSIZE_T len;
 	unsigned short ecn;
+	int res;
 
 	if (p->flags & 1)
 		flags |= MSG_OOB;
 	if (p->flags & 2)
 		flags |= MSG_PEEK;
+	errno = 0;
 	if ((len = ecnbits_recvfrom(socketfd, buf, p->nbytes, flags,
-	    (struct sockaddr *)&ss, &slen, &ecn)) == -1)
-		return (-1);
+	    (struct sockaddr *)&ss, &slen, &ecn)) == -1) {
+		res = -1;
+		goto out;
+	}
 	p->nbytes = (unsigned int)len;
 	if (ECNBITS_VALID(ecn)) {
 		p->tosbyte = ECNBITS_TCOCT(ecn);
@@ -108,20 +123,29 @@ ecnhll_recv(SOCKET socketfd, void *buf, struct ecnhll_rcv *p)
 		p->ipscope = ntohl(sin6->sin6_scope_id);
 		p->port = ntohs(sin6->sin6_port);
 		memcpy(p->addr, sin6->sin6_addr.s6_addr, 16);
-		return (6);
+		res = 6;
+		break;
 	    }
 	case AF_INET: {
 		struct sockaddr_in *sin = (void *)&ss;
 
 		p->ipscope = sin->sin_addr.s_addr;
 		p->port = ntohs(sin->sin_port);
-		return (4);
+		res = 4;
+		break;
 	    }
 	default:
-#if defined(_WIN32) || defined(WIN32)
-		WSASetLastError(WSAEAFNOSUPPORT);
-#endif
 		errno = WSAEAFNOSUPPORT;
-		return (0);
+		res = 0;
+		break;
 	}
+ out:
+#if defined(_WIN32) || defined(WIN32)
+	{
+		int eno = errno;
+		WSASetLastError(eno);
+		SetLastError(eno);
+	}
+#endif
+	return (res);
 }

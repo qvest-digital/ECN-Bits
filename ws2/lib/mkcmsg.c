@@ -95,8 +95,15 @@ ecnbits_mkcmsg(void *buf, size_t *lenp, int af, unsigned char tc)
 			errno = ERANGE;
 			return (NULL);
 		}
-	} else if (!(buf = calloc(1, mh.msg_controllen)))
+	} else if (!(buf = calloc(1, mh.msg_controllen))) {
+#if defined(_WIN32) || defined(WIN32)
+		int eno = errno;
+
+		WSASetLastError(eno);
+		errno = eno;
+#endif
 		return (NULL);
+	}
 
 	mh.msg_control = buf;
 	*lenp = mh.msg_controllen;
