@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020, 2021
+ * Copyright © 2020, 2021, 2023
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -32,11 +32,6 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #endif
-#if defined(_WIN32) || defined(WIN32)
-#include "rpl_err.h"
-#else
-#include <err.h>
-#endif
 #include <errno.h>
 #if !(defined(_WIN32) || defined(WIN32))
 #include <netdb.h>
@@ -52,6 +47,7 @@
 #endif
 
 #include "ecn-bitw.h"
+#include "ws2err.h"
 
 #if defined(_WIN32) || defined(WIN32)
 #define iov_base	buf
@@ -69,8 +65,6 @@
 typedef int SOCKET;
 #define INVALID_SOCKET	(-1)
 #define closesocket	close
-#define ws2warn		warn
-#define ws2err		err
 #endif
 
 #ifdef __APPLE__
@@ -95,37 +89,6 @@ static int do_resolve(const char *host, const char *service);
 static void do_packet(int sockfd, unsigned int dscp);
 static const char *revlookup(const struct sockaddr *addr, socklen_t addrlen);
 
-#if defined(_WIN32) || defined(WIN32)
-static void
-ws2warn(const char *msg)
-{
-	int errcode = WSAGetLastError();
-	wchar_t *errstr = NULL;
-
-	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-	    NULL, errcode, 0, (LPWSTR)&errstr, 1, NULL) && *errstr) {
-		wchar_t wc;
-		size_t ofs = wcslen(errstr);
-		while (--ofs > 0 && ((wc = errstr[ofs]) == L'\r' || wc == L'\n'))
-			errstr[ofs] = L'\0';
-
-		warnx("%s: %S", msg, errstr);	/* would be %ls in POSIX but… */
-		LocalFree(errstr);
-	} else {
-		if (errstr)
-			LocalFree(errstr);
-		warnx("%s: Winsock error %d", msg, errcode);
-	}
-}
-
-static void
-ws2err(int errorlevel, const char *msg)
-{
-	ws2warn(msg);
-	exit(errorlevel);
-}
-#endif
-
 int
 main(int argc, char *argv[])
 {
@@ -133,8 +96,8 @@ main(int argc, char *argv[])
 	unsigned char dscp = 0;
 
 #if defined(_WIN32) || defined(WIN32)
-	if (WSAStartup(MAKEWORD(2,2), &wsaData))
-		errx(100, "could not initialise Winsock2");
+	if ((nfd = WSAStartup(MAKEWORD(2,2), &wsaData)))
+		ws2startuperr(100, nfd, "could not initialise Winsock2");
 #endif
 	if (argc < 2) {
  earg:
@@ -180,23 +143,20 @@ revlookup(const struct sockaddr *addr, socklen_t addrlen)
 	char nh[INET6_ADDRSTRLEN];
 	char np[/* 0‥65535 + NUL */ 6];
 
-	switch ((i = getnameinfo(addr, addrlen,
-	    nh, sizeof(nh), np, sizeof(np),
-	    NI_NUMERICHOST | NI_NUMERICSERV))) {
-#if !(defined(_WIN32) || defined(WIN32))
-	case EAI_SYSTEM:
-		warn("getnameinfo");
-		if (0)
+	i = getnameinfo(addr, addrlen, nh, sizeof(nh), np, sizeof(np),
+	    NI_NUMERICHOST | NI_NUMERICSERV);
+	if (i) {
+#if defined(_WIN32) || defined(WIN32)
+		ws2warn("getnameinfo");
+#else
+		if (i == EAI_SYSTEM)
+			warn("getnameinfo");
+		else
+			warnx("%s: %s", "getnameinfo", gai_strerror(i));
 #endif
-			/* FALLTHROUGH */
-	default:
-		  warnx("%s returned %s", "getnameinfo",
-		    gai_strerror(i));
 		memcpy(buf, "(unknown)", sizeof("(unknown)"));
-		break;
-	case 0:
+	} else {
 		snprintf(buf, sizeof(buf), "[%s]:%s", nh, np);
-		break;
 	}
 	return (buf);
 }
@@ -214,15 +174,16 @@ do_resolve(const char *host, const char *service)
 	ap->ai_family = AF_UNSPEC;
 	ap->ai_socktype = SOCK_DGRAM;
 	ap->ai_flags = AI_ADDRCONFIG | AI_PASSIVE; /* no AI_V4MAPPED either */
-	switch ((i = getaddrinfo(host, service, ap, &ai))) {
-#if !(defined(_WIN32) || defined(WIN32))
-	case EAI_SYSTEM:
-		err(1, "getaddrinfo");
+	i = getaddrinfo(host, service, ap, &ai);
+	if (i) {
+#if defined(_WIN32) || defined(WIN32)
+		ws2err(1, "getaddrinfo");
+#else
+		if (i == EAI_SYSTEM)
+			err(1, "getaddrinfo");
+		else
+			errx(1, "%s: %s", "getaddrinfo", gai_strerror(i));
 #endif
-	default:
-		errx(1, "%s returned %s", "getaddrinfo", gai_strerror(i));
-	case 0:
-		break;
 	}
 	free(ap);
 
@@ -237,15 +198,10 @@ do_resolve(const char *host, const char *service)
 
 		if ((s = socket(ap->ai_family, ap->ai_socktype,
 		    ap->ai_protocol)) == INVALID_SOCKET) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("socket");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
-			warn("socket");
-#endif
+			ws2warn("socket");
 			continue;
 		}
 
@@ -253,44 +209,35 @@ do_resolve(const char *host, const char *service)
 		i = 1;
 		if (setsockopt(s, SOL_SOCKET, ECNBITS_REUSEPORT,
 		    (const void *)&i, sizeof(i))) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("setsockopt");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
-			warn("setsockopt");
-#endif
+			ws2warn("setsockopt");
 			closesocket(s);
 			continue;
 		}
 #endif
 
 		if (ECNBITS_PREP_FATAL(ecnbits_prep(s, ap->ai_family))) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("ecnbits_setup: incoming traffic class");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
-			warn("ecnbits_setup: incoming traffic class");
-#endif
+			ws2warn("ecnbits_setup: incoming traffic class");
 			closesocket(s);
 			continue;
 		}
+		/*
+		 * ecnbits_tc not needed, as this server uses sendmsg(2) with
+		 * explicit tc setting exclusively, but it would be called
+		 * here if we used it (note that porting to Winsock2 requires
+		 * use of sendmsg with explicit ECN bit setting anyway)
+		 */
 
 		if (bind(s, ap->ai_addr, ap->ai_addrlen)) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("bind");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
-			warn("bind");
-#endif
+			ws2warn("bind");
 			closesocket(s);
 			continue;
 		}
@@ -303,6 +250,24 @@ do_resolve(const char *host, const char *service)
 
 	freeaddrinfo(ai);
 	return (n);
+}
+
+static void
+now2buf(char *buf, size_t len)
+{
+	time_t tt;
+#if defined(_WIN32) || defined(WIN32)
+	struct tm tmptm;
+#endif
+
+	time(&tt);
+#if defined(_WIN32) || defined(WIN32)
+	if (gmtime_s(&tmptm, &tt) ||
+	    strftime(buf, len, "%FT%TZ", &tmptm) <= 0)
+#else
+	if (strftime(buf, len, "%FT%TZ", gmtime(&tt)) <= 0)
+#endif
+		snprintf(buf, len, "@%08llX", (unsigned long long)tt);
 }
 
 static void
@@ -319,19 +284,12 @@ do_packet(int s, unsigned int dscp)
 	struct iovec io;
 #endif
 	unsigned short ecn;
-	time_t tt;
 	char tm[21];
 	const char *trc;
 	int af;
 	void *cmsgbuf;
 	size_t cmsgsz;
 	char tcs[3];
-#if defined(_WIN32) || defined(WIN32)
-	struct tm tmptm;
-#define brokendowntime &tmptm
-#else
-#define brokendowntime gmtime(&tt)
-#endif
 
 	io.iov_base = data;
 	io.iov_len = sizeof(data) - 1;
@@ -348,13 +306,7 @@ do_packet(int s, unsigned int dscp)
 	}
 	data[len] = '\0';
 
-	time(&tt);
-	if ( /* gaaah! */
-#if defined(_WIN32) || defined(WIN32)
-	    gmtime_s(&tmptm, &tt) ||
-#endif
-	    strftime(tm, sizeof(tm), "%FT%TZ", brokendowntime) <= 0)
-		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
+	now2buf(tm, sizeof(tm));
 
 	switch (mh.msg_flags & (MSG_TRUNC | MSG_CTRUNC)) {
 	case 0:
@@ -396,7 +348,7 @@ do_packet(int s, unsigned int dscp)
 		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,
 		    (unsigned char)(dscp | (data[len - 1] - '0')));
 		if (sendmsg(s, &mh, 0) == (SSIZE_T)-1)
-			ws2warn("sendmsg");
+			ws2warn("sendmsg for %s", data + (len - 6));
 	} while (++data[len - 1] < '4');
 }
 

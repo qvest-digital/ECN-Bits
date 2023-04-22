@@ -26,4 +26,6 @@ PROG=	client
 NOMAN=	Yes
 BINDIR:=# do not install
 
+client.o: ../util/ws2err.h
+
 include ${TOP}/BOTTOM.mk

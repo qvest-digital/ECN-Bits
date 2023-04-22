@@ -70,8 +70,8 @@ extern const char *ecnbits_shortnames[4];
 #endif
 
 #if defined(_WIN32) || defined(WIN32)
-/* ignore failure to set outgoing tc */
-#define ECNBITS_TC_FATAL(rv) ((rv), 0)
+/* setting a default outgoing tc is not possible on Winsock */
+#define ECNBITS_TC_FATAL(rv) (rv)
 #elif defined(__linux__) && !defined(__ANDROID__)
 /* ignore failure to set outgoing tc on WSL 1 only (see tc.c) */
 #ifdef ECNBITS_INTERNAL

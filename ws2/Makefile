@@ -28,9 +28,9 @@ all:
 !IF [set __VSCMD_ARG_NO_LOGO=1] || [set VSCMD_SKIP_SENDTELEMETRY=1]
 !ENDIF
 
-BKSL=^\
+Y=^\
 
-!IF [..$(BKSL)test-git.bat /q]
+!IF [..$Ytest-git.bat /q]
 !ERROR git repository clone consistency check failed
 !ENDIF
 

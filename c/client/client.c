@@ -86,27 +86,28 @@ do_resolve(const char *host, const char *service)
 	ap->ai_family = AF_UNSPEC;
 	ap->ai_socktype = SOCK_DGRAM;
 	ap->ai_flags = AI_ADDRCONFIG; /* note lack of AI_V4MAPPED */
-	switch ((i = getaddrinfo(host, service, ap, &ai))) {
+	i = getaddrinfo(host, service, ap, &ai);
+	switch (i) {
 	case EAI_SYSTEM:
 		err(1, "getaddrinfo");
 	default:
-		errx(1, "%s returned %s", "getaddrinfo", gai_strerror(i));
+		errx(1, "%s: %s", "getaddrinfo", gai_strerror(i));
 	case 0:
 		break;
 	}
 	free(ap);
 
 	for (ap = ai; ap != NULL; ap = ap->ai_next) {
-		switch ((i = getnameinfo(ap->ai_addr, ap->ai_addrlen,
+		i = getnameinfo(ap->ai_addr, ap->ai_addrlen,
 		    nh, sizeof(nh), np, sizeof(np),
-		    NI_NUMERICHOST | NI_NUMERICSERV))) {
+		    NI_NUMERICHOST | NI_NUMERICSERV);
+		switch (i) {
 		case EAI_SYSTEM:
 			warn("getnameinfo");
 			if (0)
 				/* FALLTHROUGH */
 		default:
-			  warnx("%s returned %s", "getnameinfo",
-			    gai_strerror(i));
+			  warnx("%s: %s", "getnameinfo", gai_strerror(i));
 			fprintf(stderr, "Trying (unknown)...");
 			break;
 		case 0:
@@ -164,15 +165,24 @@ do_resolve(const char *host, const char *service)
 	return (rv);
 }
 
+static void
+now2buf(char *buf, size_t len)
+{
+	time_t tt;
+
+	time(&tt);
+	if (strftime(buf, len, "%FT%TZ", gmtime(&tt)) <= 0)
+		snprintf(buf, len, "@%08llX", (unsigned long long)tt);
+}
+
 static int
 do_connect(int s, int af)
 {
 	char buf[512];
-	ssize_t n;
+	ssize_t nsend, nrecv;
 	struct pollfd pfd;
 	int rv = 1;
 	unsigned short ecn;
-	time_t tt;
 	char tm[21];
 	char tcs[3];
 
@@ -196,18 +206,19 @@ do_connect(int s, int af)
 		mh.msg_iovlen = 1;
 		mh.msg_control = cmsgbuf;
 		mh.msg_controllen = cmsgsz;
-		n = sendmsg(s, &mh, 0);
+		nsend = sendmsg(s, &mh, 0);
 		e = errno;
 		free(cmsgbuf);
 		errno = e;
-	} else
-		n = write(s, buf, 3);
-	if (n == (ssize_t)-1) {
+	} else {
+		nsend = write(s, buf, 3);
+	}
+	if (nsend == (ssize_t)-1) {
 		warn("send");
 		return (1);
 	}
-	if (n != 3)
-		warnx("wrote %zu bytes but got %zd", (size_t)3, n);
+	if (nsend != 3)
+		warnx("wrote %zu bytes but got %zd", (size_t)3, nsend);
 
  loop:
 	pfd.fd = s;
@@ -224,18 +235,17 @@ do_connect(int s, int af)
 		return (1);
 	}
 
-	if ((n = ecnbits_read(s, buf, sizeof(buf) - 1, &ecn)) == (ssize_t)-1) {
+	if ((nrecv = ecnbits_read(s, buf, sizeof(buf) - 1,
+	    &ecn)) == (ssize_t)-1) {
 		warn("recv");
 		return (1);
 	}
-	time(&tt);
-	if (strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt)) <= 0)
-		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
-	buf[n] = '\0';
-	if (n > 2 && buf[n - 1] == '\n') {
-		buf[n - 1] = '\0';
-		if (buf[n - 2] == '\r')
-			buf[n - 2] = '\0';
+	now2buf(tm, sizeof(tm));
+	buf[nrecv] = '\0';
+	if (nrecv > 2 && buf[nrecv - 1] == '\n') {
+		buf[nrecv - 1] = '\0';
+		if (buf[nrecv - 2] == '\r')
+			buf[nrecv - 2] = '\0';
 	}
 	if (ECNBITS_VALID(ecn))
 		snprintf(tcs, sizeof(tcs), "%02X", ECNBITS_TCOCT(ecn));

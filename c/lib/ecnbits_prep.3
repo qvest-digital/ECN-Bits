@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: March 23 2020 $
+.Dd $Mdocdate: April 21 2023 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -160,7 +160,7 @@ or
 .Li 2 Pq Li ECNBITS_ECT0 .
 Note that ISPs can change the traffic class of packets they transmit.
 .Pp
-Note that the
+The
 .Ar iptos
 value is only used to set the default outgoing traffic class.
 It can still be overridden by using
@@ -169,13 +169,13 @@ with a suitable
 .Xr cmsg 3
 control message such as one created by
 .Xr ecnbits_mkcmsg 3 ;
-this technique is demonstrated by the ECN-Bits c/server example.
-In fact, as shown in the c/client example, calling
+this technique is demonstrated by the ECN-Bits server example.
+In fact, as shown in the client example, calling
 .Fn ecnbits_tc
 is not needed if the technique is used.
 See
 .Sx CAVEATS
-below re. Darwin/Mac\ OSX.
+below regarding Darwin/Mac\ OSX or Winsock2.
 .Sh RETURN VALUES
 The
 .Fn ecnbits_prep
@@ -206,14 +206,18 @@ if ((fd = socket(AF_INET6, SOCK_DGRAM, 0)) == \-1)
 /* do other setsockopt, if needed */
 if (ECNBITS_PREP_FATAL(ecnbits_prep(fd, AF_INET6)))
 	err(1, "ecnbits_setup: incoming traffic class");
+#ifdef DONTUSE_MKCMSG
 if (ECNBITS_TC_FATAL(ecnbits_tc(fd, AF_INET6, ECNBITS_ECT0)))
 	err(1, "ecnbits_setup: outgoing traffic class");
+#endif
 /* connect, bind, etc. */
 .Ed
 .Pp
 Note
 .Fn ECNBITS_TC_FATAL
-silently ignores Windows and WSL\ 1 failures.
+silently ignores WSL\ 1 failures, but
+.Fn ecnbits_tc
+always fails on Winsock2 (i.e.\& native Windows\(rg).
 .Sh ERRORS
 Besides the errors returned by the system calls used internally (currently, only
 .Xr setsockopt 2 ,
@@ -254,7 +258,7 @@ or GNU/Linux
 manual pages for legacy IPv4.
 .Pp
 The socket options for receiving the IP traffic class are also supported
-on Windows\(rg environments, although setting it on outgoing packets isn't.
+on Windows\(rg environments, although setting the outgoing default isn't.
 .Sh AUTHORS
 .An mirabilos Aq t.glaser@tarent.de
 for Deutsche Telekom.
@@ -266,6 +270,15 @@ WSL\ 2, Android), if even that.
 It also works on Darwin (Mac OSX), except
 .Fn ecnbits_tc
 cannot set the DSCP bits, only the ECN bits, on v4-mapped sockets.
+.Pp
+Consider not using
+.Fn ecnbits_tc
+but setting the outgoing ECN bits on each individual packet using
+.Fn ecnbits_mkcmsg
+and
+.Xr sendmsg 2
+.Pq even if they are the same
+due to Winsock2 only supporting the latter.
 .Pp
 .Er EAFNOSUPPORT
 is used in its original

@@ -2,7 +2,7 @@
 .\"-
 .\" Copyright © 2008, 2009, 2010, 2016, 2018, 2020
 .\"	mirabilos <m@mirbsd.org>
-.\" Copyright © 2020
+.\" Copyright © 2020, 2023
 .\"	mirabilos <t.glaser@tarent.de>
 .\" Licensor: Deutsche Telekom
 .\"
@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: September 25 2020 $
+.Dd $Mdocdate: April 21 2023 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -201,6 +201,17 @@ Within one program, the buffer size depends only on the address family.
 .Sh AUTHORS
 .An mirabilos Aq t.glaser@tarent.de
 for Deutsche Telekom.
+.Sh CAVEATS
+Be prepared to pass only
+.Li 0x00U Pq Dv ECNBITS_NON ,
+.Li 0x02U Pq Dv ECNBITS_ECT0
+or
+.Li 0x01U Pq Dv ECNBITS_ECT1
+to
+.Fn ecnbits_mkcmsg
+or have the call to
+.Xr sendmsg 2
+fail when keeping portability to Winsock2 in mind.
 .Sh LICENCE
 The MirOS Licence
 .Pq short name : Li MirBSD

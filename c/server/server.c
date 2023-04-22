@@ -105,16 +105,15 @@ revlookup(const struct sockaddr *addr, socklen_t addrlen)
 	char nh[INET6_ADDRSTRLEN];
 	char np[/* 0‥65535 + NUL */ 6];
 
-	switch ((i = getnameinfo(addr, addrlen,
-	    nh, sizeof(nh), np, sizeof(np),
-	    NI_NUMERICHOST | NI_NUMERICSERV))) {
+	i = getnameinfo(addr, addrlen, nh, sizeof(nh), np, sizeof(np),
+	    NI_NUMERICHOST | NI_NUMERICSERV);
+	switch (i) {
 	case EAI_SYSTEM:
 		warn("getnameinfo");
 		if (0)
 			/* FALLTHROUGH */
 	default:
-		  warnx("%s returned %s", "getnameinfo",
-		    gai_strerror(i));
+		  warnx("%s: %s", "getnameinfo", gai_strerror(i));
 		memcpy(buf, "(unknown)", sizeof("(unknown)"));
 		break;
 	case 0:
@@ -136,11 +135,12 @@ do_resolve(const char *host, const char *service)
 	ap->ai_family = AF_UNSPEC;
 	ap->ai_socktype = SOCK_DGRAM;
 	ap->ai_flags = AI_ADDRCONFIG | AI_PASSIVE; /* no AI_V4MAPPED either */
-	switch ((i = getaddrinfo(host, service, ap, &ai))) {
+	i = getaddrinfo(host, service, ap, &ai);
+	switch (i) {
 	case EAI_SYSTEM:
 		err(1, "getaddrinfo");
 	default:
-		errx(1, "%s returned %s", "getaddrinfo", gai_strerror(i));
+		errx(1, "%s: %s", "getaddrinfo", gai_strerror(i));
 	case 0:
 		break;
 	}
@@ -188,7 +188,8 @@ do_resolve(const char *host, const char *service)
 		/*
 		 * ecnbits_tc not needed, as this server uses sendmsg(2) with
 		 * explicit tc setting exclusively, but it would be called
-		 * here if we used it
+		 * here if we used it (note that porting to Winsock2 requires
+		 * use of sendmsg with explicit ECN bit setting anyway)
 		 */
 
 		if (bind(s, ap->ai_addr, ap->ai_addrlen)) {
@@ -211,6 +212,16 @@ do_resolve(const char *host, const char *service)
 }
 
 static void
+now2buf(char *buf, size_t len)
+{
+	time_t tt;
+
+	time(&tt);
+	if (strftime(buf, len, "%FT%TZ", gmtime(&tt)) <= 0)
+		snprintf(buf, len, "@%08llX", (unsigned long long)tt);
+}
+
+static void
 do_packet(int s, unsigned int dscp)
 {
 	static char data[512];
@@ -219,7 +230,6 @@ do_packet(int s, unsigned int dscp)
 	struct msghdr mh = {0};
 	struct iovec io;
 	unsigned short ecn;
-	time_t tt;
 	char tm[21];
 	const char *trc;
 	int af;
@@ -242,9 +252,7 @@ do_packet(int s, unsigned int dscp)
 	}
 	data[len] = '\0';
 
-	time(&tt);
-	if (strftime(tm, sizeof(tm), "%FT%TZ", gmtime(&tt)) <= 0)
-		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
+	now2buf(tm, sizeof(tm));
 
 	switch (mh.msg_flags & (MSG_TRUNC | MSG_CTRUNC)) {
 	case 0:
@@ -284,8 +292,8 @@ do_packet(int s, unsigned int dscp)
 	io.iov_len = len;
 	do {
 		ecnbits_mkcmsg(cmsgbuf, &cmsgsz, af,
-		    dscp | (data[len - 1] - '0'));
+		    (unsigned char)(dscp | (data[len - 1] - '0')));
 		if (sendmsg(s, &mh, 0) == (ssize_t)-1)
-			warn("sendmsg");
+			warn("sendmsg for %s", data + (len - 6));
 	} while (++data[len - 1] < '4');
 }

@@ -1,3 +1,7 @@
+• the simple counting of how many packets got CE vs. how many
+  were there, in total, is possibly much too naïve, at least
+  the sizes are needed if not timestamping with in-flight calc
+
 • Android 11 strict mode prüfen, falls möglich
 
 • Warnungen:

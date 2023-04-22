@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020
+ * Copyright © 2020, 2023
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -23,15 +23,36 @@
 #define RPL_ERR_H
 
 #ifdef _MSC_VER
-__declspec(noreturn)
+#define RPL_ERR_H_dead	__declspec(noreturn)
+#elif defined(__GNUC__)
+#define RPL_ERR_H_dead	__attribute__((__noreturn__))
+#else
+#define RPL_ERR_H_dead	/* nothing? */
 #endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if defined(_WIN32) || defined(WIN32)
+RPL_ERR_H_dead
+extern void ws2err(int, const char *, ...);
+RPL_ERR_H_dead
+extern void ws2startuperr(int, int, const char *, ...);
+#endif
+RPL_ERR_H_dead
 extern void err(int, const char *, ...);
-#ifdef _MSC_VER
-__declspec(noreturn)
-#endif
+RPL_ERR_H_dead
 extern void errx(int, const char *, ...);
 
+#if defined(_WIN32) || defined(WIN32)
+extern void ws2warn(const char *, ...);
+#endif
 extern void warn(const char *, ...);
 extern void warnx(const char *, ...);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

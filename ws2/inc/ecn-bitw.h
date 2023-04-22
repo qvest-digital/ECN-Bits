@@ -93,15 +93,34 @@ extern ECNBITS_EXPORTAPI const char *ecnbits_shortnames[4];
 #define ECNBITS_PREP_FATAL(rv) ((rv) >= 1)
 #endif
 
+#if defined(_WIN32) || defined(WIN32)
+/* setting a default outgoing tc is not possible on Winsock */
+#define ECNBITS_TC_FATAL(rv) (rv)
+#elif defined(__linux__) && !defined(__ANDROID__)
+/* ignore failure to set outgoing tc on WSL 1 only (see tc.c) */
+#ifdef ECNBITS_INTERNAL
+#define ECNBITS_WSLCHECK
+#endif
+ECNBITS_EXPORTAPI int ecnbits_tcfatal(int);
+#define ECNBITS_TC_FATAL(rv) ecnbits_tcfatal(rv)
+#elif !defined(__linux__)
+/* ignore v4-mapped setup failure */
+#define ECNBITS_TC_FATAL(rv) ((rv) >= 2)
+#else
+/* require v4-mapped setup */
+#define ECNBITS_TC_FATAL(rv) ((rv) >= 1)
+#endif
+
 /* socket operations */
 ECNBITS_EXPORTAPI int ecnbits_prep(SOCKET fd, int af);
+ECNBITS_EXPORTAPI int ecnbits_tc(SOCKET fd, int af, unsigned char iptos);
 ECNBITS_EXPORTAPI SSIZE_T ecnbits_rdmsg(SOCKET fd, LPWSAMSG msg, int flags,
     unsigned short *ecnresult);
 
 /* utility functions */
-ECNBITS_EXPORTAPI int ecnbits_stoaf(SOCKET fd);
 ECNBITS_EXPORTAPI void *ecnbits_mkcmsg(void *buf, size_t *lenp, int af,
     unsigned char tc);
+ECNBITS_EXPORTAPI int ecnbits_stoaf(SOCKET fd);
 
 #if defined(_WIN32) || defined(WIN32)
 /* convenience functions: POSIXish sendmsg(2) and recvmsg(2) over Winsock2 */
@@ -136,6 +155,7 @@ struct ecnhll_rcv {
 };
 
 /* extra functions for better support for high-level languages */
+/* note error codes via WSAGetLastError and GetLastError (Win32) and errno */
 ECNBITS_EXPORTAPI int ecnhll_prep(SOCKET fd, int af);
 ECNBITS_EXPORTAPI int ecnhll_recv(SOCKET fd, void *buf, struct ecnhll_rcv *p);
 /* support code for Mono */

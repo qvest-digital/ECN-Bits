@@ -26,4 +26,6 @@ PROG=	server
 NOMAN=	Yes
 BINDIR:=# do not install
 
+server.o: ../util/ws2err.h
+
 include ${TOP}/BOTTOM.mk

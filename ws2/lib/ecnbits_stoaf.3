@@ -2,7 +2,7 @@
 .\"-
 .\" Copyright © 2008, 2009, 2010, 2016, 2018, 2020
 .\"	mirabilos <m@mirbsd.org>
-.\" Copyright © 2020
+.\" Copyright © 2020, 2023
 .\"	mirabilos <t.glaser@tarent.de>
 .\" Licensor: Deutsche Telekom
 .\"
@@ -82,7 +82,7 @@
 .\"
 .\" .Dd must come before the macropackage-specific setup code.
 .\"
-.Dd $Mdocdate: April 4 2023 $
+.Dd $Mdocdate: April 21 2023 $
 .\"
 .\" Check which macro package we use, and do other -mdoc setup.
 .\"
@@ -185,6 +185,12 @@ is set to indicate the error.
 On Winsock2,
 .Fn WSAGetLastError
 must be used to retrieve the error code.
+.Fn ecnbits_mkcmsg
+copies
+.Va errno
+from a failing
+.Xr calloc 3
+there.
 .Sh ERRORS
 .Fn ecnbits_stoaf
 returns any errors returned by
@@ -201,11 +207,11 @@ as well as
 if the passed
 .Ar *lenp
 is too small and
-.Er EAFNOSUPPORT
+.Er WSAEAFNOSUPPORT
 if the socket is not of a supported address family
 .Pq Li AF_INET No or Li AF_INET6 .
 .Pp
-Note: except on Winsock,
+Note:
 .Fn ecnbits_mkcmsg
 is guaranteed to not fail if the address family is correct,
 a buffer is given and of the appropriate size.
@@ -225,6 +231,17 @@ Within one program, the buffer size depends only on the address family.
 .Sh AUTHORS
 .An mirabilos Aq t.glaser@tarent.de
 for Deutsche Telekom.
+.Sh CAVEATS
+Be prepared to pass only
+.Li 0x00U Pq Dv ECNBITS_NON ,
+.Li 0x02U Pq Dv ECNBITS_ECT0
+or
+.Li 0x01U Pq Dv ECNBITS_ECT1
+to
+.Fn ecnbits_mkcmsg
+or have the call to
+.Xr sendmsg 2
+fail when keeping portability to Winsock2 in mind.
 .Sh LICENCE
 The MirOS Licence
 .Pq short name : Li MirBSD

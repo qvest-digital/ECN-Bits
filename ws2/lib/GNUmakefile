@@ -39,6 +39,7 @@ SRCS+=		recvfrom.c
 SRCS+=		recvmsg.c
 SRCS+=		short.c
 SRCS+=		stoaf.c
+SRCS+=		tc.c
 
 MAN+=		ECNBITS_VALID.3
 MAN+=		ecnbits_prep.3
@@ -51,6 +52,7 @@ MLINKS+=	ECNBITS_VALID.3 ECNBITS_BITS.3
 MLINKS+=	ECNBITS_VALID.3 ECNBITS_DESC.3
 MLINKS+=	ECNBITS_VALID.3 ECNBITS_DSCP.3
 MLINKS+=	ECNBITS_VALID.3 ECNBITS_TCOCT.3
+MLINKS+=	ecnbits_prep.3 ecnbits_tc.3
 MLINKS+=	ecnbits_rdmsg.3 ecnbits_recvmsg.3
 MLINKS+=	ecnbits_recvfrom.3 ecnbits_read.3
 MLINKS+=	ecnbits_recvfrom.3 ecnbits_recv.3

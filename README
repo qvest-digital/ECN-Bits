@@ -84,14 +84,14 @@ git clone -c core.symlinks=true https://github.com/tarent/ECN-Bits.git
     so all systems that the BSD/Linux/Mac/WSL runs on can be used modulo
     removed functionality (see below); applications needing to honour some
     Win32/Winsock2 specifics can remain portable)
+  ! native Winsock2 can set (per-packet) outgoing ECN bits to NO/ECT(0)/ECT(1)
+    but not CE and not the DSCP bits, nor a per-socket default
   • extra library exports for easier high-level language wrapping
   • manpages including preformatted plaintext form for GUI users
   • tested on Windows 10, versions 1909 (WSL 1, WinSock), 2004 (WSL 2)
-  ! the outgoing traffic class cannot, at all, be set on Windows and WSL 1
-  - so the examples don’t do it, the server just sends back one packet
-  - functions dealing with setting the outgoing tc were also removed
-  : Status: complete and builds a .dylib/.so/.DLL also used by .net library
-    HLL support functions under development
+  : Status: complete and builds a .dylib/.so/.DLL with HLL (.net) support code
+    HLL support functions working, but not declared external API
+  ! outgoing traffic class cannot at all be set on WSL 1
   ! WSL 2 in theory would work better than WSL 1 (as it uses the native
     Linux network stack) but the hypervisor side breaks networking in
     too many cases (no IPv6 support (up to that syscalls fail), lack of
@@ -103,11 +103,10 @@ git clone -c core.symlinks=true https://github.com/tarent/ECN-Bits.git
 
 – Windows/Linux, C♯/.net including Mono (also VB.net and other CLR languages)
   ‣ see dotnet/README
-  • being under development
-  : Status: Extension Method API works under GNU/Linux
+  : Status: Extension Method API works but this needs more eyes, actual users
 
 – iOS (Apple)
-  • being under development
+  • needs development
 
 – Windows/Android, Unity (game engine)/C♯/Mono
   • needs development
@@ -142,6 +141,9 @@ is a good example of how to actually adapt use of band‐
 width based on network conditions:
 ‣ https://github.com/EricssonResearch/scream
 
+DTAG and partners are currently researching integrating
+SCReAM and writing other adaptive algorithms.
+
 Another way to retrieve the IP traffic class (therefore
 also the ECN bits) is packet sniffing — while this adds
 latency and has concerns in production (security etc.),
@@ -152,3 +154,4 @@ The directory CONFLUENCE/ contains extra documentation,
 in both importable form (*.doc) and as PDF export, with
 a plaintext version to improve legibility and grepping,
 for this library and demo programs, with screenshots.
+This extra documentation tends to get out of date though.

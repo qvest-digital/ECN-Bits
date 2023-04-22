@@ -1,7 +1,7 @@
 ECNBITS_PREP(3)          BSD Library Functions Manual          ECNBITS_PREP(3)
 
 NAME
-     ecnbits_prep -- set up a socket to retrieve packets' ECN bits
+     ecnbits_prep, ecnbits_tc -- set up a socket to retrieve packets' ECN bits
 
 SYNOPSIS
      #include <sys/types.h>
@@ -16,9 +16,10 @@ SYNOPSIS
      int
      ecnbits_prep(SOCKET handle, int af);
 
-     Outside of Winsock2, the SOCKET type is just an int.
+     int
+     ecnbits_tc(SOCKET handle, int af, unsigned char iptos);
 
-     There is no equivalent for the UNIX variant ecnbits_tc() function.
+     Outside of Winsock2, the SOCKET type is just an int.
 
 DESCRIPTION
      The ecnbits_prep() function sets up a network socket (IPv6 or legacy
@@ -34,11 +35,39 @@ DESCRIPTION
      used with the socket (AF_INET6 or AF_INET); this is the same as the first
      argument to socket(2) (domain).  Only these address families are known.
 
+     The convenience function ecnbits_tc() function sets the default traffic
+     class outgoing packets are sent with.  This function is thread-safe.
+
+     The iptos value is expected to contain the traffic class octet intended
+     to be sent out with this socket; this can be one of the ECN values...
+
+     #define ECNBITS_NON     0 /* non-ECN-capable transport */
+     #define ECNBITS_ECT0    2 /* ECN-capable; L4S: legacy transport */
+     #define ECNBITS_ECT1    1 /* ECN-capable; L4S: L4S-aware transport */
+     #define ECNBITS_CE      3 /* congestion experienced */
+
+     ... possibly or'd with a system-provided value such as IPTOS_LOWDELAY, a
+     DSCP and/or class value or really anything appropriate.  The operating
+     system defaults usually to either 0 (ECNBITS_NON) or 2 (ECNBITS_ECT0).
+     Note that ISPs can change the traffic class of packets they transmit.
+
+     The iptos value is only used to set the default outgoing traffic class.
+     It can still be overridden by using sendmsg(2) with a suitable cmsg(3)
+     control message such as one created by ecnbits_mkcmsg(3); this technique
+     is demonstrated by the ECN-Bits server example.  In fact, as shown in the
+     client example, calling ecnbits_tc() is not needed if the technique is
+     used.  See CAVEATS below regarding Darwin/Mac OSX or Winsock2.
+
 RETURN VALUES
      The ecnbits_prep() function sets the global variable errno to indicate
      any problem and returns the value 2 on error, 1 if v4-mapped support
      could not be set up (compare against ECNBITS_PREP_FATAL (see EXAMPLES
      below) to determine if this should be ignored), and 0 on success.
+
+     The ecnbits_tc() function sets the global variable errno to indicate any
+     problem and returns the value 2 on error, 1 if v4-mapped support could
+     not be set up (compare against ECNBITS_TC_FATAL (see EXAMPLES below) to
+     determine if this should be ignored), and 0 on success.
 
      On Winsock2, WSAGetLastError() must be used to retrieve the error code.
 
@@ -52,7 +81,14 @@ EXAMPLES
            /* do other setsockopt, if needed */
            if (ECNBITS_PREP_FATAL(ecnbits_prep(handle, AF_INET6)))
                    err(1, "ecnbits_setup: incoming traffic class");
+           #ifdef DONTUSE_MKCMSG
+           if (ECNBITS_TC_FATAL(ecnbits_tc(handle, AF_INET6, ECNBITS_ECT0)))
+                   err(1, "ecnbits_setup: outgoing traffic class");
+           #endif
            /* connect, bind, etc. */
+
+     Note ECNBITS_TC_FATAL() silently ignores WSL 1 failures, but ecnbits_tc()
+     always fails on Winsock2 (i.e. native Windows(R)).
 
 ERRORS
      Besides the errors returned by the system calls used internally (cur-
@@ -78,8 +114,7 @@ STANDARDS
      MidnightBSD ip(4) or GNU/Linux ip(7) manual pages for legacy IPv4.
 
      The socket options for receiving the IP traffic class are also supported
-     on Windows(R) environments, although setting it on outgoing packets
-     isn't.
+     on Windows(R) environments, although setting the outgoing default isn't.
 
 AUTHORS
      mirabilos <t.glaser@tarent.de> for Deutsche Telekom.
@@ -90,10 +125,14 @@ CAVEATS
      It also works on Darwin (Mac OSX), except ecnbits_tc() cannot set the
      DSCP bits, only the ECN bits, on v4-mapped sockets.
 
+     Consider not using ecnbits_tc() but setting the outgoing ECN bits on each
+     individual packet using ecnbits_mkcmsg() and sendmsg(2) (even if they are
+     the same) due to Winsock2 only supporting the latter.
+
      EAFNOSUPPORT is used in its original POSIX meaning: The implementation
      does not support the specified address family.
 
 LICENCE
      The MirOS Licence (short name: MirBSD)
 
-ECN-Bits                        March 23, 2020                        ECN-Bits
+ECN-Bits                        April 21, 2023                        ECN-Bits

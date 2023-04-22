@@ -1,5 +1,5 @@
 /*-
- * Copyright © 2020, 2021
+ * Copyright © 2020, 2021, 2023
  *	mirabilos <t.glaser@tarent.de>
  * Licensor: Deutsche Telekom
  *
@@ -30,11 +30,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #endif
-#if defined(_WIN32) || defined(WIN32)
-#include "rpl_err.h"
-#else
-#include <err.h>
-#endif
 #include <errno.h>
 #if !(defined(_WIN32) || defined(WIN32))
 #include <netdb.h>
@@ -50,59 +45,72 @@
 #include <time.h>
 
 #include "ecn-bitw.h"
+#include "ws2err.h"
 
 #if defined(_WIN32) || defined(WIN32)
+#define iov_base	buf
+#define iov_len		len
+#define msg_name	name
+#define msg_namelen	namelen
+#define msg_iov		lpBuffers
+#define msg_iovlen	dwBufferCount
+#define msg_control	Control.buf
+#define msg_controllen	Control.len
+#define msg_flags	dwFlags
+#define sendmsg		ecnws2_sendmsg
 typedef int SOCKIOT;
 #else
 #define SSIZE_T		ssize_t
 typedef int SOCKET;
 #define INVALID_SOCKET	(-1)
 #define closesocket	close
-#define ws2warn		warn
 typedef SSIZE_T SOCKIOT;
 #define SOCKET_ERROR	((SOCKIOT)-1)
 #endif
 
 static int do_resolve(const char *host, const char *service);
-static int do_connect(int sfd);
+static int do_connect(SOCKET sfd, int af);
+
+static unsigned char out_tc = ECNBITS_ECT0;
+static unsigned char use_sendmsg = 0;
 
 #if defined(_WIN32) || defined(WIN32)
 static WSADATA wsaData;
-#endif
-
-#if defined(_WIN32) || defined(WIN32)
-static void
-ws2warn(const char *msg)
-{
-	int errcode = WSAGetLastError();
-	wchar_t *errstr = NULL;
-
-	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-	    NULL, errcode, 0, (LPWSTR)&errstr, 1, NULL) && *errstr) {
-		wchar_t wc;
-		size_t ofs = wcslen(errstr);
-		while (--ofs > 0 && ((wc = errstr[ofs]) == L'\r' || wc == L'\n'))
-			errstr[ofs] = L'\0';
-
-		warnx("%s: %S", msg, errstr);	/* would be %ls in POSIX but… */
-		LocalFree(errstr);
-	} else {
-		if (errstr)
-			LocalFree(errstr);
-		warnx("%s: Winsock error %d", msg, errcode);
-	}
-}
 #endif
 
 int
 main(int argc, char *argv[])
 {
 #if defined(_WIN32) || defined(WIN32)
-	if (WSAStartup(MAKEWORD(2,2), &wsaData))
-		errx(100, "could not initialise Winsock2");
+	int ec;
+
+	if ((ec = WSAStartup(MAKEWORD(2,2), &wsaData)))
+		ws2startuperr(100, ec, "could not initialise Winsock2");
 #endif
-	if (argc != 3)
-		errx(1, "Usage: %s servername port", argv[0]);
+	if (argc == 4) {
+		long mnum;
+		char *mep;
+
+		if (argv[3][0] == '!') {
+			use_sendmsg = 1;
+			++argv[3];
+		}
+
+		if (!strcmp(argv[3], "NO"))
+			out_tc = ECNBITS_NON;
+		else if (!strcmp(argv[3], "ECT0"))
+			out_tc = ECNBITS_ECT0;
+		else if (!strcmp(argv[3], "ECT1"))
+			out_tc = ECNBITS_ECT1;
+		else if (!strcmp(argv[3], "CE"))
+			out_tc = ECNBITS_CE;
+		else if ((mnum = strtol(argv[3], &mep, 0)) >= 0L &&
+		    mnum < 0x100L && mep != argv[3] && !*mep)
+			out_tc = (unsigned char)mnum;
+		else
+			errx(1, "Unknown traffic class: %s", argv[3]);
+	} else if (argc != 3)
+		errx(1, "Usage: %s servername port [tc]", argv[0]);
 
 	if (do_resolve(argv[1], argv[2]))
 		errx(1, "Could not connect to server or received no response");
@@ -126,81 +134,74 @@ do_resolve(const char *host, const char *service)
 	ap->ai_family = AF_UNSPEC;
 	ap->ai_socktype = SOCK_DGRAM;
 	ap->ai_flags = AI_ADDRCONFIG; /* note lack of AI_V4MAPPED */
-	switch ((i = getaddrinfo(host, service, ap, &ai))) {
-#if !(defined(_WIN32) || defined(WIN32))
-	case EAI_SYSTEM:
-		err(1, "getaddrinfo");
+	i = getaddrinfo(host, service, ap, &ai);
+	if (i) {
+#if defined(_WIN32) || defined(WIN32)
+		ws2err(1, "getaddrinfo");
+#else
+		if (i == EAI_SYSTEM)
+			err(1, "getaddrinfo");
+		else
+			errx(1, "%s: %s", "getaddrinfo", gai_strerror(i));
 #endif
-	default:
-		errx(1, "%s returned %s", "getaddrinfo", gai_strerror(i));
-	case 0:
-		break;
 	}
 	free(ap);
 
 	for (ap = ai; ap != NULL; ap = ap->ai_next) {
-		switch ((i = getnameinfo(ap->ai_addr, ap->ai_addrlen,
+		i = getnameinfo(ap->ai_addr, ap->ai_addrlen,
 		    nh, sizeof(nh), np, sizeof(np),
-		    NI_NUMERICHOST | NI_NUMERICSERV))) {
-#if !(defined(_WIN32) || defined(WIN32))
-		case EAI_SYSTEM:
-			warn("getnameinfo");
-			if (0)
+		    NI_NUMERICHOST | NI_NUMERICSERV);
+		if (i) {
+#if defined(_WIN32) || defined(WIN32)
+			ws2warn("getnameinfo");
+#else
+			if (i == EAI_SYSTEM)
+				warn("getnameinfo");
+			else
+				warnx("%s: %s", "getnameinfo", gai_strerror(i));
 #endif
-				/* FALLTHROUGH */
-		default:
-			  warnx("%s returned %s", "getnameinfo",
-			    gai_strerror(i));
 			fprintf(stderr, "Trying (unknown)...");
-			break;
-		case 0:
+		} else {
 			fprintf(stderr, "Trying [%s]:%s...", nh, np);
-			break;
 		}
 
 		if ((s = socket(ap->ai_family, ap->ai_socktype,
 		    ap->ai_protocol)) == INVALID_SOCKET) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("socket");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
-			warn("socket");
-#endif
+			ws2warn("socket");
 			continue;
 		}
 		if (ECNBITS_PREP_FATAL(ecnbits_prep(s, ap->ai_family))) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("ecnbits_setup: incoming traffic class");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
-			warn("ecnbits_setup: incoming traffic class");
-#endif
+			ws2warn("ecnbits_setup: incoming traffic class");
+			closesocket(s);
+			continue;
+		}
+		if (!use_sendmsg &&
+		    ECNBITS_TC_FATAL(ecnbits_tc(s, ap->ai_family, out_tc))) {
+			i = errno;
+			putc('\n', stderr);
+			errno = i;
+			ws2warn("ecnbits_setup: outgoing traffic class");
 			closesocket(s);
 			continue;
 		}
 
 		if (connect(s, ap->ai_addr, ap->ai_addrlen)) {
-#if defined(_WIN32) || defined(WIN32)
-			putc('\n', stderr);
-			ws2warn("connect");
-#else
 			i = errno;
 			putc('\n', stderr);
 			errno = i;
-			warn("connect");
-#endif
+			ws2warn("connect");
 			closesocket(s);
 			continue;
 		}
 
 		fprintf(stderr, " connected\n");
-		if (do_connect(s)) {
+		if (do_connect(s, ap->ai_family)) {
 			closesocket(s);
 			continue;
 		}
@@ -214,8 +215,26 @@ do_resolve(const char *host, const char *service)
 	return (rv);
 }
 
+static void
+now2buf(char *buf, size_t len)
+{
+	time_t tt;
+#if defined(_WIN32) || defined(WIN32)
+	struct tm tmptm;
+#endif
+
+	time(&tt);
+#if defined(_WIN32) || defined(WIN32)
+	if (gmtime_s(&tmptm, &tt) ||
+	    strftime(buf, len, "%FT%TZ", &tmptm) <= 0)
+#else
+	if (strftime(buf, len, "%FT%TZ", gmtime(&tt)) <= 0)
+#endif
+		snprintf(buf, len, "@%08llX", (unsigned long long)tt);
+}
+
 static int
-do_connect(int s)
+do_connect(SOCKET s, int af)
 {
 	char buf[512];
 	SOCKIOT nsend;
@@ -223,18 +242,43 @@ do_connect(int s)
 	struct pollfd pfd;
 	int rv = 1;
 	unsigned short ecn;
-	time_t tt;
 	char tm[21];
 	char tcs[3];
-#if defined(_WIN32) || defined(WIN32)
-	struct tm tmptm;
-#define brokendowntime &tmptm
-#else
-#define brokendowntime gmtime(&tt)
-#endif
 
 	memcpy(buf, "hi!", 3);
-	nsend = send(s, buf, 3, 0);
+	if (use_sendmsg) {
+#if defined(_WIN32) || defined(WIN32)
+		WSAMSG mh = {0};
+		WSABUF io;
+#else
+		struct msghdr mh = {0};
+		struct iovec io;
+#endif
+		void *cmsgbuf;
+		size_t cmsgsz;
+		SSIZE_T nsmsg;
+		int e;
+
+		if (!(cmsgbuf = ecnbits_mkcmsg(NULL, &cmsgsz, af, out_tc))) {
+			ws2warn("ecnbits_mkcmsg");
+			return (1);
+		}
+
+		io.iov_base = buf;
+		io.iov_len = 3;
+
+		mh.msg_iov = &io;
+		mh.msg_iovlen = 1;
+		mh.msg_control = cmsgbuf;
+		mh.msg_controllen = cmsgsz;
+		nsmsg = sendmsg(s, &mh, 0);
+		e = errno;
+		free(cmsgbuf);
+		errno = e;
+		nsend = nsmsg == (SSIZE_T)-1 ? SOCKET_ERROR : (SOCKIOT)nsmsg;
+	} else {
+		nsend = send(s, buf, 3, 0);
+	}
 	if (nsend == SOCKET_ERROR) {
 		ws2warn("send");
 		return (1);
@@ -262,13 +306,7 @@ do_connect(int s)
 		ws2warn("recv");
 		return (1);
 	}
-	time(&tt);
-	if ( /* gaaah! */
-#if defined(_WIN32) || defined(WIN32)
-	    gmtime_s(&tmptm, &tt) ||
-#endif
-	    strftime(tm, sizeof(tm), "%FT%TZ", brokendowntime) <= 0)
-		snprintf(tm, sizeof(tm), "@%08llX", (unsigned long long)tt);
+	now2buf(tm, sizeof(tm));
 	buf[nrecv] = '\0';
 	if (nrecv > 2 && buf[nrecv - 1] == '\n') {
 		buf[nrecv - 1] = '\0';

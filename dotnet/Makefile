@@ -63,14 +63,14 @@ clean: $(CLEAN:^unix=dos)
 
 unixclean:
 	rm -f *.bat *.stp
-	-cd ../ws2/lib && $(MAKE) clean
-	rm -rf bin/armhf bin/arm64 bin/amd64 bin/i386
-	rm -f bin/*.bat bin/*.dll bin/*.runtimeconfig.json \
-	    bin/*.so bin/*.so.* bin/*.sh
+	-cd ..$Yws2$Ylib && $(MAKE) clean
+	rm -rf bin$Yarmhf bin$Yarm64 bin$Yamd64 bin$Yi386
+	rm -f bin$Y*.bat bin$Y*.dll bin$Y*.runtimeconfig.json \
+	    bin$Y*.so bin$Y*.so.* bin$Y*.sh
 
 dosclean:
 	if exist *.stp (del *.stp)
-	-cd ..$Yws2$Ylib && $(MAKE) /nologo clean
+	-cd ..$Yws2$Ylib && $(MAKE) /nologo /$(MAKEFLAGS) clean
 	-rd /s /q bin$Yarmhf bin$Yarm64 bin$Yamd64 bin$Yi386 2>nul
 	if exist *.bat (del *.bat)
 	if exist bin$Y*.bat (del bin$Y*.bat)
@@ -80,35 +80,36 @@ dosclean:
 	rem if exist *.obj (del *.obj)
 
 windll:
-	..$Ytest-git /q
-	-cd ..$Yws2$Ylib && $(MAKE) /nologo clean
+	@..$Ytest-git /q
+	-cd ..$Yws2$Ylib && $(MAKE) /nologo /$(MAKEFLAGS) clean
 	-rd /s /q bin$Yarmhf bin$Yarm64 bin$Yamd64 bin$Yi386 2>nul
 	md bin$Yarmhf
 	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall" x86_arm && \
-	    cd ..$Yws2$Ylib && $(MAKE) /nologo
+	    cd ..$Yws2$Ylib && $(MAKE) /nologo /$(MAKEFLAGS)
 	copy ..$Yws2$Ybin$Yecn-bitw.dll bin$Yarmhf$Y
-	cd ..$Yws2$Ylib && $(MAKE) /nologo clean
+	cd ..$Yws2$Ylib && $(MAKE) /nologo /$(MAKEFLAGS) clean
 	md bin$Yarm64
 	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall" x86_arm64 && \
-	    cd ..$Yws2$Ylib && $(MAKE) /nologo
+	    cd ..$Yws2$Ylib && $(MAKE) /nologo /$(MAKEFLAGS)
 	copy ..$Yws2$Ybin$Yecn-bitw.dll bin$Yarm64$Y
-	cd ..$Yws2$Ylib && $(MAKE) /nologo clean
+	cd ..$Yws2$Ylib && $(MAKE) /nologo /$(MAKEFLAGS) clean
 	md bin$Yamd64
 	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall" x86_amd64 && \
-	    cd ..$Yws2$Ylib && $(MAKE) /nologo
+	    cd ..$Yws2$Ylib && $(MAKE) /nologo /$(MAKEFLAGS)
 	copy ..$Yws2$Ybin$Yecn-bitw.dll bin$Yamd64$Y
-	cd ..$Yws2$Ylib && $(MAKE) /nologo clean
+	cd ..$Yws2$Ylib && $(MAKE) /nologo /$(MAKEFLAGS) clean
 	md bin$Yi386
 	"$(VCINSTALLDIR)$YAuxiliary$YBuild$Yvcvarsall" x86 && \
-	    cd ..$Yws2$Ylib && $(MAKE) /nologo
+	    cd ..$Yws2$Ylib && $(MAKE) /nologo /$(MAKEFLAGS)
 	copy ..$Yws2$Ybin$Yecn-bitw.dll bin$Yi386$Y
-	cd ..$Yws2$Ylib && $(MAKE) /nologo clean
+	cd ..$Yws2$Ylib && $(MAKE) /nologo /$(MAKEFLAGS) clean
 	@echo stamp >windll.stp
 	rem --- Windows DLLs built for all architectures
 
 windll.stp:
-	$(MAKE) /nologo windll
+	$(MAKE) /nologo /$(MAKEFLAGS) windll
 
+# cf. https://stackoverflow.com/q/70238734/2171120
 dncscw.stp: mkdncsc.vbs
 	dotnet --info | cscript /nologo mkdncsc.vbs
 	ren dncsc.ba_ dncsc.bat
@@ -118,7 +119,7 @@ dncscw.stp: mkdncsc.vbs
 win: winbuild winrun
 
 winbuild: dncscw.stp windll.stp
-	..$Ytest-git /q
+	@..$Ytest-git /q
 	dncsc -nologo $(LIB_BUILD)
 	dncsc -nologo $(PROG_BUILD)
 	rem or: dncsc -platform:anycpu32bitpreferred $(PROG_BUILD)
@@ -130,15 +131,17 @@ winrun:
 	if not "$(args: =)"=="" bin$Y$(PROG_BASENAME).bat $(args)
 
 gnudll:
-	-cd ../ws2/lib && $(MAKE) clean
-	cd ../ws2/lib && $(MAKE) NOSTATIC=Yes
-	cp -a ../ws2/lib/libecn-bitw.so ../ws2/lib/libecn-bitw.so.* bin/
-	-cd ../ws2/lib && $(MAKE) clean
+	@..$Ytest-git /q
+	-cd ..$Yws2$Ylib && $(MAKE) clean
+	cd ..$Yws2$Ylib && $(MAKE) NOSTATIC=Yes
+	cp -a ..$Yws2$Ylib$Ylibecn-bitw.so ..$Yws2$Ylib$Ylibecn-bitw.so.* bin$Y
+	-cd ..$Yws2$Ylib && $(MAKE) clean
 	@echo stamp >gnudll.stp
 
 gnudll.stp:
 	$(MAKE) gnudll
 
+# cf. https://stackoverflow.com/q/70238734/2171120
 dncscu.stp: mkdncsc.awk mkdncsc.sh
 	dotnet --info | mksh mkdncsc.sh
 	mv dncsc.ba_ dncsc.bat
@@ -148,9 +151,10 @@ dncscu.stp: mkdncsc.awk mkdncsc.sh
 dotnet: dotnetbuild dotnetrun
 
 dotnetbuild: dncscu.stp gnudll.stp
-	./dncsc.bat -nologo $(LIB_BUILD)
-	./dncsc.bat -nologo $(PROG_BUILD)
-	./dnmkrtcf.bat >bin$Y$(PROG_BASENAME).runtimeconfig.json
+	@..$Ytest-git /q
+	.$Ydncsc.bat -nologo $(LIB_BUILD)
+	.$Ydncsc.bat -nologo $(PROG_BUILD)
+	.$Ydnmkrtcf.bat >bin$Y$(PROG_BASENAME).runtimeconfig.json
 	printf '%s\n' '#!/bin/sh' 'mydir=$$(dirname "$$0")' \
 	    'LD_LIBRARY_PATH=$$mydir$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH}' \
 	    'export LD_LIBRARY_PATH' \
@@ -159,11 +163,12 @@ dotnetbuild: dncscu.stp gnudll.stp
 	chmod a+x bin$Y$(PROG_BASENAME).sh
 
 dotnetrun:
-	test -z '$(args:'='\'')' || bin/$(PROG_BASENAME).sh $(args)
+	test -z '$(args:'='\'')' || bin$Y$(PROG_BASENAME).sh $(args)
 
 mono: monobuild monorun
 
 monobuild: gnudll.stp
+	@..$Ytest-git /q
 	mcs -nologo /unsafe $(LIB_BUILD)
 	mcs -nologo $(PROG_BUILD)
 	printf '%s\n' '#!/bin/sh' 'mydir=$$(dirname "$$0")' \
@@ -174,7 +179,7 @@ monobuild: gnudll.stp
 	chmod a+x bin$Y$(PROG_BASENAME)-mono.sh
 
 monorun:
-	test -z '$(args:'='\'')' || bin/$(PROG_BASENAME)-mono.sh $(args)
+	test -z '$(args:'='\'')' || bin$Y$(PROG_BASENAME)-mono.sh $(args)
 
 LSL=ls -l
 DIR=$(LSL:^ls -l=dir)

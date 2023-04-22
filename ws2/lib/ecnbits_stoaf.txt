@@ -46,21 +46,21 @@ RETURN VALUES
      and the global variable errno is set to indicate the error.
 
      On Winsock2, WSAGetLastError() must be used to retrieve the error code.
+     ecnbits_mkcmsg() copies errno from a failing calloc(3) there.
 
 ERRORS
      ecnbits_stoaf() returns any errors returned by getsockname(2) as well as
      WSAEAFNOSUPPORT if the socket is not of a supported address family.
 
      ecnbits_mkcmsg() returns any errors returned by calloc(3) as well as
-     ERANGE if the passed *lenp is too small and EAFNOSUPPORT if the socket is
-     not of a supported address family (AF_INET or AF_INET6).
+     ERANGE if the passed *lenp is too small and WSAEAFNOSUPPORT if the socket
+     is not of a supported address family (AF_INET or AF_INET6).
 
-     Note: except on Winsock, ecnbits_mkcmsg() is guaranteed to not fail if
-     the address family is correct, a buffer is given and of the appropriate
-     size.  If a previous call to ecnbits_mkcmsg() with the same address fam-
-     ily allocated a buffer, and that buffer and its size are reused, these
-     conditions are fulfilled.  Within one program, the buffer size depends
-     only on the address family.
+     Note: ecnbits_mkcmsg() is guaranteed to not fail if the address family is
+     correct, a buffer is given and of the appropriate size.  If a previous
+     call to ecnbits_mkcmsg() with the same address family allocated a buffer,
+     and that buffer and its size are reused, these conditions are fulfilled.
+     Within one program, the buffer size depends only on the address family.
 
 SEE ALSO
      getsockname(2), cmsg(3), ecnbits_prep(3), ip(4), ip6(4), ip(7), ipv6(7)
@@ -68,7 +68,12 @@ SEE ALSO
 AUTHORS
      mirabilos <t.glaser@tarent.de> for Deutsche Telekom.
 
+CAVEATS
+     Be prepared to pass only 0x00U (ECNBITS_NON), 0x02U (ECNBITS_ECT0) or
+     0x01U (ECNBITS_ECT1) to ecnbits_mkcmsg() or have the call to sendmsg(2)
+     fail when keeping portability to Winsock2 in mind.
+
 LICENCE
      The MirOS Licence (short name: MirBSD)
 
-ECN-Bits                         April 4, 2023                        ECN-Bits
+ECN-Bits                        April 21, 2023                        ECN-Bits
