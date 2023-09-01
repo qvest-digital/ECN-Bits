@@ -49,6 +49,23 @@
 #include "ecn-bitw.h"
 #include "ws2err.h"
 
+#ifndef HAVE_NI_WITHSCOPEID
+#ifdef NI_WITHSCOPEID
+#define HAVE_NI_WITHSCOPEID 1
+#else
+#define HAVE_NI_WITHSCOPEID 0
+#endif
+#endif
+
+#if HAVE_NI_WITHSCOPEID
+/* might cause trouble on old Solaris; undefine it then */
+#define NIF_ADDR NI_NUMERICHOST | NI_NUMERICSERV | NI_WITHSCOPEID
+#define NIF_FQDN NI_NAMEREQD | NI_NUMERICSERV | NI_WITHSCOPEID
+#else
+#define NIF_ADDR NI_NUMERICHOST | NI_NUMERICSERV
+#define NIF_FQDN NI_NAMEREQD | NI_NUMERICSERV
+#endif
+
 #if defined(_WIN32) || defined(WIN32)
 #define iov_base	buf
 #define iov_len		len
@@ -143,8 +160,7 @@ revlookup(const struct sockaddr *addr, socklen_t addrlen)
 	char nh[INET6_ADDRSTRLEN];
 	char np[/* 0‥65535 + NUL */ 6];
 
-	i = getnameinfo(addr, addrlen, nh, sizeof(nh), np, sizeof(np),
-	    NI_NUMERICHOST | NI_NUMERICSERV);
+	i = getnameinfo(addr, addrlen, nh, sizeof(nh), np, sizeof(np), NIF_ADDR);
 	if (i) {
 #if defined(_WIN32) || defined(WIN32)
 		ws2warn("getnameinfo");
