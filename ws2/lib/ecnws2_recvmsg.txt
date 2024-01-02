@@ -72,7 +72,7 @@ SEE ALSO
 
      https://docs.microsoft.com/en-us/windows/win32/api/winsock2/nf-winsock2-wsasendmsg
 
-     https://github.com/tarent/ECN-Bits - home of the ECN-Bits library
+     https://github.com/qvest-digital/ECN-Bits - home of the ECN-Bits library
 
 AUTHORS
      mirabilos <t.glaser@tarent.de> for Deutsche Telekom.

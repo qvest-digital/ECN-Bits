@@ -25,7 +25,7 @@ under “Allowing non-administrators to create symbolic links”
 (basically, on Windows 10 version 1703 “Creators Update” and
 newer, enable developer mode, otherwise set a group policy)
 to enable symlink support if needed, then re-clone with e.g.
-git clone -c core.symlinks=true https://github.com/tarent/ECN-Bits.git
+git clone -c core.symlinks=true https://github.com/qvest-digital/ECN-Bits.git
 
 ┌────────────────────────────────┐
 │ Covered operating environments │

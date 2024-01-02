@@ -104,7 +104,7 @@ SEE ALSO
      ecnbits_recvfrom(3), ecnws2_recvmsg(3), ip(4), ip6(4), ip(7), ipv6(7),
      socket(7), udp(7)
 
-     https://github.com/tarent/ECN-Bits
+     https://github.com/qvest-digital/ECN-Bits
          home of the ECN-Bits library
 
      https://github.com/EricssonResearch/scream

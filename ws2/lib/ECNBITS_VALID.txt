@@ -80,7 +80,7 @@ EXAMPLES
 SEE ALSO
      ecnbits_prep(3), ecnbits_rdmsg(3), ecnbits_recvfrom(3)
 
-     https://github.com/tarent/ECN-Bits
+     https://github.com/qvest-digital/ECN-Bits
          home of the ECN-Bits library
 
      https://github.com/EricssonResearch/scream

@@ -47,6 +47,23 @@
 #include "ecn-bitw.h"
 #include "ws2err.h"
 
+#ifndef HAVE_NI_WITHSCOPEID
+#ifdef NI_WITHSCOPEID
+#define HAVE_NI_WITHSCOPEID 1
+#else
+#define HAVE_NI_WITHSCOPEID 0
+#endif
+#endif
+
+#if HAVE_NI_WITHSCOPEID
+/* might cause trouble on old Solaris; undefine it then */
+#define NIF_ADDR NI_NUMERICHOST | NI_NUMERICSERV | NI_WITHSCOPEID
+#define NIF_FQDN NI_NAMEREQD | NI_NUMERICSERV | NI_WITHSCOPEID
+#else
+#define NIF_ADDR NI_NUMERICHOST | NI_NUMERICSERV
+#define NIF_FQDN NI_NAMEREQD | NI_NUMERICSERV
+#endif
+
 #if defined(_WIN32) || defined(WIN32)
 #define iov_base	buf
 #define iov_len		len
@@ -149,8 +166,7 @@ do_resolve(const char *host, const char *service)
 
 	for (ap = ai; ap != NULL; ap = ap->ai_next) {
 		i = getnameinfo(ap->ai_addr, ap->ai_addrlen,
-		    nh, sizeof(nh), np, sizeof(np),
-		    NI_NUMERICHOST | NI_NUMERICSERV);
+		    nh, sizeof(nh), np, sizeof(np), NIF_ADDR);
 		if (i) {
 #if defined(_WIN32) || defined(WIN32)
 			ws2warn("getnameinfo");
