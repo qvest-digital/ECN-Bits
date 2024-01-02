@@ -102,7 +102,7 @@ SEE ALSO
      https://tools.ietf.org/html/rfc3542.html
          Advanced Sockets API for IPv6
 
-     https://github.com/tarent/ECN-Bits
+     https://github.com/qvest-digital/ECN-Bits
          home of the ECN-Bits library
 
      https://github.com/EricssonResearch/scream

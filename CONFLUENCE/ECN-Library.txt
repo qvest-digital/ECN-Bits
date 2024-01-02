@@ -420,13 +420,13 @@ Technical details
  them to the ECN-Bits project or bundling it alongside your software
  will usually be sufficient.)
 
-	https://github.com/tarent/ECN-Bits/blob/master/android/ecn-lib/src/main/resources/META-INF/legal/de.telekom.llcto.ecn_bits.android/lib/COPYING
-	https://github.com/tarent/ECN-Bits/blob/master/android/ecn-lib/src/main/resources/META-INF/legal/de.telekom.llcto.ecn_bits.android/lib/LICENCE
+	https://github.com/qvest-digital/ECN-Bits/blob/master/android/ecn-lib/src/main/resources/META-INF/legal/de.telekom.llcto.ecn_bits.android/lib/COPYING
+	https://github.com/qvest-digital/ECN-Bits/blob/master/android/ecn-lib/src/main/resources/META-INF/legal/de.telekom.llcto.ecn_bits.android/lib/LICENCE
 
  The Android solution also includes parts of an independent module
  (Android libnativehelper) under the Apache 2 licence.
 
-	https://github.com/tarent/ECN-Bits/blob/master/android/ecn-lib/src/main/resources/META-INF/legal/de.telekom.llcto.ecn_bits.android/lib/LICENSE-2.0
+	https://github.com/qvest-digital/ECN-Bits/blob/master/android/ecn-lib/src/main/resources/META-INF/legal/de.telekom.llcto.ecn_bits.android/lib/LICENSE-2.0
 
  Note that all three of these licences apply to the ECN-Bits Android
  library, so all three must be adhered to: the Apache 2 licence for the
@@ -635,7 +635,7 @@ Download
  solutions outlined above, including extra documentation, can be
  downloaded from the public GitHub project:
 
-  • https://github.com/tarent/ECN-Bits
+  • https://github.com/qvest-digital/ECN-Bits
 
  Due to the fact that the libraries themselves are rather small, and the
  extra usage examples are the primary value of the repository, no

@@ -84,7 +84,7 @@ SEE ALSO
      recv(2), recvfrom(2), recvmsg(2), ECNBITS_BITS(3), ecnbits_prep(3),
      ecnbits_rdmsg(3), ecnws2_recvmsg(3)
 
-     https://github.com/tarent/ECN-Bits
+     https://github.com/qvest-digital/ECN-Bits
          home of the ECN-Bits library
 
      https://github.com/EricssonResearch/scream

@@ -12,7 +12,7 @@
 	<packaging>jar</packaging>
 	<name>${project.groupId}:${project.artifactId}</name>
 	<description>OpenJDK/JNI/Linux-native implementation of ECN-Bits library and sample UDP clients</description>
-	<url>https://github.com/tarent/ECN-Bits/tree/master/jdk</url>
+	<url>https://github.com/qvest-digital/ECN-Bits/tree/master/jdk</url>
 	<licenses>
 		<license>
 			<!-- short name: MirBSD -->
@@ -42,9 +42,9 @@
 		<rfc822.version>0.5</rfc822.version>
 	</properties>
 	<scm>
-		<connection>scm:git:https://github.com/tarent/ECN-Bits.git</connection>
+		<connection>scm:git:https://github.com/qvest-digital/ECN-Bits.git</connection>
 		<!-- https://issues.apache.org/jira/browse/MRELEASE-885 -->
-		<url>https://github.com/tarent/ECN-Bits/tree/master/jdk</url>
+		<url>https://github.com/qvest-digital/ECN-Bits/tree/master/jdk</url>
 	</scm>
 	<profiles>
 		<profile>
